@@ -246,6 +246,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
     // 过滤输入数据
     $config = filterInput($_POST);
 
+    // 检查覆盖安装选项（在过滤前获取原始值）
+    $coverInstall = isset($_POST['cover']) && $_POST['cover'] == '1';
+    $config['cover'] = $coverInstall ? '1' : '0';
+
     // 验证数据库配置
     $validationErrors = validateDatabaseConfig($config);
     if (!empty($validationErrors)) {
@@ -261,6 +265,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
     }
 
     try {
+        // 生成环境配置文件
+        $envConfig = generateEnvConfig($config);
+
         // 生成安全的配置文件
         $appConfig = getSecureAppConfig($config['admin_url'] ?? 'admin');
         $databaseConfig = getSecureDatabaseConfig($config);
@@ -269,6 +276,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
         if (!is_dir(CONFIG_PATH)) {
             mkdir(CONFIG_PATH, 0755, true);
         }
+
+        // 写入.env文件
+        $envFile = ROOT_PATH . '.env';
+        if (!file_put_contents($envFile, $envConfig)) {
+            throw new Exception('无法创建环境配置文件');
+        }
+
+        // 设置.env文件安全权限
+        chmod($envFile, 0600);
 
         // 写入配置文件
         if (!file_put_contents(CONFIG_PATH . 'app.php', $appConfig)) {
@@ -288,7 +304,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
         // 创建安装锁定文件
         $lockDir = INSTALL_PATH . 'lock';
         if (!is_dir($lockDir)) {
-            mkdir($lockDir, 0755, true);
+            if (!mkdir($lockDir, 0755, true)) {
+                throw new Exception('无法创建安装锁定目录: ' . $lockDir);
+            }
         }
 
         $lockContent = json_encode([
@@ -297,8 +315,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
             'admin_url' => $config['admin_url'] ?? 'admin'
         ]);
 
-        if (!file_put_contents($lockDir . DS . 'install.lock', $lockContent)) {
-            throw new Exception('无法创建安装锁定文件');
+        $lockFile = $lockDir . DS . 'install.lock';
+        $result = file_put_contents($lockFile, $lockContent);
+
+        if ($result === false) {
+            // 获取更详细的错误信息
+            $error = error_get_last();
+            $errorMsg = $error ? $error['message'] : '未知错误';
+            throw new Exception('无法创建安装锁定文件: ' . $lockFile . ' - ' . $errorMsg);
+        }
+
+        // 验证文件是否真的创建成功
+        if (!file_exists($lockFile)) {
+            throw new Exception('安装锁定文件创建后验证失败: ' . $lockFile);
         }
 
         echo json_encode(['code' => 1, 'msg' => '安装成功']);
@@ -308,6 +337,139 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isAjax() && !$errorInfo) {
         echo json_encode(['code' => 0, 'msg' => '安装失败: ' . $e->getMessage()]);
         exit;
     }
+}
+
+/**
+ * 生成环境配置文件内容
+ *
+ * @param array $config 安装配置
+ * @return string
+ */
+function generateEnvConfig(array $config): string
+{
+    $adminUrl = preg_replace('/[^a-zA-Z0-9_-]/', '', $config['admin_url'] ?? 'admin');
+    $appKey = 'base64:' . base64_encode(random_bytes(32));
+
+    return <<<EOT
+# =====================================================
+# 视频奖励平台环境配置文件
+# =====================================================
+#
+# 重要提醒：
+# 1. 此文件包含敏感信息，请勿提交到版本控制系统
+# 2. 生产环境请修改所有默认值
+# 3. 确保文件权限设置为 600 (仅所有者可读写)
+#
+# 自动生成时间: {DATE_PLACEHOLDER}
+# =====================================================
+
+# =====================================================
+# 应用基础配置
+# =====================================================
+
+# 应用调试模式 (生产环境设置为false)
+APP_DEBUG = true
+
+# 应用环境 (local/testing/production)
+APP_ENV = local
+
+# 应用密钥 (用于加密)
+APP_KEY = {$appKey}
+
+# 应用域名
+APP_HOST =
+
+# 应用URL
+APP_URL =
+
+# 默认时区
+APP_TIMEZONE = Asia/Shanghai
+
+# =====================================================
+# 数据库配置
+# =====================================================
+
+# 数据库类型
+DB_CONNECTION = mysql
+
+# 数据库服务器
+DB_HOST = {$config['hostname']}
+
+# 数据库端口
+DB_PORT = {$config['hostport']}
+
+# 数据库名称
+DB_DATABASE = {$config['database']}
+
+# 数据库用户名
+DB_USERNAME = {$config['username']}
+
+# 数据库密码
+DB_PASSWORD = {$config['password']}
+
+# 数据库表前缀
+DB_PREFIX = {$config['prefix']}
+
+# 数据库字符集
+DB_CHARSET = utf8mb4
+
+# =====================================================
+# 后台管理配置
+# =====================================================
+
+# 后台访问URL
+ADMIN_URL = {$adminUrl}
+
+# 后台会话超时时间 (分钟)
+ADMIN_SESSION_TIMEOUT = 120
+
+# 后台登录失败锁定时间 (分钟)
+ADMIN_LOGIN_LOCK_TIME = 30
+
+# =====================================================
+# 缓存配置
+# =====================================================
+
+# 缓存驱动 (file/redis/memcache)
+CACHE_DRIVER = file
+
+# =====================================================
+# 会话配置
+# =====================================================
+
+# 会话驱动 (file/redis/database)
+SESSION_DRIVER = file
+
+# 会话生命周期 (分钟)
+SESSION_LIFETIME = 120
+
+# =====================================================
+# 安全配置
+# =====================================================
+
+# CSRF保护开关
+CSRF_PROTECTION = true
+
+# XSS过滤开关
+XSS_FILTER = true
+
+# SQL注入防护开关
+SQL_INJECTION_FILTER = true
+
+# =====================================================
+# 性能优化配置
+# =====================================================
+
+# 开启OPcache
+OPCACHE_ENABLE = true
+
+# 开启页面压缩
+GZIP_ENABLE = true
+
+# 图片压缩质量 (1-100)
+IMAGE_QUALITY = 80
+
+EOT;
 }
 
 /**
@@ -345,7 +507,19 @@ use think\\facade\\Env;
 
 return [
     // 应用地址配置
-    'app_host' => Env::get('app.host', ''),
+    'app_host' => Env::get('APP_HOST', ''),
+
+    // 应用调试模式
+    'app_debug' => Env::get('APP_DEBUG', false),
+
+    // 应用环境
+    'app_env' => Env::get('APP_ENV', 'production'),
+
+    // 应用密钥
+    'app_key' => Env::get('APP_KEY', ''),
+
+    // 应用URL
+    'app_url' => Env::get('APP_URL', ''),
 
     // 应用的命名空间（留空使用默认）
     'app_namespace' => '',
@@ -363,15 +537,15 @@ return [
     'default_app' => 'index',
 
     // 默认时区设置
-    'default_timezone' => 'Asia/Shanghai',
+    'default_timezone' => Env::get('APP_TIMEZONE', 'Asia/Shanghai'),
 
     // 应用映射配置（多应用模式）
     'app_map' => [
-        Env::get('easyadmin.admin', '{$adminUrl}') => 'admin',
+        Env::get('ADMIN_URL', 'admin') => 'admin',
     ],
 
     // 后台访问别名（动态配置）
-    'admin_alias_name' => Env::get('easyadmin.admin', '{$adminUrl}'),
+    'admin_alias_name' => Env::get('ADMIN_URL', 'admin'),
 
     // 域名绑定配置（多应用模式）
     'domain_bind' => [],
@@ -446,9 +620,11 @@ function getSecureDatabaseConfig(array $config): string
 
 declare(strict_types=1);
 
+use think\\facade\\Env;
+
 return [
     // 默认数据库连接
-    'default' => 'mysql',
+    'default' => Env::get('DB_CONNECTION', 'mysql'),
 
     // 数据库连接配置信息
     'connections' => [
@@ -456,24 +632,24 @@ return [
             // 数据库类型
             'type' => 'mysql',
             // 服务器地址
-            'hostname' => '{$hostname}',
+            'hostname' => Env::get('DB_HOST', 'localhost'),
             // 数据库名
-            'database' => '{$database}',
+            'database' => Env::get('DB_DATABASE', ''),
             // 用户名
-            'username' => '{$username}',
+            'username' => Env::get('DB_USERNAME', ''),
             // 密码
-            'password' => '{$password}',
+            'password' => Env::get('DB_PASSWORD', ''),
             // 端口
-            'hostport' => '{$hostport}',
+            'hostport' => Env::get('DB_PORT', '3306'),
             // 数据库连接参数
             'params' => [
                 // 连接超时3秒
                 \\PDO::ATTR_TIMEOUT => 3,
             ],
             // 数据库编码默认采用utf8mb4
-            'charset' => 'utf8mb4',
+            'charset' => Env::get('DB_CHARSET', 'utf8mb4'),
             // 数据库表前缀
-            'prefix' => '{$prefix}',
+            'prefix' => Env::get('DB_PREFIX', ''),
             // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
             'deploy' => 0,
             // 数据库读写是否分离 主从式有效
@@ -527,8 +703,8 @@ function installDatabase(array $config): array
         }
 
         // 替换表前缀
-        $prefix = $config['prefix'] ?? 'ea_';
-        $sqlContent = str_replace('ea_', $prefix, $sqlContent);
+        $prefix = $config['prefix'] ?? 'ds_';
+        $sqlContent = str_replace('{prefix}', $prefix, $sqlContent);
 
         // 连接数据库
         $dsn = "mysql:host={$config['hostname']};port={$config['hostport']};dbname={$config['database']};charset=utf8mb4";
@@ -537,6 +713,24 @@ function installDatabase(array $config): array
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
         ]);
+
+        // 处理覆盖安装
+        if (isset($config['cover']) && $config['cover'] == '1') {
+            // 禁用外键检查
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+
+            // 获取所有表
+            $stmt = $pdo->query("SHOW TABLES");
+            $tables = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+            // 删除所有表（覆盖安装模式）
+            foreach ($tables as $table) {
+                $pdo->exec("DROP TABLE IF EXISTS `{$table}`");
+            }
+
+            // 重新启用外键检查
+            $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+        }
 
         // 分割SQL语句并执行
         $sqlStatements = array_filter(array_map('trim', explode(';', $sqlContent)));
@@ -547,13 +741,12 @@ function installDatabase(array $config): array
             }
         }
 
-        // 插入默认管理员账户
-        $adminPassword = password_hash('123456', PASSWORD_ARGON2ID);
-        $adminSql = "INSERT INTO `{$prefix}system_admin` (`id`, `auth_ids`, `username`, `nickname`, `password`, `create_time`, `update_time`, `login_time`, `login_num`, `status`) VALUES (1, '1', 'admin', '超级管理员', ?, ?, ?, 0, 0, 1)";
+        // 更新默认管理员密码（SQL文件中已包含默认数据）
+        $adminPassword = password_hash('admin123', PASSWORD_DEFAULT);
+        $updateAdminSql = "UPDATE `{$prefix}system_admin` SET `password` = ? WHERE `id` = 1";
 
-        $stmt = $pdo->prepare($adminSql);
-        $currentTime = time();
-        $stmt->execute([$adminPassword, $currentTime, $currentTime]);
+        $stmt = $pdo->prepare($updateAdminSql);
+        $stmt->execute([$adminPassword]);
 
         return ['success' => true, 'message' => '数据库安装成功'];
 
