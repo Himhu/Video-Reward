@@ -1,0 +1,117 @@
+{
+    "name": "video-reward-platform/refactored",
+    "description": "重构后的视频奖励平台 - 安全、现代化的PHP项目",
+    "type": "project",
+    "keywords": [
+        "video-platform",
+        "reward-system",
+        "thinkphp",
+        "refactored"
+    ],
+    "homepage": "https://github.com/Himhu/Video-Reward-Platform",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "迪迦奥特曼之父",
+            "email": "developer@video-reward-platform.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.0",
+        "ext-json": "*",
+        "ext-mbstring": "*",
+        "ext-openssl": "*",
+        "ext-pdo": "*",
+        "topthink/framework": "^6.0.0",
+        "topthink/think-orm": "^2.0",
+        "topthink/think-multi-app": "^1.0",
+        "topthink/think-view": "^1.0",
+        "topthink/think-captcha": "^3.0",
+        "doctrine/annotations": "^1.8",
+        "aliyuncs/oss-sdk-php": "^2.3",
+        "qcloud/cos-sdk-v5": "^2.0",
+        "qiniu/php-sdk": "^7.2",
+        "alibabacloud/client": "^1.5",
+        "jianyan74/php-excel": "^1.0",
+        "endroid/qrcode": "^4.4"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "^5.0",
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app/",
+            "App\\Admin\\": "app/admin/",
+            "App\\Api\\": "app/api/",
+            "App\\Common\\": "app/common/",
+            "App\\Frontend\\": "app/frontend/"
+        },
+        "files": [
+            "app/common/helper.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "config": {
+        "preferred-install": "dist",
+        "secure-http": true,
+        "optimize-autoloader": true,
+        "classmap-authoritative": false,
+        "apcu-autoloader": false,
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@php think service:discover",
+            "@php think vendor:publish"
+        ],
+        "post-install-cmd": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-update-cmd": [
+            "@php think optimize:clear"
+        ],
+        "test": [
+            "phpunit"
+        ],
+        "check-security": [
+            "@php think security:check"
+        ]
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://mirrors.cloud.tencent.com/composer/",
+            "options": {
+                "ssl": {
+                    "verify_peer": true
+                }
+            }
+        },
+        {
+            "type": "composer", 
+            "url": "https://packagist.org",
+            "options": {
+                "ssl": {
+                    "verify_peer": true
+                }
+            }
+        }
+    ],
+    "minimum-stability": "stable",
+    "prefer-stable": true,
+    "extra": {
+        "think": {
+            "app_namespace": "app",
+            "app_debug": false,
+            "app_trace": false
+        }
+    }
+}
