@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>vue-infinite-scroll</title>
+
+    <meta name="Cache-Control" content="public">
+    <meta name="keywords" content="">
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="screen-orientation" content="portrait">
+    <meta name="x5-orientation" content="portrait">
+    <meta name="full-screen" content="yes">
+    <meta name="x5-fullscreen" content="true">
+
+
+    <!-- 引入样式文件 -->
+    <link
+            rel="stylesheet"
+            href="https://cdn.jsdelivr.net/npm/vant@2.10/lib/index.css"
+    />
+
+
+    <link
+            rel="stylesheet"
+            href=" https://static.zhihu.com/xen/vipPrivilegesApps~normal-vip-privileges/vipPrivilegesApps~normal-vip-privileges.e3b0c442.c4d823ff2ea2a2b1657c.css"
+    />
+
+
+    <!-- 引入 Vue 和 Vant 的 JS 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6/dist/vue.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vant@2.10/lib/vant.min.js"></script>
+
+
+    <style>
+
+        .demo-dialog .f_img {
+            box-sizing: border-box;
+            width: 100%;
+            height: 184px;
+            padding: 0px 15px 0;
+        }
+
+        .pay_t .van-button--large {
+            background-image: -webkit-gradient(linear,left top,right top,from(#f8e2c4),to(#f3bb6c));
+            background-image: linear-gradient(90deg,#f8e2c4,#f3bb6c);
+            color: #FFFFFF;
+
+        }
+
+
+        .pay_t .van-dialog{
+            height: 80%;
+            overflow: scroll;
+        }
+
+        .pay_t img {
+            border: 0;
+            vertical-align: middle;
+        }
+        .center{ text-align:center}
+
+
+        .pay {
+            width: 100%;
+            height: 240px;
+            position: relative;
+            overflow: scroll;
+        }
+
+        .show {
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0
+        }
+
+        .show li {
+            width: 100%;
+            height: 60px;
+            line-height: 60px;
+            list-style: none;
+            background: #fff;
+            border-bottom: 1px solid #eee
+        }
+
+        .show img {
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .show input[type="radio"] {
+            display: none;
+        }
+
+        .show input[type="radio"] + span {
+            border: 1px solid #CCCCCC;
+            border-radius: 20px;
+            width: 20px;
+            height: 20px;
+            float: right;
+            margin-top: 20px;
+            margin-right: 20px;
+        }
+
+        .show input[type="radio"]:checked + span {
+            border: 1px solid #66c068;
+            border-radius: 20px;
+            background: url(./checkbox-on.png) no-repeat;
+            background-size: 20px 20px;
+        }
+
+        .showList {
+            width: 100%;
+            position: absolute;
+            top: 183px;
+            left: 0
+        }
+
+        .showList li {
+            width: 100%;
+            height: 60px;
+            line-height: 60px;
+            list-style: none;
+            background: #fff;
+            border-bottom: 1px solid #eee
+        }
+
+        .showList img {
+            width: 40px;
+            height: 40px;
+            margin-left: 10px;
+            margin-right: 10px;
+        }
+
+        .showList input[type="radio"] {
+            display: none;
+        }
+
+        .showList input[type="radio"] + span {
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            width: 20px;
+            height: 20px;
+            float: right;
+            margin-top: 20px;
+            margin-right: 20px;
+        }
+
+        .showList input[type="radio"]:checked + span {
+            border: 1px solid #66c068;
+            border-radius: 20px;
+            background: url(./checkbox-on.png) no-repeat;
+            background-size: 20px 20px;
+        }
+
+        label {
+            width: 100%;
+            height: 60px;
+            display: inline-block;
+        }
+
+
+        .book-recovery-bot2 {
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            height: 60px;
+            line-height: 60px;
+            background: #65bf67;
+        }
+
+        .book-recovery-bot2 div {
+            width: 100%;
+            height: 100%;
+            float: left;
+        }
+
+        .book-recovery-bot2 a {
+            color: #fff;
+            font-size: 0.75rem;
+            text-align: center;
+            display: block;
+        }
+
+        .payBottom {
+            width: 100%;
+            height: 60px;
+            line-height: 60px;
+            text-align: center;
+            background: #65bf67;
+            color: #fff;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            font-size: 16px
+        }
+
+        .payBottom li {
+            width: 50%;
+            height: 60px;
+            float: left
+        }
+
+        .payBottom span {
+            font-size: 24px;
+            margin-top: 10px
+        }
+
+
+    </style>
+
+
+</head>
+<body>
+
+<div id="app">
+
+
+    <div class="pay_t">
+    <van-dialog v-model="show"  :before-close="onBeforeClose" title="标222题"  showConfirmButton  confirm-button-text="立即支付" class="demo-dialog">
+        <img  class="f_img" src="https://img.yzcdn.cn/vant/apple-3.jpg"/>
+
+
+        <div data-za-module="Content" data-za-detail-view-name="会员套餐" data-za-detail-view-path-module_name="会员套餐"
+             data-za-module-info="{}">
+            <div class="Section-root-eh6ZG NewPayMenu-section-uNgLW">
+                <div class="Section-header-7vfdK NewPayMenu2-header-eN6f5">
+                    <div class="Section-titleWrapper-vYWbC">
+                        <div class="Section-title-6pXgn">会员套餐——————————<span class="Section-titleSupplement-ThFKn"></span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ScrollX-root-myh7K">
+            <div class="ScrollX-wrap-gzRqs">
+                <div class="ScrollX-scroll-qPdwK NewPayMenu2-scrollContent-mC7Pf">
+                    <div class="PayMenu-menu-seXFD NewPayMenu2-payMenuItem-qhDtn PayMenu-active-p3nX3">
+                        <div class="PayMenu-recommend-4QKWN">
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelLeft-qH49U"
+                                 src="https://pic1.zhimg.com/v2-678ab857e8364e8e97c47cae30916766.png" theme="light">
+                                <div style="width:13px;padding-top:100%"></div>
+                                <img class="Image-image-iKEPH" width="13" height="13"
+                                     src="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 2x, https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 3x">
+                            </div>
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelRight-bJSJc"
+                                 src="https://pic3.zhimg.com/v2-aa7ea52e39b64ea5a5cfb2f5026727d2.png" theme="light">
+                                <div style="width:23px;padding-top:43.47826086956522%"></div>
+                                <img class="Image-image-iKEPH" width="23" height="10"
+                                     src="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp 2x, https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_200x0.webp 3x">
+                            </div>
+                            首次开通
+                        </div>
+                        <div class="PayMenu-title-gSdJN PayMenu-activeTitle-jWbmP">单片</div>
+                        <div class="PayMenu-price-5UYnc"><span class="PayMenu-unit-uD2HM">¥</span>9</div>
+                        <div class="PayMenu-descriptionCoatainer-5Faoa">
+                            <div class="RichText-richText-61Run PayMenu-description-4j4FX">次月￥19, 自动续费随时取消</div>
+                        </div>
+                    </div>
+
+
+                    <div class="PayMenu-menu-seXFD NewPayMenu2-payMenuItem-qhDtn">
+                        <div class="PayMenu-recommend-4QKWN PayMenu-yearLabel-3bo95">
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelLeft-qH49U"
+                                 src="https://pic1.zhimg.com/v2-678ab857e8364e8e97c47cae30916766.png" theme="light">
+                                <div style="width:13px;padding-top:100%"></div>
+                                <img class="Image-image-iKEPH" width="13" height="13"
+                                     src="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 2x, https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 3x">
+                            </div>
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelRight-bJSJc"
+                                 src="https://pic3.zhimg.com/v2-aa7ea52e39b64ea5a5cfb2f5026727d2.png" theme="light">
+                                <div style="width:23px;padding-top:43.47826086956522%"></div>
+                                <img class="Image-image-iKEPH" width="23" height="10"
+                                     src="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp 2x, https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_200x0.webp 3x">
+                            </div>
+                            VIP线路超清
+                        </div>
+                        <div class="PayMenu-title-gSdJN">包日</div>
+                        <div class="PayMenu-price-5UYnc"><span class="PayMenu-unit-uD2HM">¥</span>198</div>
+                        <div class="PayMenu-descriptionCoatainer-5Faoa">
+                            <div class="RichText-richText-61Run PayMenu-description-4j4FX">
+                                立省 ¥220，自动续费随时取消
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="PayMenu-menu-seXFD NewPayMenu2-payMenuItem-qhDtn">
+                        <div class="PayMenu-recommend-4QKWN PayMenu-yearLabel-3bo95">
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelLeft-qH49U"
+                                 src="https://pic1.zhimg.com/v2-678ab857e8364e8e97c47cae30916766.png" theme="light">
+                                <div style="width:13px;padding-top:100%"></div>
+                                <img class="Image-image-iKEPH" width="13" height="13"
+                                     src="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 2x, https://pic1.zhimg.com/50/v2-678ab857e8364e8e97c47cae30916766_l.webp 3x">
+                            </div>
+                            <div class="Image-imageWrapper-7zqcD PayMenu-labelRight-bJSJc"
+                                 src="https://pic3.zhimg.com/v2-aa7ea52e39b64ea5a5cfb2f5026727d2.png" theme="light">
+                                <div style="width:23px;padding-top:43.47826086956522%"></div>
+                                <img class="Image-image-iKEPH" width="23" height="10"
+                                     src="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp"
+                                     srcset="https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_l.webp 2x, https://pic1.zhimg.com/50/v2-aa7ea52e39b64ea5a5cfb2f5026727d2_200x0.webp 3x">
+                            </div>
+                            超值优惠特价
+                        </div>
+                        <div class="PayMenu-title-gSdJN">包月</div>
+                        <div class="PayMenu-price-5UYnc"><span class="PayMenu-unit-uD2HM">¥</span>198</div>
+                        <div class="PayMenu-descriptionCoatainer-5Faoa">
+                            <div class="RichText-richText-61Run PayMenu-description-4j4FX">
+                                立省 ¥220，自动续费随时取消
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="pay">
+            <div class="show">
+                <li><label><img src="images/weixin.png">微信支付<input name="Fruit" type="radio" value="" checked=""><span></span></label> </li>
+                <li><label><img src="images/zhifubao.png">支付宝支付<input name="Fruit" type="radio" value=""><span></span></label> </li>
+                <li><label><img src="images/yue.png">余额支付<input name="Fruit" type="radio" value=""><span></span></label> </li>
+                <li class="center">查看更多支付方式↓</li>
+            </div>
+            <div class="showList" id="showdiv" style="display: none">
+                <li><label><img src="images/yinhang.png">银行卡<input name="Fruit" type="radio" value=""><span></span></label> </li>
+                <li><label><img src="images/weixin.png">添加更多<input name="Fruit" type="radio" value=""><span></span></label> </li>
+            </div>
+        </div>
+
+
+    </van-dialog>
+    </div>
+
+</div>
+
+
+<script>
+    // 在 #app 标签下渲染一个按钮组件
+
+    Vue.use(vant.Lazyload);
+    Vue.use(vant.Dialog);
+    new Vue({
+        el: '#app',
+        data: {
+            show: true,
+        },
+        methods:{
+            onBeforeClose:function(action, done){
+                alert(action ,done);
+                if (action === 'confirm') {
+                    setTimeout(done, 1000);
+                } else {
+                    done();
+                }
+            }
+        }
+    });
+
+
+
+
+
+</script>
+
+
+</body>
+</html>

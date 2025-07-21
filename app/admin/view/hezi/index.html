@@ -1,0 +1,152 @@
+<style>
+
+
+    .layui-tab-item {
+        padding-top: 5px;
+    }
+
+    .layui-tab-content {
+        padding: 0;
+    }
+
+    .card-item {
+        padding: 10px;
+        transition: all .3s;
+    }
+    .card-item:hover{
+        box-shadow:3px 6px 11px 0 #5fb878;
+        transform: translate(-3px,-3px);
+        transition: all .3s;
+    }
+
+    .header-items {
+        display: inline-block;
+        width: 32%;
+    }
+
+    .footer-items {
+        display: inline-block;
+        width: 49%;
+        cursor: pointer;
+    }
+
+    .footer-items:nth-child(1) {
+        border-right: 1px solid #f6f6f6;
+    }
+
+    .layui-card-footer {
+        position: relative;
+        height: 35px;
+        line-height: 35px;
+        padding: 0 15px;
+        border-top: 1px solid #f6f6f6;
+        color: #333;
+        border-radius: 2px 2px 0 0;
+        font-size: 14px;
+    }
+
+    .layui-card-header {
+        position: relative;
+        height: 35px;
+        line-height: 35px;
+        padding: 0 15px;
+        border-bottom: 1px solid #f6f6f6;
+        color: #333;
+        border-radius: 2px 2px 0 0;
+        font-size: 14px;
+    }
+
+    .body-item {
+        text-align: center;
+        display: inline-block;
+        width: 100%;
+        height: 25px;
+        line-height: 25px;
+    }
+    .delete-items{
+        cursor: pointer;
+    }
+
+    .item-url {
+        color: #5FB878;
+        font-weight: bold;
+        font-size: 20px;
+        width: 77%;
+        margin-left: 15%;
+        cursor: pointer;
+    }
+    .item-url:hover{
+        text-decoration: underline;
+        color: #393D49;
+    }
+
+    .layui-card {
+        box-shadow: 0 1px 14px 0 rgb(0 0 0 / 5%);
+    }
+
+    @media screen and (max-width: 420px) {
+        .header-items:nth-child(1) {
+            width: 45%;
+        }
+
+        .header-items:nth-child(2) {
+            width: 40%;
+        }
+
+        .header-items:nth-child(3) {
+            width: 5%;
+        }
+    }
+
+
+</style>
+
+
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+
+        <blockquote class="layui-elem-quote"  style="margin-bottom: 15px;">
+            推广链接说明:
+            <br>
+            全新推广模式
+            <br>
+            建议使用独享域名进行分流推广
+            <br>
+            全新模式数百营销互动玩法，实现引流拓客。
+            <br>
+            【推广链接】生成简约款推广链接【短视频链接】生成短视频裂变版链接
+        </blockquote>
+
+
+        <div class="layui-tab layui-tab-brief " lay-filter="docDemoTabBrief">
+            <ul class="layui-tab-title">
+                <li class="layui-this">推广链接</li>
+                <li>短视频链接</li>
+
+            </ul>
+            <div class="layui-tab-content" style="height: 100%;">
+                <div class="layui-tab-item layui-show" style="background-color: #f2f2f2">
+                    <div class="layui-row">
+                        <button type="button" data-active_index="1" class="layui-btn layui-btn-sm addpush layui-btn-normal">生成推广链接</button>
+                        <button type="button" data-active_index="1" class="layui-btn layui-btn-sm buydomain layui-btn-warm">购买分流域名</button>
+                    </div>
+                    <div class="layui-row card-box box-1" style="margin-top: 10px;"></div>
+                </div>
+                <div class="layui-tab-item " style="background-color: #f2f2f2">
+                    <div class="layui-row">
+                        <button type="button" data-active_index="2" class="layui-btn layui-btn-sm addpush layui-btn-normal">生成推广链接</button>
+                        <button type="button" data-active_index="2" class="layui-btn layui-btn-sm buydomain layui-btn-warm">购买分流域名</button>
+                    </div>
+                    <div class="layui-row card-box box-2" style="margin-top: 10px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+
+    var  value = "{$config['value']}";
+    var  ff_url = "{$ff_url['value']}";
+</script>
