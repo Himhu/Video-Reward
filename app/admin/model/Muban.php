@@ -27,8 +27,8 @@ class Muban extends TimeModel
 
     public function Admins()
     {
-        // 用户资料表的uid 对应用户表的主键id
-        return $this->hasOne(SystemAdmin::class, 'id' , "uid");
+        // 用户资料表的uid 对应代理表的主键id - 适配新权限系统
+        return $this->hasOne(Agent::class, 'id' , "uid");
     }
 
 }

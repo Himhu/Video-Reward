@@ -575,15 +575,21 @@ if (!function_exists('getShort')) {
 }
 
 /**
- * 权限检查函数
+ * 权限检查函数 - 新权限管理系统
+ * 基于AuthHelper的权限验证
  * @param string $node 需要检测的节点
  * @return bool
  */
 if (!function_exists('auth')) {
     function auth($node = null)
     {
-        $authService = new \app\common\service\AuthService(session('admin.id'));
-        return $authService->checkNode($node);
+        try {
+            // 使用新的AuthHelper进行权限验证
+            return \app\common\helper\AuthHelper::checkNode($node);
+        } catch (\Exception $e) {
+            // 异常情况下返回false，确保安全
+            return false;
+        }
     }
 }
 

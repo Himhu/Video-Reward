@@ -1,17 +1,38 @@
+<!-- +----------------------------------------------------------------------
+| 角色权限分配页面 - 新权限管理系统
++----------------------------------------------------------------------
+| 最后修改：2025-01-21 - 前端界面适配 - 权限分配界面重构
+| 修改内容：适配新的RBAC权限体系，支持模块化权限分配
+| 新架构：基于Permission::getPermissionSelector()的权限分配界面
+| 兼容性：LayUI、EasyAdmin框架、新权限管理系统v3.0
++---------------------------------------------------------------------- -->
+
 <div class="layuimini-container">
     <form id="app-form" class="layui-form layuimini-form">
 
         <div class="layui-form-item">
-            <label class="layui-form-label required">权限名称</label>
+            <label class="layui-form-label required">角色名称</label>
             <div class="layui-input-block">
-                <input type="text" name="title" readonly class="layui-input" value="{$row.title|default=''}">
+                <input type="text" name="title" readonly class="layui-input" value="{$row.name|default=''}">
             </div>
         </div>
 
         <div class="layui-form-item">
-            <label class="layui-form-label required">分配节点</label>
+            <label class="layui-form-label">角色描述</label>
             <div class="layui-input-block">
-                <div id="node_ids" class="demo-tree-more"></div>
+                <input type="text" name="description" readonly class="layui-input" value="{$row.description|default=''}">
+            </div>
+        </div>
+
+        <div class="layui-form-item">
+            <label class="layui-form-label required">分配权限</label>
+            <div class="layui-input-block">
+                <div class="layui-text">
+                    <p style="color: #666; font-size: 12px; margin-bottom: 10px;">
+                        权限按模块分组显示：系统管理、代理管理、内容管理、支付管理、报表统计、配置管理
+                    </p>
+                </div>
+                <div id="node_ids" class="demo-tree-more" style="max-height: 400px; overflow-y: auto; border: 1px solid #e6e6e6; padding: 10px;"></div>
             </div>
         </div>
 
@@ -19,7 +40,7 @@
 
         <div class="hr-line"></div>
         <div class="layui-form-item text-center">
-            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="system.auth/saveAuthorize">确认</button>
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="system.auth/saveAuthorize">确认分配</button>
             <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
         </div>
 

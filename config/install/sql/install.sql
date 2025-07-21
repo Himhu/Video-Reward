@@ -132,10 +132,13 @@ CREATE TABLE `{prefix}permissions` (
   `slug` varchar(100) NOT NULL COMMENT '权限标识',
   `module` varchar(50) NOT NULL COMMENT '所属模块',
   `description` varchar(255) DEFAULT NULL COMMENT '权限描述',
+  `status` enum('active','inactive') NOT NULL DEFAULT 'active' COMMENT '状态',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_slug` (`slug`),
-  KEY `idx_module` (`module`)
+  KEY `idx_module` (`module`),
+  KEY `idx_status` (`status`),
+  KEY `idx_module_status` (`module`, `status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='权限表';
 
 -- 角色权限关联表

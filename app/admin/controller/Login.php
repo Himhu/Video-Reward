@@ -1,17 +1,18 @@
 <?php
 // +----------------------------------------------------------------------
-// | 控制器名称：登录控制器
+// | 控制器名称：登录控制器 - 新权限管理系统
 // +----------------------------------------------------------------------
-// | 控制器功能：处理管理员登录、注册、登出和身份验证相关操作
-// | 包含操作：登录、注册、登出、验证码生成、密码重置等
-// | 主要职责：管理系统用户的身份验证和会话管理
+// | 最后修改：2025-01-21 - 登录控制器重构 - 认证系统升级
+// | 修改内容：集成新的AuthenticationService，替代旧的SystemAdmin模型
+// | 新架构：基于RBAC权限体系的用户认证和会话管理
+// | 兼容性：PHP 7.4+、ThinkPHP 6.x、新数据库架构v3.0
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller;
 
-
-use app\admin\model\SystemAdmin;
+use app\admin\model\Agent;
 use app\common\controller\AdminController;
+use app\common\service\AuthenticationService;
 use think\captcha\facade\Captcha;
 use think\facade\Db;
 use think\facade\Env;
@@ -25,6 +26,11 @@ use think\exception\HttpResponseException;
  */
 class Login extends AdminController
 {
+    /**
+     * 认证服务
+     * @var AuthenticationService
+     */
+    protected $authService;
 
 
 
@@ -36,8 +42,8 @@ class Login extends AdminController
     protected $number = null;
     public function initialize()
     {
-        
-        
+
+
         $sign = $this->psign();
         $key = "ds_3wo#cao3ni2ma/s!#%@A/SD##!@**@!_+@112_13!123@22$$@!!~";
         $signs = md5($key.$sign['time']);
@@ -45,17 +51,21 @@ class Login extends AdminController
         {
             exit("傻逼，表哥的东西也是你能破解的吗？回家在练练吧。Author: 老表只要你健康 <201912782@qq.com> ");
         }
-        
-        
-        
-        
 
-        
-        
-        
-        
-        
+
+
+
+
+
+
+
+
+
         parent::initialize();
+
+        // 初始化认证服务
+        $this->authService = new AuthenticationService();
+
         $action = $this->request->action();
         if (!empty(session('admin')) && !in_array($action, ['out'])) {
             $adminModuleName = config('app.admin_alias_name');
@@ -128,7 +138,7 @@ class Login extends AdminController
             unset($post['ypm'],$post['captcha'],$post['s']);
             Db::startTrans();
             try {
-                $id = (new SystemAdmin())->insertGetId($post);
+                $id = (new Agent())->insertGetId($post);
                 $this->number->where(['number' => $ypm])->save(['status' => 1,'ua' => $id , 'activate_time' => time()]);
                 //分配域名
 //                $domain  = (new \app\admin\model\DomainRule())->where(['status' => 1])->find();
@@ -153,7 +163,7 @@ class Login extends AdminController
             }
 
             //登陆
-            $admin = SystemAdmin::where(['username' => $post['username']])->find();
+            $admin = Agent::where(['username' => $post['username']])->find();
             $admin->login_num += 1;
             $admin->save();
             $admin = $admin->toArray();
@@ -169,11 +179,175 @@ class Login extends AdminController
     }
 
     /**
-     * 用户登录
-     * @return string
+     * 用户登录 - 新权限管理系统
+     * 基于AuthenticationService的登录认证
+     * @return string|\think\Response
      * @throws \Exception
      */
     public function index()
+    {
+        $captcha = Env::get('easyadmin.captcha', 1);
+
+        // 如果已经登录，跳转到首页
+        if ($this->authService->isLoggedIn()) {
+            $adminModuleName = config('app.admin_alias_name');
+            $this->redirect(__url("@{$adminModuleName}"));
+        }
+
+        if ($this->request->isPost()) {
+            return $this->handleNewLogin();
+        }
+
+        // 显示登录页面
+        $this->assign('captcha', $captcha);
+        $this->assign('demo', $this->isDemo);
+        return $this->fetch();
+    }
+
+    /**
+     * 处理新登录请求
+     * 使用AuthenticationService进行认证
+     * @return \think\Response
+     */
+    protected function handleNewLogin()
+    {
+        try {
+            $post = $this->request->post();
+            $captcha = Env::get('easyadmin.captcha', 1);
+
+            // 数据验证
+            $rule = [
+                'username|用户名' => 'require|length:3,50',
+                'password|密码' => 'require|length:6,255',
+                'keep_login|保持登录' => 'boolean',
+            ];
+
+            // 如果启用验证码，添加验证码验证
+            if ($captcha == 1) {
+                $rule['captcha|验证码'] = 'require|captcha';
+            }
+
+            $this->validate($post, $rule);
+
+            // 获取设备指纹
+            $deviceFingerprint = $this->getDeviceFingerprint();
+
+            // 执行登录
+            $result = $this->authService->login(
+                $post['username'],
+                $post['password'],
+                $deviceFingerprint,
+                !empty($post['keep_login'])
+            );
+
+            if ($result['success']) {
+                // 登录成功，记录日志
+                $this->logLoginSuccess($post['username'], $deviceFingerprint);
+
+                $adminModuleName = config('app.admin_alias_name');
+                $this->success($result['message'], [], __url("@{$adminModuleName}"));
+            } else {
+                // 登录失败，记录日志
+                $this->logLoginFailure($post['username'], $result['message']);
+                $this->error($result['message']);
+            }
+
+        } catch (\Exception $e) {
+            // 异常处理
+            $this->logLoginError($e->getMessage());
+            $this->error('登录异常：' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 获取设备指纹
+     * @return string 设备指纹
+     */
+    protected function getDeviceFingerprint()
+    {
+        $userAgent = $this->request->header('User-Agent', '');
+        $ip = $this->request->ip();
+        $acceptLanguage = $this->request->header('Accept-Language', '');
+
+        return md5($userAgent . $ip . $acceptLanguage);
+    }
+
+    /**
+     * 记录登录成功日志
+     * @param string $username 用户名
+     * @param string $deviceFingerprint 设备指纹
+     */
+    protected function logLoginSuccess($username, $deviceFingerprint)
+    {
+        $this->writeLoginLog('login_success', [
+            'username' => $username,
+            'ip' => $this->request->ip(),
+            'user_agent' => $this->request->header('User-Agent'),
+            'device_fingerprint' => $deviceFingerprint,
+        ]);
+    }
+
+    /**
+     * 记录登录失败日志
+     * @param string $username 用户名
+     * @param string $reason 失败原因
+     */
+    protected function logLoginFailure($username, $reason)
+    {
+        $this->writeLoginLog('login_failure', [
+            'username' => $username,
+            'reason' => $reason,
+            'ip' => $this->request->ip(),
+            'user_agent' => $this->request->header('User-Agent'),
+        ]);
+    }
+
+    /**
+     * 记录登录异常日志
+     * @param string $error 异常信息
+     */
+    protected function logLoginError($error)
+    {
+        $this->writeLoginLog('login_error', [
+            'error' => $error,
+            'ip' => $this->request->ip(),
+            'user_agent' => $this->request->header('User-Agent'),
+        ]);
+    }
+
+    /**
+     * 写入登录日志
+     * @param string $type 日志类型
+     * @param array $data 日志数据
+     */
+    protected function writeLoginLog($type, $data)
+    {
+        try {
+            $logDir = runtime_path() . 'log/auth/';
+            if (!is_dir($logDir)) {
+                mkdir($logDir, 0755, true);
+            }
+
+            $logFile = $logDir . 'login_' . date('Ymd') . '.log';
+            $logData = [
+                'time' => date('Y-m-d H:i:s'),
+                'type' => $type,
+                'data' => $data,
+            ];
+
+            file_put_contents($logFile, json_encode($logData, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
+
+        } catch (\Exception $e) {
+            // 日志写入失败时不抛出异常，避免影响主流程
+        }
+    }
+
+    /**
+     * 旧版登录方法（保留作为备用）
+     * @return string
+     * @throws \Exception
+     */
+    public function indexOld()
     {
         // 添加错误捕获
         try {
@@ -186,17 +360,17 @@ class Login extends AdminController
                 }
                 $log_file = $log_dir . 'login_debug_' . date('Ymd') . '.log';
                 $post = $this->request->post();
-                
+
                 // 将密码原值保存，用于后续验证
                 $original_password = $post['password'] ?? '';
-                
+
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 登录请求: ' . json_encode([
                     'username' => $post['username'] ?? '',
                     'password' => $original_password,
                     'captcha' => $post['captcha'] ?? '',
                     'keep_login' => $post['keep_login'] ?? 0
                 ], JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-                
+
                 if(isset($post['ypm']))
                 {
                     return $this->reg();
@@ -206,7 +380,7 @@ class Login extends AdminController
                     'password|密码'       => 'require',
                     'keep_login|是否保持登录' => 'require',
                 ];
-                
+
                 // 如果启用了验证码，但验证码为空，则手动添加
                 if ($captcha == 1) {
                     if (!isset($post['captcha']) || empty($post['captcha'])) {
@@ -216,10 +390,10 @@ class Login extends AdminController
                     }
                     $rule['captcha|验证码'] = 'require|captcha';
                 }
-                
+
                 // 记录验证规则到日志
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证规则: ' . json_encode($rule, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-                
+
                 try {
                     $result = $this->validate($post, $rule);
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证结果: ' . json_encode($result, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
@@ -228,9 +402,9 @@ class Login extends AdminController
                     $this->error('验证失败: ' . $e->getMessage());
                     return;
                 }
-                
+
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证通过，开始查询用户' . PHP_EOL, FILE_APPEND);
-                
+
                 // 直接查询数据库，获取更多信息
                 try {
                     $db_info = \think\facade\Db::query('SELECT * FROM ds_system_admin WHERE username = ?', [$post['username']]);
@@ -242,27 +416,27 @@ class Login extends AdminController
                 } catch (\Exception $e) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 数据库查询异常: ' . $e->getMessage() . PHP_EOL, FILE_APPEND);
                 }
-                
-                $admin = SystemAdmin::where(['username' => $post['username']])->find();
+
+                $admin = Agent::where(['username' => $post['username']])->find();
                 if (empty($admin)) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 用户不存在: ' . $post['username'] . PHP_EOL, FILE_APPEND);
                     $this->error('用户不存在');
                     return;
                 }
-                
+
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 用户存在，验证密码' . PHP_EOL, FILE_APPEND);
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 数据库中的密码: ' . $admin->password . PHP_EOL, FILE_APPEND);
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 数据库密码长度: ' . strlen($admin->password) . PHP_EOL, FILE_APPEND);
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 数据库中的原始密码(pwd): ' . $admin->pwd . PHP_EOL, FILE_APPEND);
-                
+
                 // 尝试多种密码验证方式
                 $password_matched = false;
-                
+
                 // 尝试直接比较原始密码
                 if ($original_password == $admin->password) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 使用原始密码验证成功' . PHP_EOL, FILE_APPEND);
                     $password_matched = true;
-                } 
+                }
                 // 尝试与数据库中的pwd字段比较
                 else if ($original_password == $admin->pwd) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 使用数据库pwd字段验证成功' . PHP_EOL, FILE_APPEND);
@@ -292,7 +466,7 @@ class Login extends AdminController
                         'md5_reverse' => md5(strrev($original_password)),
                         'sha1_reverse' => sha1(strrev($original_password)),
                     ];
-                    
+
                     // 添加针对数据库中原始密码(pwd)的加密尝试
                     if (!empty($admin->pwd)) {
                         $pwd = $admin->pwd;
@@ -301,65 +475,65 @@ class Login extends AdminController
                         $encrypt_methods['sha1_md5_pwd'] = sha1(md5($pwd));
                         $encrypt_methods['md5_sha1_pwd'] = md5(sha1($pwd));
                     }
-                    
+
                     foreach ($encrypt_methods as $method => $encrypted) {
                         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 尝试 ' . $method . ' 加密: ' . $encrypted . PHP_EOL, FILE_APPEND);
-                        
+
                         if ($encrypted == $admin->password) {
                             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 使用 ' . $method . ' 验证成功' . PHP_EOL, FILE_APPEND);
                             $password_matched = true;
                             break;
                         }
                     }
-                    
+
                     // 尝试使用password_verify函数验证
                     if (!$password_matched && function_exists('password_verify') && password_verify($original_password, $admin->password)) {
                         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 使用 password_verify 验证成功' . PHP_EOL, FILE_APPEND);
                         $password_matched = true;
                     }
                 }
-                
+
                 // 直接通过验证（仅用于紧急情况）
                 // 如果所有验证方式都失败，但是用户名是admin，则直接通过验证
                 if (!$password_matched && $post['username'] == 'admin') {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 紧急模式：admin用户直接通过验证' . PHP_EOL, FILE_APPEND);
                     $password_matched = true;
                 }
-                
+
                 if ($admin->status == 0) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 账号已被禁用' . PHP_EOL, FILE_APPEND);
                     $this->error('账号已被禁用');
                     return;
                 }
-                
+
                 if ($password_matched) {
                     file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 登录成功，更新登录次数' . PHP_EOL, FILE_APPEND);
-                    
+
                     try {
                         $admin->login_num += 1;
                         $admin->save();
-                        
+
                         // 直接从数据库中获取最新的用户数据
                         $adminData = \think\facade\Db::name('system_admin')
                             ->where('id', $admin->id)
                             ->find();
-                        
+
                         if (empty($adminData)) {
                             throw new \Exception('获取用户数据失败');
                         }
-                        
+
                         // 删除password字段
                         unset($adminData['password']);
                         // 设置有效期
                         $adminData['expire_time'] = true;
-                        
+
                         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 设置session: ' . json_encode($adminData, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-                        
+
                         // 设置会话
                         session('admin', $adminData);
-                        
+
                         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 登录完成' . PHP_EOL, FILE_APPEND);
-                        
+
                         // 设置登录成功标志，在try-catch块外处理跳转
                         $loginSuccess = true;
                     } catch (\Exception $e) {
@@ -367,7 +541,7 @@ class Login extends AdminController
                         $this->error('登录过程中发生错误: ' . $e->getMessage());
                         return;
                     }
-                    
+
                     // try-catch块外处理登录成功后的跳转
                     if (isset($loginSuccess) && $loginSuccess) {
                         $this->success('登录成功');
@@ -392,11 +566,11 @@ class Login extends AdminController
             }
             $log_file = $log_dir . 'login_error_' . date('Ymd') . '.log';
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 错误: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL, FILE_APPEND);
-            
+
             // 设置错误信息变量，在try-catch块外返回
             $errorMsg = $e->getMessage();
         }
-        
+
         // 如果有错误信息，在try-catch块外返回错误
         if (isset($errorMsg)) {
             $this->error('登录过程中发生错误: ' . $errorMsg);
@@ -405,13 +579,60 @@ class Login extends AdminController
     }
 
     /**
-     * 用户退出
-     * @return mixed
+     * 用户退出 - 新权限管理系统
+     * 使用AuthenticationService进行登出
+     * @return \think\Response
      */
     public function out()
     {
-        session('admin', null);
-        $this->success('退出登录成功');
+        try {
+            // 获取当前用户信息（用于日志）
+            $agent = $this->authService->getCurrentAgent();
+            $username = $agent ? $agent->username : '未知用户';
+
+            // 执行登出
+            $this->authService->logout();
+
+            // 记录登出日志
+            $this->logLogoutSuccess($username);
+
+            // 返回成功响应
+            if ($this->request->isAjax()) {
+                $adminModuleName = config('app.admin_alias_name');
+                $this->success('退出登录成功', [], __url("@{$adminModuleName}/login/index"));
+            } else {
+                $adminModuleName = config('app.admin_alias_name');
+                $this->redirect(__url("@{$adminModuleName}/login/index"));
+            }
+
+        } catch (\Exception $e) {
+            $this->logLogoutError($e->getMessage());
+            $this->error('登出异常：' . $e->getMessage());
+        }
+    }
+
+    /**
+     * 记录登出成功日志
+     * @param string $username 用户名
+     */
+    protected function logLogoutSuccess($username)
+    {
+        $this->writeLoginLog('logout_success', [
+            'username' => $username,
+            'ip' => $this->request->ip(),
+        ]);
+    }
+
+    /**
+     * 记录登出异常日志
+     * @param string $error 异常信息
+     */
+    protected function logLogoutError($error)
+    {
+        $this->writeLoginLog('logout_error', [
+            'error' => $error,
+            'ip' => $this->request->ip(),
+        ]);
     }
 
     /**
@@ -422,9 +643,9 @@ class Login extends AdminController
     {
         return Captcha::create();
     }
-    
-    
-    
+
+
+
     public static function sign()
     {
         $key = "ds_3wo#cao3ni2ma/s!#%@A/SD##!@**@!_+@112_13!123@22$$@!!~";
@@ -435,7 +656,7 @@ class Login extends AdminController
             'sign' => md5($key.$time)
         ];
     }
-    
+
     /**
      * 重置密码（仅限开发环境使用）
      */
@@ -447,50 +668,50 @@ class Login extends AdminController
             mkdir($log_dir, 0755, true);
         }
         $log_file = $log_dir . 'reset_password_' . date('Ymd') . '.log';
-        
+
         // 安全检查，仅允许特定IP访问
         $ip = $this->request->ip();
         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 访问IP: ' . $ip . PHP_EOL, FILE_APPEND);
-        
+
         if ($ip != '127.0.0.1' && $ip != '::1' && !in_array($ip, ['27.187.158.204'])) {
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - IP不在白名单中，禁止访问' . PHP_EOL, FILE_APPEND);
             return $this->error('禁止访问');
         }
-        
+
         try {
             // 查询admin用户
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 开始查询admin用户' . PHP_EOL, FILE_APPEND);
             $admin = \think\facade\Db::name('system_admin')
                 ->where('username', 'admin')
                 ->find();
-                
+
             if (empty($admin)) {
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 未找到admin用户' . PHP_EOL, FILE_APPEND);
                 return $this->error('未找到admin用户');
             }
-            
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 找到admin用户: ' . json_encode($admin, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-            
+
             // 重置admin用户的密码为md5('admin123456')
             $password = md5('admin123456');
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 新密码: admin123456, 加密后: ' . $password . PHP_EOL, FILE_APPEND);
-            
+
             $result = \think\facade\Db::name('system_admin')
                 ->where('id', $admin['id'])
                 ->update([
                     'password' => $password,
                     'pwd' => 'admin123456'
                 ]);
-                
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 更新结果: ' . $result . PHP_EOL, FILE_APPEND);
-            
+
             // 二次确认
             $check = \think\facade\Db::name('system_admin')
                 ->where('username', 'admin')
                 ->find();
-                
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 更新后确认: ' . json_encode($check, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-            
+
             if ($check['password'] == $password) {
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 密码重置成功' . PHP_EOL, FILE_APPEND);
                 return $this->success('密码重置成功，新密码为: admin123456');
@@ -515,38 +736,38 @@ class Login extends AdminController
             mkdir($log_dir, 0755, true);
         }
         $log_file = $log_dir . 'quick_login_' . date('Ymd') . '.log';
-        
+
         // 安全检查，仅允许特定IP访问
         $ip = $this->request->ip();
         file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 访问IP: ' . $ip . PHP_EOL, FILE_APPEND);
-        
+
         try {
             // 查询admin用户
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 开始查询admin用户' . PHP_EOL, FILE_APPEND);
             $admin = \think\facade\Db::name('system_admin')
                 ->where('username', 'admin')
                 ->find();
-                
+
             if (empty($admin)) {
                 file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 未找到admin用户' . PHP_EOL, FILE_APPEND);
                 return $this->error('未找到admin用户');
             }
-            
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 找到admin用户: ' . json_encode($admin, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-            
+
             // 直接登录
             $admin = $admin;
             unset($admin['password']);
             $admin['expire_time'] = true;
-            
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 设置session' . PHP_EOL, FILE_APPEND);
             session('admin', $admin);
-            
+
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 快速登录完成' . PHP_EOL, FILE_APPEND);
-            
+
             // 重定向到后台首页
             return redirect('/admin/index/index');
-            
+
         } catch (\Exception $e) {
             file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 快速登录异常: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL, FILE_APPEND);
             return $this->error('快速登录失败: ' . $e->getMessage());
