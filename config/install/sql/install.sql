@@ -1,482 +1,410 @@
--- =====================================================
--- 视频奖励平台数据库安装文件 v3.0.0
--- =====================================================
--- 创建时间: 2025-01-21
--- 设计原则: 全新系统构建，不考虑向后兼容性
--- 技术标准: 遵循项目重构规则文档第6章数据库设计规范
--- 支持特性: 动态表前缀、现代化架构、完整约束
--- =====================================================
+/*
+Navicat MySQL Data Transfer
 
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
-START TRANSACTION;
-SET time_zone = "+00:00";
+Source Server         : localhost
+Source Server Version : 50727
+Source Host           : localhost:3306
+Source Database       : easyadmin
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
+Target Server Type    : MYSQL
+Target Server Version : 50727
+File Encoding         : 65001
 
--- =====================================================
--- 1. 代理管理模块
--- =====================================================
+Date: 2020-05-17 23:24:06
+*/
 
--- 代理用户表
-CREATE TABLE `{prefix}agents` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '代理ID',
-  `parent_id` bigint(20) UNSIGNED DEFAULT 0 COMMENT '上级代理ID',
-  `username` varchar(50) NOT NULL COMMENT '用户名',
-  `email` varchar(100) DEFAULT NULL COMMENT '邮箱',
-  `phone` varchar(20) DEFAULT NULL COMMENT '手机号',
-  `password_hash` varchar(255) NOT NULL COMMENT '密码哈希',
-  `avatar` varchar(255) DEFAULT NULL COMMENT '头像URL',
-  `role_type` enum('super_admin','agent') NOT NULL DEFAULT 'agent' COMMENT '角色类型',
-  `status` enum('active','inactive','banned') NOT NULL DEFAULT 'active' COMMENT '状态',
-  `device_fingerprint` varchar(255) DEFAULT NULL COMMENT '设备指纹',
-  `last_login_at` timestamp NULL DEFAULT NULL COMMENT '最后登录时间',
-  `last_login_ip` varchar(45) DEFAULT NULL COMMENT '最后登录IP',
-  `login_count` int(11) UNSIGNED DEFAULT 0 COMMENT '登录次数',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
+SET FOREIGN_KEY_CHECKS=0;
+
+-- ----------------------------
+-- Table structure for ea_mall_cate
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_mall_cate`;
+CREATE TABLE `ea_mall_cate` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(20) NOT NULL COMMENT '分类名',
+  `image` varchar(500) DEFAULT NULL COMMENT '分类图片',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) unsigned DEFAULT '1' COMMENT '状态(1:禁用,2:启用)',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注说明',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_username` (`username`),
-  UNIQUE KEY `uk_email` (`email`),
-  KEY `idx_parent_id` (`parent_id`),
-  KEY `idx_role_type` (`role_type`),
-  KEY `idx_status` (`status`),
-  KEY `idx_device_fingerprint` (`device_fingerprint`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `idx_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='代理用户表';
+  UNIQUE KEY `title` (`title`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='商品分类';
 
--- 代理配置表
-CREATE TABLE `{prefix}agent_configs` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '代理ID',
-  `commission_rate` decimal(5,2) DEFAULT 0.00 COMMENT '佣金比例(%)',
-  `withdrawal_fee_rate` decimal(5,2) DEFAULT 0.00 COMMENT '提现手续费率(%)',
-  `min_withdrawal_amount` decimal(10,2) DEFAULT 0.00 COMMENT '最小提现金额',
-  `daily_enabled` tinyint(1) DEFAULT 1 COMMENT '是否启用包天',
-  `weekly_enabled` tinyint(1) DEFAULT 1 COMMENT '是否启用包周', 
-  `monthly_enabled` tinyint(1) DEFAULT 1 COMMENT '是否启用包月',
-  `daily_price` decimal(8,2) DEFAULT 0.00 COMMENT '包天价格',
-  `weekly_price` decimal(8,2) DEFAULT 0.00 COMMENT '包周价格',
-  `monthly_price` decimal(8,2) DEFAULT 0.00 COMMENT '包月价格',
-  `single_price` decimal(8,2) DEFAULT 0.00 COMMENT '单片价格',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------
+-- Records of ea_mall_cate
+-- ----------------------------
+INSERT INTO `ea_mall_cate` VALUES ('9', '手机', 'http://admin.host/upload/20200514/98fc09b0c4ad4d793a6f04bef79a0edc.jpg', '0', '1', '', '1589440437', '1589440437', null);
+
+-- ----------------------------
+-- Table structure for ea_mall_goods
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_mall_goods`;
+CREATE TABLE `ea_mall_goods` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `cate_id` int(11) DEFAULT NULL COMMENT '分类ID',
+  `title` varchar(20) NOT NULL COMMENT '商品名称',
+  `logo` varchar(500) DEFAULT NULL COMMENT '商品logo',
+  `images` text COMMENT '商品图片 以 | 做分割符号',
+  `describe` text COMMENT '商品描述',
+  `market_price` decimal(10,2) DEFAULT '0.00' COMMENT '市场价',
+  `discount_price` decimal(10,2) DEFAULT '0.00' COMMENT '折扣价',
+  `sales` int(11) DEFAULT '0' COMMENT '销量',
+  `virtual_sales` int(11) DEFAULT '0' COMMENT '虚拟销量',
+  `stock` int(11) DEFAULT '0' COMMENT '库存',
+  `total_stock` int(11) DEFAULT '0' COMMENT '总库存',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) unsigned DEFAULT '1' COMMENT '状态(1:禁用,2:启用)',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注说明',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_agent_id` (`agent_id`),
-  CONSTRAINT `fk_agent_configs_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='代理配置表';
+  KEY `cate_id` (`cate_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='商品列表';
 
--- 代理余额表
-CREATE TABLE `{prefix}agent_balances` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '余额ID',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '代理ID',
-  `available_balance` decimal(15,2) DEFAULT 0.00 COMMENT '可用余额',
-  `frozen_balance` decimal(15,2) DEFAULT 0.00 COMMENT '冻结余额',
-  `total_revenue` decimal(15,2) DEFAULT 0.00 COMMENT '总收益',
-  `total_withdrawal` decimal(15,2) DEFAULT 0.00 COMMENT '总提现',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------
+-- Records of ea_mall_goods
+-- ----------------------------
+INSERT INTO `ea_mall_goods` VALUES ('8', '10', '落地-风扇', 'http://admin.host/upload/20200514/a0f7fe9637abd219f7e93ceb2820df9b.jpg', 'http://admin.host/upload/20200514/95496713918290f6315ea3f87efa6bf2.jpg|http://admin.host/upload/20200514/ae29fa9cba4fc02defb7daed41cb2b13.jpg|http://admin.host/upload/20200514/f0a104d88ec7dc6fb42d2f87cbc71b76.jpg|http://admin.host/upload/20200514/3b88be4b1934690e5c1bd6b54b9ab5c8.jpg', '<p>76654757</p>\n\n<p><img alt=\"\" src=\"http://admin.host/upload/20200515/198070421110fa01f2c2ac2f52481647.jpg\" style=\"height:689px; width:790px\" /></p>\n\n<p><img alt=\"\" src=\"http://admin.host/upload/20200515/a07a742c15a78781e79f8a3317006c1d.jpg\" style=\"height:877px; width:790px\" /></p>\n', '599.00', '368.00', '0', '594', '0', '0', '675', '1', '', '1589454309', '1589567016', null);
+INSERT INTO `ea_mall_goods` VALUES ('9', '9', '电脑', 'http://admin.host/upload/20200514/bbf858d469dec2e12a89460110068d3d.jpg', 'http://admin.host/upload/20200514/f0a104d88ec7dc6fb42d2f87cbc71b76.jpg', '<p>477</p>\n', '0.00', '0.00', '0', '0', '115', '320', '0', '1', '', '1589465215', '1589476345', null);
+
+-- ----------------------------
+-- Table structure for ea_system_admin
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_admin`;
+CREATE TABLE `ea_system_admin` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `auth_ids` varchar(255) DEFAULT NULL COMMENT '角色权限ID',
+  `head_img` varchar(255) DEFAULT NULL COMMENT '头像',
+  `username` varchar(50) NOT NULL DEFAULT '' COMMENT '用户登录名',
+  `password` char(40) NOT NULL DEFAULT '' COMMENT '用户登录密码',
+  `phone` varchar(16) DEFAULT NULL COMMENT '联系手机号',
+  `remark` varchar(255) DEFAULT '' COMMENT '备注说明',
+  `login_num` bigint(20) unsigned DEFAULT '0' COMMENT '登录次数',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0:禁用,1:启用,)',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_agent_id` (`agent_id`),
-  CONSTRAINT `fk_agent_balances_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='代理余额表';
+  UNIQUE KEY `username` (`username`) USING BTREE,
+  KEY `phone` (`phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统用户表';
 
--- 余额变动日志表
-CREATE TABLE `{prefix}balance_logs` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '代理ID',
-  `type` enum('income','withdrawal','commission','refund','adjustment') NOT NULL COMMENT '变动类型',
-  `amount` decimal(15,2) NOT NULL COMMENT '变动金额',
-  `balance_before` decimal(15,2) NOT NULL COMMENT '变动前余额',
-  `balance_after` decimal(15,2) NOT NULL COMMENT '变动后余额',
-  `description` varchar(255) DEFAULT NULL COMMENT '变动描述',
-  `reference_type` varchar(50) DEFAULT NULL COMMENT '关联类型',
-  `reference_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '关联ID',
-  `operator_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '操作员ID',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+-- ----------------------------
+-- Records of ea_system_admin
+-- ----------------------------
+INSERT INTO `ea_system_admin` VALUES ('1', null, '/static/admin/images/head.jpg', 'admin', 'a33b679d5581a8692988ec9f92ad2d6a2259eaa7', 'admin', 'admin', '0', '0', '1', '1589454169', '1589476815', null);
+
+-- ----------------------------
+-- Table structure for ea_system_auth
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_auth`;
+CREATE TABLE `ea_system_auth` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(20) NOT NULL COMMENT '权限名称',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) unsigned DEFAULT '1' COMMENT '状态(1:禁用,2:启用)',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注说明',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  KEY `idx_agent_id` (`agent_id`),
-  KEY `idx_type` (`type`),
-  KEY `idx_reference` (`reference_type`, `reference_id`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_balance_logs_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='余额变动日志表';
+  UNIQUE KEY `title` (`title`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统权限表';
 
--- =====================================================
--- 2. 权限管理模块
--- =====================================================
+-- ----------------------------
+-- Records of ea_system_auth
+-- ----------------------------
+INSERT INTO `ea_system_auth` VALUES ('1', '管理员', '1', '1', '测试管理员', '1588921753', '1589614331', null);
+INSERT INTO `ea_system_auth` VALUES ('6', '游客权限', '0', '1', '', '1588227513', '1589591751', '1589591751');
 
--- 角色表
-CREATE TABLE `{prefix}roles` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '角色ID',
-  `name` varchar(50) NOT NULL COMMENT '角色名称',
-  `slug` varchar(50) NOT NULL COMMENT '角色标识',
-  `description` varchar(255) DEFAULT NULL COMMENT '角色描述',
-  `is_system` tinyint(1) DEFAULT 0 COMMENT '是否系统角色',
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active' COMMENT '状态',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+-- ----------------------------
+-- Table structure for ea_system_auth_node
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_auth_node`;
+CREATE TABLE `ea_system_auth_node` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `auth_id` bigint(20) unsigned DEFAULT NULL COMMENT '角色ID',
+  `node_id` bigint(20) DEFAULT NULL COMMENT '节点ID',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_slug` (`slug`),
-  KEY `idx_status` (`status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色表';
+  KEY `index_system_auth_auth` (`auth_id`) USING BTREE,
+  KEY `index_system_auth_node` (`node_id`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='角色与节点关系表';
 
--- 权限表
-CREATE TABLE `{prefix}permissions` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '权限ID',
-  `name` varchar(100) NOT NULL COMMENT '权限名称',
-  `slug` varchar(100) NOT NULL COMMENT '权限标识',
-  `module` varchar(50) NOT NULL COMMENT '所属模块',
-  `description` varchar(255) DEFAULT NULL COMMENT '权限描述',
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active' COMMENT '状态',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+-- ----------------------------
+-- Records of ea_system_auth_node
+-- ----------------------------
+INSERT INTO `ea_system_auth_node` VALUES ('1', '6', '1');
+INSERT INTO `ea_system_auth_node` VALUES ('2', '6', '2');
+INSERT INTO `ea_system_auth_node` VALUES ('3', '6', '9');
+INSERT INTO `ea_system_auth_node` VALUES ('4', '6', '12');
+INSERT INTO `ea_system_auth_node` VALUES ('5', '6', '18');
+INSERT INTO `ea_system_auth_node` VALUES ('6', '6', '19');
+INSERT INTO `ea_system_auth_node` VALUES ('7', '6', '21');
+INSERT INTO `ea_system_auth_node` VALUES ('8', '6', '22');
+INSERT INTO `ea_system_auth_node` VALUES ('9', '6', '29');
+INSERT INTO `ea_system_auth_node` VALUES ('10', '6', '30');
+INSERT INTO `ea_system_auth_node` VALUES ('11', '6', '38');
+INSERT INTO `ea_system_auth_node` VALUES ('12', '6', '39');
+INSERT INTO `ea_system_auth_node` VALUES ('13', '6', '45');
+INSERT INTO `ea_system_auth_node` VALUES ('14', '6', '46');
+INSERT INTO `ea_system_auth_node` VALUES ('15', '6', '52');
+INSERT INTO `ea_system_auth_node` VALUES ('16', '6', '53');
+
+-- ----------------------------
+-- Table structure for ea_system_config
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_config`;
+CREATE TABLE `ea_system_config` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `name` varchar(30) NOT NULL DEFAULT '' COMMENT '变量名',
+  `group` varchar(30) NOT NULL DEFAULT '' COMMENT '分组',
+  `value` text COMMENT '变量值',
+  `remark` varchar(100) DEFAULT '' COMMENT '备注信息',
+  `sort` int(10) DEFAULT '0',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_slug` (`slug`),
-  KEY `idx_module` (`module`),
-  KEY `idx_status` (`status`),
-  KEY `idx_module_status` (`module`, `status`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='权限表';
+  UNIQUE KEY `name` (`name`),
+  KEY `group` (`group`)
+) ENGINE=InnoDB AUTO_INCREMENT=88 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统配置表';
 
--- 角色权限关联表
-CREATE TABLE `{prefix}role_permissions` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `role_id` int(11) UNSIGNED NOT NULL COMMENT '角色ID',
-  `permission_id` int(11) UNSIGNED NOT NULL COMMENT '权限ID',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+-- ----------------------------
+-- Records of ea_system_config
+-- ----------------------------
+INSERT INTO `ea_system_config` VALUES ('41', 'alisms_access_key_id', 'sms', '填你的', '阿里大于公钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('42', 'alisms_access_key_secret', 'sms', '填你的', '阿里大鱼私钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('55', 'upload_type', 'upload', 'local', '当前上传方式 （local,alioss,qnoss,txoss）', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('56', 'upload_allow_ext', 'upload', 'doc,gif,ico,icon,jpg,mp3,mp4,p12,pem,png,rar,jpeg', '允许上传的文件类型', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('57', 'upload_allow_size', 'upload', '1024000', '允许上传的大小', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('58', 'upload_allow_mime', 'upload', 'image/gif,image/jpeg,video/x-msvideo,text/plain,image/png', '允许上传的文件mime', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('59', 'upload_allow_type', 'upload', 'local,alioss,qnoss,txcos', '可用的上传文件方式', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('60', 'alioss_access_key_id', 'upload', '填你的', '阿里云oss公钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('61', 'alioss_access_key_secret', 'upload', '填你的', '阿里云oss私钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('62', 'alioss_endpoint', 'upload', '填你的', '阿里云oss数据中心', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('63', 'alioss_bucket', 'upload', '填你的', '阿里云oss空间名称', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('64', 'alioss_domain', 'upload', '填你的', '阿里云oss访问域名', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('65', 'logo_title', 'site', 'EasyAdmin', 'LOGO标题', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('66', 'logo_image', 'site', '/favicon.ico', 'logo图片', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('68', 'site_name', 'site', 'EasyAdmin后台系统', '站点名称', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('69', 'site_ico', 'site', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/7d32671f4c1d1b01b0b28f45205763f9.ico', '浏览器图标', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('70', 'site_copyright', 'site', '©版权所有 2014-2018 叁贰柒工作室66', '版权信息', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('71', 'site_beian', 'site', '粤ICP备16006642号-2', '备案信息', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('72', 'site_version', 'site', '2.0.0', '版本信息', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('75', 'sms_type', 'sms', 'alisms', '短信类型', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('76', 'miniapp_appid', 'wechat', '填你的', '小程序公钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('77', 'miniapp_appsecret', 'wechat', '填你的', '小程序私钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('78', 'web_appid', 'wechat', '填你的', '公众号公钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('79', 'web_appsecret', 'wechat', '填你的', '公众号私钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('80', 'txcos_secret_id', 'upload', '填你的', '腾讯云cos密钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('81', 'txcos_secret_key', 'upload', '填你的', '腾讯云cos私钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('82', 'txcos_region', 'upload', '填你的', '存储桶地域', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('83', 'tecos_bucket', 'upload', '填你的', '存储桶名称', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('84', 'qnoss_access_key', 'upload', '填你的', '访问密钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('85', 'qnoss_secret_key', 'upload', '填你的', '安全密钥', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('86', 'qnoss_bucket', 'upload', '填你的', '存储空间', '0', null, null);
+INSERT INTO `ea_system_config` VALUES ('87', 'qnoss_domain', 'upload', '填你的', '访问域名', '0', null, null);
+
+-- ----------------------------
+-- Table structure for ea_system_menu
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_menu`;
+CREATE TABLE `ea_system_menu` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `pid` bigint(20) unsigned NOT NULL DEFAULT '0' COMMENT '父id',
+  `title` varchar(100) NOT NULL DEFAULT '' COMMENT '名称',
+  `icon` varchar(100) NOT NULL DEFAULT '' COMMENT '菜单图标',
+  `href` varchar(100) NOT NULL DEFAULT '' COMMENT '链接',
+  `params` varchar(500) DEFAULT '' COMMENT '链接参数',
+  `target` varchar(20) NOT NULL DEFAULT '_self' COMMENT '链接打开方式',
+  `sort` int(11) DEFAULT '0' COMMENT '菜单排序',
+  `status` tinyint(1) unsigned NOT NULL DEFAULT '1' COMMENT '状态(0:禁用,1:启用)',
+  `remark` varchar(255) DEFAULT NULL,
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_role_permission` (`role_id`, `permission_id`),
-  CONSTRAINT `fk_role_permissions_role_id` FOREIGN KEY (`role_id`) REFERENCES `{prefix}roles` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_role_permissions_permission_id` FOREIGN KEY (`permission_id`) REFERENCES `{prefix}permissions` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色权限关联表';
+  KEY `title` (`title`),
+  KEY `href` (`href`)
+) ENGINE=InnoDB AUTO_INCREMENT=253 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统菜单表';
 
--- 代理角色关联表
-CREATE TABLE `{prefix}agent_roles` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '代理ID',
-  `role_id` int(11) UNSIGNED NOT NULL COMMENT '角色ID',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+-- ----------------------------
+-- Records of ea_system_menu
+-- ----------------------------
+INSERT INTO `ea_system_menu` VALUES ('227', '99999999', '后台首页', 'fa fa-home', 'index/welcome', '', '_self', '0', '1', null, null, '1573120497', null);
+INSERT INTO `ea_system_menu` VALUES ('228', '0', '系统管理', 'fa fa-cog', '', '', '_self', '0', '1', '', null, '1588999529', null);
+INSERT INTO `ea_system_menu` VALUES ('234', '228', '菜单管理', 'fa fa-tree', 'system.menu/index', '', '_self', '10', '1', '', null, '1588228555', null);
+INSERT INTO `ea_system_menu` VALUES ('244', '228', '管理员管理', 'fa fa-user', 'system.admin/index', '', '_self', '12', '1', '', '1573185011', '1588228573', null);
+INSERT INTO `ea_system_menu` VALUES ('245', '228', '角色管理', 'fa fa-bitbucket-square', 'system.auth/index', '', '_self', '11', '1', '', '1573435877', '1588228634', null);
+INSERT INTO `ea_system_menu` VALUES ('246', '228', '节点管理', 'fa fa-list', 'system.node/index', '', '_self', '9', '1', '', '1573435919', '1588228648', null);
+INSERT INTO `ea_system_menu` VALUES ('247', '228', '配置管理', 'fa fa-asterisk', 'system.config/index', '', '_self', '8', '1', '', '1573457448', '1588228566', null);
+INSERT INTO `ea_system_menu` VALUES ('248', '228', '上传管理', 'fa fa-arrow-up', 'system.uploadfile/index', '', '_self', '0', '1', '', '1573542953', '1588228043', null);
+INSERT INTO `ea_system_menu` VALUES ('249', '0', '商城管理', 'fa fa-list', '', '', '_self', '0', '1', '', '1589439884', '1589439884', null);
+INSERT INTO `ea_system_menu` VALUES ('250', '249', '商品分类', 'fa fa-calendar-check-o', 'mall.cate/index', '', '_self', '0', '1', '', '1589439910', '1589439966', null);
+INSERT INTO `ea_system_menu` VALUES ('251', '249', '商品管理', 'fa fa-list', 'mall.goods/index', '', '_self', '0', '1', '', '1589439931', '1589439942', null);
+INSERT INTO `ea_system_menu` VALUES ('252', '228', '快捷入口', 'fa fa-list', 'system.quick/index', '', '_self', '0', '1', '', '1589623683', '1589623683', null);
+INSERT INTO `ea_system_menu` VALUES ('253', '228', '日志管理', 'fa fa-connectdevelop', 'system.log/index', '', '_self', '0', '1', '', '1589623684', '1589623684', null);
+
+-- ----------------------------
+-- Table structure for ea_system_node
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_node`;
+CREATE TABLE `ea_system_node` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `node` varchar(100) DEFAULT NULL COMMENT '节点代码',
+  `title` varchar(500) DEFAULT NULL COMMENT '节点标题',
+  `type` tinyint(1) DEFAULT '3' COMMENT '节点类型（1：控制器，2：节点）',
+  `is_auth` tinyint(1) unsigned DEFAULT '1' COMMENT '是否启动RBAC权限控制',
+  `create_time` int(10) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(10) DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_agent_role` (`agent_id`, `role_id`),
-  CONSTRAINT `fk_agent_roles_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_agent_roles_role_id` FOREIGN KEY (`role_id`) REFERENCES `{prefix}roles` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='代理角色关联表';
+  KEY `node` (`node`) USING BTREE
+) ENGINE=InnoDB AUTO_INCREMENT=67 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统节点表';
 
--- =====================================================
--- 3. 内容管理模块
--- =====================================================
+-- ----------------------------
+-- Records of ea_system_node
+-- ----------------------------
+INSERT INTO `ea_system_node` VALUES ('1', 'system.admin', '管理员管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('2', 'system.admin/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('3', 'system.admin/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('4', 'system.admin/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('5', 'system.admin/password', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('6', 'system.admin/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('7', 'system.admin/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('8', 'system.admin/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('9', 'system.auth', '角色权限管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('10', 'system.auth/authorize', '授权', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('11', 'system.auth/saveAuthorize', '授权保存', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('12', 'system.auth/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('13', 'system.auth/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('14', 'system.auth/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('15', 'system.auth/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('16', 'system.auth/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('17', 'system.auth/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('18', 'system.config', '系统配置管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('19', 'system.config/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('20', 'system.config/save', '保存', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('21', 'system.menu', '菜单管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('22', 'system.menu/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('23', 'system.menu/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('24', 'system.menu/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('25', 'system.menu/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('26', 'system.menu/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('27', 'system.menu/getMenuTips', '添加菜单提示', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('28', 'system.menu/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('29', 'system.node', '系统节点管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('30', 'system.node/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('31', 'system.node/refreshNode', '系统节点更新', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('32', 'system.node/clearNode', '清除失效节点', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('33', 'system.node/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('34', 'system.node/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('35', 'system.node/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('36', 'system.node/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('37', 'system.node/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('38', 'system.uploadfile', '上传文件管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('39', 'system.uploadfile/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('40', 'system.uploadfile/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('41', 'system.uploadfile/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('42', 'system.uploadfile/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('43', 'system.uploadfile/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('44', 'system.uploadfile/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('45', 'mall.cate', '商品分类管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('46', 'mall.cate/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('47', 'mall.cate/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('48', 'mall.cate/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('49', 'mall.cate/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('50', 'mall.cate/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('51', 'mall.cate/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('52', 'mall.goods', '商城商品管理', '1', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('53', 'mall.goods/index', '列表', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('54', 'mall.goods/stock', '入库', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('55', 'mall.goods/add', '添加', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('56', 'mall.goods/edit', '编辑', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('57', 'mall.goods/delete', '删除', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('58', 'mall.goods/export', '导出', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('59', 'mall.goods/modify', '属性修改', '2', '1', '1589580432', '1589580432');
+INSERT INTO `ea_system_node` VALUES ('60', 'system.quick', '快捷入口管理', '1', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('61', 'system.quick/index', '列表', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('62', 'system.quick/add', '添加', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('63', 'system.quick/edit', '编辑', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('64', 'system.quick/delete', '删除', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('65', 'system.quick/export', '导出', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('66', 'system.quick/modify', '属性修改', '2', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('67', 'system.log', '操作日志管理', '1', '1', '1589623188', '1589623188');
+INSERT INTO `ea_system_node` VALUES ('68', 'system.log/index', '列表', '2', '1', '1589623188', '1589623188');
 
--- 内容分类表
-CREATE TABLE `{prefix}categories` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID',
-  `parent_id` int(11) UNSIGNED DEFAULT 0 COMMENT '父分类ID',
-  `name` varchar(100) NOT NULL COMMENT '分类名称',
-  `slug` varchar(100) NOT NULL COMMENT '分类标识',
-  `description` varchar(255) DEFAULT NULL COMMENT '分类描述',
-  `image` varchar(255) DEFAULT NULL COMMENT '分类图片',
-  `sort_order` int(11) DEFAULT 0 COMMENT '排序权重',
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active' COMMENT '状态',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
+-- ----------------------------
+-- Table structure for ea_system_quick
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_quick`;
+CREATE TABLE `ea_system_quick` (
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+  `title` varchar(20) NOT NULL COMMENT '快捷入口名称',
+  `icon` varchar(100) DEFAULT NULL COMMENT '图标',
+  `href` varchar(255) DEFAULT NULL COMMENT '快捷链接',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) unsigned DEFAULT '1' COMMENT '状态(1:禁用,2:启用)',
+  `remark` varchar(255) DEFAULT NULL COMMENT '备注说明',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=24 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='系统快捷入口表';
+
+-- ----------------------------
+-- Records of ea_system_quick
+-- ----------------------------
+INSERT INTO `ea_system_quick` VALUES ('1', '管理员管理', 'fa fa-user', 'system.admin/index', '0', '1', '', '1589624097', '1589624792', null);
+INSERT INTO `ea_system_quick` VALUES ('2', '角色管理', 'fa fa-bitbucket-square', 'system.auth/index', '0', '1', '', '1589624772', '1589624781', null);
+INSERT INTO `ea_system_quick` VALUES ('3', '菜单管理', 'fa fa-tree', 'system.menu/index', '0', '1', null, '1589624097', '1589624792', null);
+INSERT INTO `ea_system_quick` VALUES ('6', '节点管理', 'fa fa-list', 'system.node/index', '0', '1', null, '1589624772', '1589624781', null);
+INSERT INTO `ea_system_quick` VALUES ('7', '配置管理', 'fa fa-asterisk', 'system.config/index', '0', '1', null, '1589624097', '1589624792', null);
+INSERT INTO `ea_system_quick` VALUES ('8', '上传管理', 'fa fa-arrow-up', 'system.uploadfile/index', '0', '1', null, '1589624772', '1589624781', null);
+INSERT INTO `ea_system_quick` VALUES ('10', '商品分类', 'fa fa-calendar-check-o', 'mall.cate/index', '0', '1', null, '1589624097', '1589624792', null);
+INSERT INTO `ea_system_quick` VALUES ('11', '商品管理', 'fa fa-list', 'mall.goods/index', '0', '1', null, '1589624772', '1589624781', null);
+
+-- ----------------------------
+-- Table structure for ea_system_uploadfile
+-- ----------------------------
+DROP TABLE IF EXISTS `ea_system_uploadfile`;
+CREATE TABLE `ea_system_uploadfile` (
+  `id` int(20) unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `upload_type` varchar(20) NOT NULL DEFAULT 'local' COMMENT '存储位置',
+  `original_name` varchar(255) DEFAULT NULL COMMENT '文件原名',
+  `url` varchar(255) NOT NULL DEFAULT '' COMMENT '物理路径',
+  `image_width` varchar(30) NOT NULL DEFAULT '' COMMENT '宽度',
+  `image_height` varchar(30) NOT NULL DEFAULT '' COMMENT '高度',
+  `image_type` varchar(30) NOT NULL DEFAULT '' COMMENT '图片类型',
+  `image_frames` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '图片帧数',
+  `mime_type` varchar(100) NOT NULL DEFAULT '' COMMENT 'mime类型',
+  `file_size` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '文件大小',
+  `file_ext` varchar(100) DEFAULT NULL,
+  `sha1` varchar(40) NOT NULL DEFAULT '' COMMENT '文件 sha1编码',
+  `create_time` int(10) DEFAULT NULL COMMENT '创建日期',
+  `update_time` int(10) DEFAULT NULL COMMENT '更新时间',
+  `upload_time` int(10) DEFAULT NULL COMMENT '上传时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_slug` (`slug`),
-  KEY `idx_parent_id` (`parent_id`),
-  KEY `idx_status` (`status`),
-  KEY `idx_sort_order` (`sort_order`),
-  KEY `idx_deleted_at` (`deleted_at`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容分类表';
+  KEY `upload_type` (`upload_type`),
+  KEY `original_name` (`original_name`)
+) ENGINE=InnoDB AUTO_INCREMENT=316 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT COMMENT='上传文件表';
 
--- 内容表
-CREATE TABLE `{prefix}contents` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '内容ID',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '发布者ID',
-  `category_id` int(11) UNSIGNED NOT NULL COMMENT '分类ID',
-  `title` varchar(255) NOT NULL COMMENT '内容标题',
-  `description` text DEFAULT NULL COMMENT '内容描述',
-  `cover_image` varchar(255) DEFAULT NULL COMMENT '封面图片',
-  `video_url` varchar(500) DEFAULT NULL COMMENT '视频地址',
-  `duration` int(11) DEFAULT 0 COMMENT '视频时长(秒)',
-  `file_size` bigint(20) DEFAULT 0 COMMENT '文件大小(字节)',
-  `view_count` int(11) UNSIGNED DEFAULT 0 COMMENT '观看次数',
-  `like_count` int(11) UNSIGNED DEFAULT 0 COMMENT '点赞次数',
-  `price_type` enum('free','single','daily','weekly','monthly') NOT NULL DEFAULT 'single' COMMENT '价格类型',
-  `price` decimal(8,2) DEFAULT 0.00 COMMENT '价格',
-  `status` enum('draft','published','reviewing','rejected','banned') NOT NULL DEFAULT 'draft' COMMENT '状态',
-  `published_at` timestamp NULL DEFAULT NULL COMMENT '发布时间',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  `deleted_at` timestamp NULL DEFAULT NULL COMMENT '删除时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_agent_id` (`agent_id`),
-  KEY `idx_category_id` (`category_id`),
-  KEY `idx_status` (`status`),
-  KEY `idx_price_type` (`price_type`),
-  KEY `idx_published_at` (`published_at`),
-  KEY `idx_view_count` (`view_count`),
-  KEY `idx_created_at` (`created_at`),
-  KEY `idx_deleted_at` (`deleted_at`),
-  CONSTRAINT `fk_contents_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_contents_category_id` FOREIGN KEY (`category_id`) REFERENCES `{prefix}categories` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='内容表';
-
--- =====================================================
--- 4. 支付订单模块
--- =====================================================
-
--- 支付渠道表
-CREATE TABLE `{prefix}payment_channels` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '渠道ID',
-  `name` varchar(100) NOT NULL COMMENT '渠道名称',
-  `code` varchar(50) NOT NULL COMMENT '渠道代码',
-  `config` json DEFAULT NULL COMMENT '渠道配置',
-  `fee_rate` decimal(5,4) DEFAULT 0.0000 COMMENT '手续费率',
-  `status` enum('active','inactive') NOT NULL DEFAULT 'active' COMMENT '状态',
-  `sort_order` int(11) DEFAULT 0 COMMENT '排序权重',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_code` (`code`),
-  KEY `idx_status` (`status`),
-  KEY `idx_sort_order` (`sort_order`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付渠道表';
-
--- 支付订单表
-CREATE TABLE `{prefix}payment_orders` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '订单ID',
-  `order_no` varchar(64) NOT NULL COMMENT '订单号',
-  `agent_id` bigint(20) UNSIGNED NOT NULL COMMENT '代理ID',
-  `content_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '内容ID',
-  `channel_id` int(11) UNSIGNED NOT NULL COMMENT '支付渠道ID',
-  `payment_method` varchar(50) NOT NULL COMMENT '支付方式',
-  `order_type` enum('single','daily','weekly','monthly','recharge') NOT NULL COMMENT '订单类型',
-  `amount` decimal(10,2) NOT NULL COMMENT '订单金额',
-  `actual_amount` decimal(10,2) NOT NULL COMMENT '实际支付金额',
-  `commission_amount` decimal(10,2) DEFAULT 0.00 COMMENT '佣金金额',
-  `fee_amount` decimal(10,2) DEFAULT 0.00 COMMENT '手续费金额',
-  `currency` varchar(10) DEFAULT 'CNY' COMMENT '货币类型',
-  `status` enum('pending','paid','failed','cancelled','refunded') NOT NULL DEFAULT 'pending' COMMENT '订单状态',
-  `payment_time` timestamp NULL DEFAULT NULL COMMENT '支付时间',
-  `expire_time` timestamp NULL DEFAULT NULL COMMENT '过期时间',
-  `client_ip` varchar(45) DEFAULT NULL COMMENT '客户端IP',
-  `user_agent` varchar(500) DEFAULT NULL COMMENT '用户代理',
-  `device_fingerprint` varchar(255) DEFAULT NULL COMMENT '设备指纹',
-  `third_party_order_no` varchar(100) DEFAULT NULL COMMENT '第三方订单号',
-  `third_party_response` json DEFAULT NULL COMMENT '第三方响应',
-  `refund_amount` decimal(10,2) DEFAULT 0.00 COMMENT '退款金额',
-  `refund_time` timestamp NULL DEFAULT NULL COMMENT '退款时间',
-  `remark` varchar(255) DEFAULT NULL COMMENT '备注',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_order_no` (`order_no`),
-  KEY `idx_agent_id` (`agent_id`),
-  KEY `idx_content_id` (`content_id`),
-  KEY `idx_channel_id` (`channel_id`),
-  KEY `idx_status` (`status`),
-  KEY `idx_order_type` (`order_type`),
-  KEY `idx_payment_time` (`payment_time`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_payment_orders_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_payment_orders_content_id` FOREIGN KEY (`content_id`) REFERENCES `{prefix}contents` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_payment_orders_channel_id` FOREIGN KEY (`channel_id`) REFERENCES `{prefix}payment_channels` (`id`) ON DELETE RESTRICT
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='支付订单表';
-
--- 用户购买记录表
-CREATE TABLE `{prefix}user_purchases` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '购买记录ID',
-  `order_id` bigint(20) UNSIGNED NOT NULL COMMENT '订单ID',
-  `device_fingerprint` varchar(255) NOT NULL COMMENT '设备指纹',
-  `content_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '内容ID',
-  `purchase_type` enum('single','daily','weekly','monthly') NOT NULL COMMENT '购买类型',
-  `expire_time` timestamp NULL DEFAULT NULL COMMENT '过期时间',
-  `view_count` int(11) UNSIGNED DEFAULT 0 COMMENT '观看次数',
-  `last_view_time` timestamp NULL DEFAULT NULL COMMENT '最后观看时间',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_order_id` (`order_id`),
-  KEY `idx_device_fingerprint` (`device_fingerprint`),
-  KEY `idx_content_id` (`content_id`),
-  KEY `idx_purchase_type` (`purchase_type`),
-  KEY `idx_expire_time` (`expire_time`),
-  CONSTRAINT `fk_user_purchases_order_id` FOREIGN KEY (`order_id`) REFERENCES `{prefix}payment_orders` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `fk_user_purchases_content_id` FOREIGN KEY (`content_id`) REFERENCES `{prefix}contents` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='用户购买记录表';
-
--- =====================================================
--- 5. 系统配置模块
--- =====================================================
-
--- 系统配置表
-CREATE TABLE `{prefix}system_configs` (
-  `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '配置ID',
-  `group_name` varchar(50) NOT NULL COMMENT '配置分组',
-  `config_key` varchar(100) NOT NULL COMMENT '配置键',
-  `config_value` text DEFAULT NULL COMMENT '配置值',
-  `config_type` enum('string','integer','decimal','boolean','json','text') NOT NULL DEFAULT 'string' COMMENT '配置类型',
-  `description` varchar(255) DEFAULT NULL COMMENT '配置描述',
-  `is_public` tinyint(1) DEFAULT 0 COMMENT '是否公开配置',
-  `sort_order` int(11) DEFAULT 0 COMMENT '排序权重',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_group_key` (`group_name`, `config_key`),
-  KEY `idx_group_name` (`group_name`),
-  KEY `idx_is_public` (`is_public`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表';
-
--- 系统日志表
-CREATE TABLE `{prefix}system_logs` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '日志ID',
-  `level` enum('emergency','alert','critical','error','warning','notice','info','debug') NOT NULL COMMENT '日志级别',
-  `module` varchar(50) NOT NULL COMMENT '模块名称',
-  `action` varchar(100) NOT NULL COMMENT '操作动作',
-  `message` text NOT NULL COMMENT '日志消息',
-  `context` json DEFAULT NULL COMMENT '上下文数据',
-  `agent_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '操作员ID',
-  `ip_address` varchar(45) DEFAULT NULL COMMENT 'IP地址',
-  `user_agent` varchar(500) DEFAULT NULL COMMENT '用户代理',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_level` (`level`),
-  KEY `idx_module` (`module`),
-  KEY `idx_agent_id` (`agent_id`),
-  KEY `idx_created_at` (`created_at`),
-  CONSTRAINT `fk_system_logs_agent_id` FOREIGN KEY (`agent_id`) REFERENCES `{prefix}agents` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统日志表';
-
--- 系统通知表
-CREATE TABLE `{prefix}system_notifications` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '通知ID',
-  `title` varchar(255) NOT NULL COMMENT '通知标题',
-  `content` text NOT NULL COMMENT '通知内容',
-  `type` enum('system','announcement','warning','maintenance') NOT NULL DEFAULT 'system' COMMENT '通知类型',
-  `target_type` enum('all','role','agent') NOT NULL DEFAULT 'all' COMMENT '目标类型',
-  `target_ids` json DEFAULT NULL COMMENT '目标ID列表',
-  `priority` enum('low','normal','high','urgent') NOT NULL DEFAULT 'normal' COMMENT '优先级',
-  `is_popup` tinyint(1) DEFAULT 0 COMMENT '是否弹窗显示',
-  `start_time` timestamp NULL DEFAULT NULL COMMENT '开始时间',
-  `end_time` timestamp NULL DEFAULT NULL COMMENT '结束时间',
-  `status` enum('draft','published','expired') NOT NULL DEFAULT 'draft' COMMENT '状态',
-  `created_by` bigint(20) UNSIGNED DEFAULT NULL COMMENT '创建者ID',
-  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  KEY `idx_type` (`type`),
-  KEY `idx_target_type` (`target_type`),
-  KEY `idx_status` (`status`),
-  KEY `idx_start_time` (`start_time`),
-  KEY `idx_end_time` (`end_time`),
-  KEY `idx_created_by` (`created_by`),
-  CONSTRAINT `fk_system_notifications_created_by` FOREIGN KEY (`created_by`) REFERENCES `{prefix}agents` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统通知表';
-
--- =====================================================
--- 6. 初始数据插入
--- =====================================================
-
--- 插入默认超级管理员 (ID=1)
-INSERT INTO `{prefix}agents` (`id`, `username`, `email`, `password_hash`, `role_type`, `status`, `created_at`) VALUES
-(1, 'admin', 'admin@example.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'super_admin', 'active', NOW());
-
--- 插入默认代理配置
-INSERT INTO `{prefix}agent_configs` (`agent_id`, `commission_rate`, `withdrawal_fee_rate`, `min_withdrawal_amount`, `daily_price`, `weekly_price`, `monthly_price`, `single_price`) VALUES
-(1, 0.00, 0.00, 100.00, 28.00, 68.00, 138.00, 6.00);
-
--- 插入默认余额记录
-INSERT INTO `{prefix}agent_balances` (`agent_id`, `available_balance`, `frozen_balance`, `total_revenue`, `total_withdrawal`) VALUES
-(1, 0.00, 0.00, 0.00, 0.00);
-
--- 插入默认角色
-INSERT INTO `{prefix}roles` (`id`, `name`, `slug`, `description`, `is_system`, `status`) VALUES
-(1, '超级管理员', 'super_admin', '系统超级管理员，拥有所有权限', 1, 'active'),
-(2, '代理用户', 'agent', '普通代理用户，拥有基础业务权限', 1, 'active');
-
--- 插入默认权限
-INSERT INTO `{prefix}permissions` (`name`, `slug`, `module`, `description`) VALUES
-('查看仪表盘', 'dashboard.view', 'dashboard', '查看系统仪表盘'),
-('用户管理', 'agents.manage', 'agents', '管理代理用户'),
-('内容管理', 'contents.manage', 'contents', '管理内容资源'),
-('订单管理', 'orders.manage', 'orders', '管理支付订单'),
-('财务管理', 'finance.manage', 'finance', '管理财务数据'),
-('系统配置', 'system.config', 'system', '管理系统配置'),
-('日志查看', 'logs.view', 'system', '查看系统日志');
-
--- 插入角色权限关联 (超级管理员拥有所有权限)
-INSERT INTO `{prefix}role_permissions` (`role_id`, `permission_id`) VALUES
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7),
-(2, 1), (2, 3), (2, 4), (2, 5);
-
--- 插入用户角色关联
-INSERT INTO `{prefix}agent_roles` (`agent_id`, `role_id`) VALUES
-(1, 1);
-
--- 插入默认分类
-INSERT INTO `{prefix}categories` (`name`, `slug`, `description`, `status`, `sort_order`) VALUES
-('默认分类', 'default', '系统默认分类', 'active', 0),
-('热门推荐', 'hot', '热门推荐内容', 'active', 1),
-('最新发布', 'latest', '最新发布内容', 'active', 2);
-
--- 插入默认支付渠道
-INSERT INTO `{prefix}payment_channels` (`name`, `code`, `config`, `fee_rate`, `status`, `sort_order`) VALUES
-('支付宝', 'alipay', '{"app_id":"","private_key":"","public_key":""}', 0.0060, 'active', 1),
-('微信支付', 'wechat', '{"app_id":"","mch_id":"","key":""}', 0.0060, 'active', 2),
-('银联支付', 'unionpay', '{"merchant_id":"","key":""}', 0.0080, 'active', 3);
-
--- 插入默认系统配置
-INSERT INTO `{prefix}system_configs` (`group_name`, `config_key`, `config_value`, `config_type`, `description`, `is_public`) VALUES
-('basic', 'site_name', '视频奖励平台', 'string', '网站名称', 1),
-('basic', 'site_logo', '/static/images/logo.png', 'string', '网站Logo', 1),
-('basic', 'site_description', '专业的视频奖励平台', 'string', '网站描述', 1),
-('basic', 'admin_url', 'admin', 'string', '后台管理URL', 0),
-('payment', 'default_currency', 'CNY', 'string', '默认货币', 0),
-('payment', 'min_recharge_amount', '10.00', 'decimal', '最小充值金额', 0),
-('payment', 'max_recharge_amount', '10000.00', 'decimal', '最大充值金额', 0),
-('security', 'password_min_length', '6', 'integer', '密码最小长度', 0),
-('security', 'login_max_attempts', '5', 'integer', '登录最大尝试次数', 0),
-('security', 'session_timeout', '7200', 'integer', '会话超时时间(秒)', 0);
-
--- =====================================================
--- 7. 自增ID起始值设置
--- =====================================================
-
-ALTER TABLE `{prefix}agents` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}agent_configs` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}agent_balances` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}balance_logs` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}roles` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}permissions` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}role_permissions` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}agent_roles` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}categories` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}contents` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}payment_channels` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}payment_orders` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}user_purchases` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}system_configs` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}system_logs` AUTO_INCREMENT = 1;
-ALTER TABLE `{prefix}system_notifications` AUTO_INCREMENT = 1;
-
--- =====================================================
--- 8. 提交事务
--- =====================================================
-
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
--- =====================================================
--- 安装完成
--- =====================================================
--- 数据库版本: v3.0.0
--- 创建时间: 2025-01-21
--- 表数量: 16张核心业务表
--- 特性: 动态表前缀、现代化架构、完整约束、初始数据
--- 超级管理员: admin / password (请及时修改密码)
--- =====================================================
+-- ----------------------------
+-- Records of ea_system_uploadfile
+-- ----------------------------
+INSERT INTO `ea_system_uploadfile` VALUES ('286', 'alioss', 'image/jpeg', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/0a6de1ac058ee134301501899b84ecb1.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', null, null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('287', 'alioss', 'image/jpeg', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/46d7384f04a3bed331715e86a4095d15.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', null, null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('288', 'alioss', 'image/x-icon', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/7d32671f4c1d1b01b0b28f45205763f9.ico', '', '', '', '0', 'image/x-icon', '0', 'ico', '', null, null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('289', 'alioss', 'image/jpeg', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/28cefa547f573a951bcdbbeb1396b06f.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', null, null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('290', 'alioss', 'image/jpeg', 'https://lxn-99php.oss-cn-shenzhen.aliyuncs.com/upload/20191111/2c412adf1b30c8be3a913e603c7b6e4a.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', null, null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('291', 'alioss', 'timg (1).jpg', 'http://easyadmin.oss-cn-shenzhen.aliyuncs.com/upload/20191113/ff793ced447febfa9ea2d86f9f88fa8e.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1573612437', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('296', 'txcos', '22243.jpg', 'https://easyadmin-1251997243.cos.ap-guangzhou.myqcloud.com/upload/20191114/2381eaf81208ac188fa994b6f2579953.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1573712153', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('297', 'local', 'timg.jpg', 'http://admin.host/upload/20200423/5055a273cf8e3f393d699d622b74f247.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1587614155', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('298', 'local', 'timg.jpg', 'http://admin.host/upload/20200423/243f4e59f1b929951ef79c5f8be7468a.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1587614269', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('299', 'local', 'head.jpg', 'http://admin.host/upload/20200512/a5ce9883379727324f5686ef61205ce2.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1589255649', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('300', 'local', '896e5b87c9ca70e4.jpg', 'http://admin.host/upload/20200514/577c65f101639f53dbbc9e7aa346f81c.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1589427798', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('301', 'local', '896e5b87c9ca70e4.jpg', 'http://admin.host/upload/20200514/98fc09b0c4ad4d793a6f04bef79a0edc.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1589427840', null, null);
+INSERT INTO `ea_system_uploadfile` VALUES ('302', 'local', '18811e7611c8f292.jpg', 'http://admin.host/upload/20200514/e1c6c9ef6a4b98b8f7d95a1a0191a2df.jpg', '', '', '', '0', 'image/jpeg', '0', 'jpg', '', '1589438645', null, null);

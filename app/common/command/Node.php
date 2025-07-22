@@ -1,17 +1,17 @@
 <?php
 
 // +----------------------------------------------------------------------
-// | 配置名称：权限节点刷新服务 - 新权限管理系统
+// | 配置名称：节点刷新服务
 // +----------------------------------------------------------------------
-// | 最后修改：2025-01-21 - 系统清理和优化 - 命令行工具重构
-// | 修改内容：替换SystemNode为新的Permission模型，适配新权限体系
-// | 新架构：基于RBAC权限体系的权限节点刷新命令行工具
-// | 兼容性：PHP 7.4+、ThinkPHP 6.x、新数据库架构v3.0
+// | 配置功能：提供系统节点刷新的命令行工具
+// | 主要配置：force参数控制是否强制刷新节点
+// | 当前配置：支持节点数据的更新与插入操作
 // +----------------------------------------------------------------------
 
 namespace app\common\command;
 
-use app\admin\model\Permission;
+
+use app\admin\model\SystemNode;
 use think\console\Command;
 use think\console\Input;
 use think\console\input\Option;
@@ -42,84 +42,32 @@ class Node extends Command
         if (empty($nodeList)) {
             return true;
         }
-
+        $model = new SystemNode();
         try {
-            // 转换节点为权限格式
-            $permissionList = $this->convertNodesToPermissions($nodeList);
-
             if ($force == 1) {
-                // 强制更新现有权限
-                foreach ($permissionList as $permission) {
-                    $existPermission = Permission::where('slug', $permission['slug'])->find();
-                    if ($existPermission) {
-                        $existPermission->save([
-                            'name' => $permission['name'],
-                            'description' => $permission['description'],
-                        ]);
+                $updateNodeList = $model->whereIn('node', array_column($nodeList, 'node'))->select();
+                $formatNodeList = array_format_key($nodeList, 'node');
+                foreach ($updateNodeList as $vo) {
+                    isset($formatNodeList[$vo['node']]) && $model->where('id', $vo['id'])->update([
+                        'title'   => $formatNodeList[$vo['node']]['title'],
+                        'is_auth' => $formatNodeList[$vo['node']]['is_auth'],
+                    ]);
+                }
+            }
+            $existNodeList = $model->field('node,title,type,is_auth')->select();
+            foreach ($nodeList as $key => $vo) {
+                foreach ($existNodeList as $v) {
+                    if ($vo['node'] == $v->node) {
+                        unset($nodeList[$key]);
+                        break;
                     }
                 }
             }
-
-            // 批量创建新权限
-            Permission::batchCreate($permissionList);
-
+            $model->insertAll($nodeList);
         } catch (\Exception $e) {
             return $e->getMessage();
         }
         return true;
-    }
-
-    /**
-     * 将节点转换为权限格式
-     *
-     * @param array $nodeList 节点列表
-     * @return array 权限列表
-     */
-    protected function convertNodesToPermissions($nodeList)
-    {
-        $permissions = [];
-
-        foreach ($nodeList as $node) {
-            // 解析节点路径确定模块
-            $module = $this->parseNodeModule($node['node']);
-
-            $permissions[] = [
-                'name' => $node['title'],
-                'slug' => $node['node'],
-                'module' => $module,
-                'description' => $node['title'] . ' - 系统自动生成',
-                'status' => Permission::STATUS_ACTIVE,
-            ];
-        }
-
-        return $permissions;
-    }
-
-    /**
-     * 解析节点路径确定所属模块
-     *
-     * @param string $node 节点路径
-     * @return string 模块名称
-     */
-    protected function parseNodeModule($node)
-    {
-        // 默认映射规则
-        $moduleMap = [
-            'system' => Permission::MODULE_SYSTEM,
-            'agent' => Permission::MODULE_AGENT,
-            'content' => Permission::MODULE_CONTENT,
-            'payment' => Permission::MODULE_PAYMENT,
-            'report' => Permission::MODULE_REPORT,
-            'config' => Permission::MODULE_CONFIG,
-        ];
-
-        // 解析节点路径的第一部分作为模块
-        $parts = explode('/', $node);
-        $controllerPath = $parts[0] ?? '';
-        $controllerParts = explode('.', $controllerPath);
-        $module = $controllerParts[0] ?? 'system';
-
-        return $moduleMap[$module] ?? Permission::MODULE_SYSTEM;
     }
 
 }

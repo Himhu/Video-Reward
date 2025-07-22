@@ -1,17 +1,16 @@
 <?php
 // +----------------------------------------------------------------------
-// | 控制器名称：菜单管理控制器 - 新权限管理系统
+// | 控制器名称：菜单管理控制器
 // +----------------------------------------------------------------------
-// | 最后修改：2025-01-21 - 控制器重构 - 权限管理控制器重构
-// | 修改内容：替换SystemNode为新的Permission模型，适配新权限查询逻辑
-// | 新架构：基于RBAC权限体系的菜单管理控制器
-// | 兼容性：PHP 7.4+、ThinkPHP 6.x、新数据库架构v3.0
+// | 控制器功能：管理系统后台菜单结构
+// | 包含操作：菜单列表、添加菜单、编辑菜单、删除菜单、属性修改等
+// | 主要职责：维护系统后台的导航菜单体系
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller\system;
 
 use app\admin\model\SystemMenu;
-use app\admin\model\Permission;
+use app\admin\model\SystemNode;
 use app\admin\service\TriggerService;
 use app\common\constants\MenuConstant;
 use EasyAdmin\annotation\ControllerAnnotation;
@@ -197,13 +196,12 @@ class Menu extends AdminController
 
     /**
      * @NodeAnotation(title="添加菜单提示")
-     * 基于新权限系统的菜单提示
      */
     public function getMenuTips()
     {
         $node = input('get.keywords');
-        $list = Permission::whereLike('slug', "%{$node}%")
-            ->field('slug as node,name as title')
+        $list = SystemNode::whereLike('node', "%{$node}%")
+            ->field('node,title')
             ->limit(10)
             ->select();
         return json([

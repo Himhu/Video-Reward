@@ -1,12 +1,3 @@
-// +----------------------------------------------------------------------
-// | 角色权限管理前端脚本 - 新权限管理系统
-// +----------------------------------------------------------------------
-// | 最后修改：2025-01-21 - 前端界面适配 - 权限分配界面重构
-// | 修改内容：适配新的RBAC权限体系，支持模块化权限树结构
-// | 新架构：基于Permission::getPermissionSelector()的权限分配界面
-// | 兼容性：LayUI、EasyAdmin框架、新权限管理系统v3.0
-// +----------------------------------------------------------------------
-
 define(["jquery", "easy-admin"], function ($, ea) {
 
     var init = {
@@ -64,51 +55,32 @@ define(["jquery", "easy-admin"], function ($, ea) {
         authorize: function () {
             var tree = layui.tree;
 
-            // 获取权限选择器数据 - 基于新RBAC权限体系
             ea.request.get(
                 {
                     url: window.location.href,
                 }, function (res) {
                     res.data = res.data || [];
-
-                    // 渲染权限树 - 支持模块化权限结构
                     tree.render({
                         elem: '#node_ids',
                         data: res.data,
                         showCheckbox: true,
-                        id: 'permissionTreeId',
-                        showLine: true,
-                        accordion: false,
-                        onlyIconControl: true,
+                        id: 'nodeDataId',
                     });
                 }
             );
 
-            // 监听表单提交 - 适配新的权限分配逻辑
             ea.listen(function (data) {
-                var checkedData = tree.getChecked('permissionTreeId');
-                var permissionIds = [];
-
-                // 递归收集所有选中的权限ID
-                function collectPermissionIds(nodes) {
-                    $.each(nodes, function (i, node) {
-                        // 只收集权限节点的ID（排除模块节点）
-                        if (node.type !== 'module' && node.id) {
-                            permissionIds.push(node.id);
-                        }
-
-                        // 递归处理子节点
-                        if (node.children && node.children.length > 0) {
-                            collectPermissionIds(node.children);
-                        }
-                    });
-                }
-
-                collectPermissionIds(checkedData);
-
-                // 使用新的参数名 permissions 替代 node
-                data.permissions = JSON.stringify(permissionIds);
-
+                var checkedData = tree.getChecked('nodeDataId');
+                var ids = [];
+                $.each(checkedData, function (i, v) {
+                    ids.push(v.id);
+                    if (v.children !== undefined && v.children.length > 0) {
+                        $.each(v.children, function (ii, vv) {
+                            ids.push(vv.id);
+                        });
+                    }
+                });
+                data.node = JSON.stringify(ids);
                 return data;
             });
 

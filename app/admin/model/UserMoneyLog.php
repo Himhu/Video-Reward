@@ -1,29 +1,23 @@
 <?php
 // +----------------------------------------------------------------------
-// | 模型名称：模板模型
+// | 模型名称：用户资金流水模型
 // +----------------------------------------------------------------------
-// | 模型功能：管理系统模板数据
-// | 数据表：muban
-// | 主要字段：title(标题)、image(图片)、content(内容)、uid(用户ID)、status(状态)
+// | 模型功能：管理用户资金变动记录
+// | 数据表：user_money_log
+// | 主要字段：uid(用户ID)、money(金额)、type(类型)、remark(备注)、before(变动前)、after(变动后)
 // +----------------------------------------------------------------------
 
 namespace app\admin\model;
 
 use app\common\model\TimeModel;
 
-class Muban extends TimeModel
+class UserMoneyLog extends TimeModel
 {
 
-    protected $name = "muban";
+    protected $name = "user_money_log";
 
-    protected $deleteTime = "delete_time";
+    protected $deleteTime = false;
 
-    
-    
-    public function getStatusList()
-    {
-        return ['0'=>'禁用','1'=>'正常',];
-    }
 
     public function Admins()
     {
