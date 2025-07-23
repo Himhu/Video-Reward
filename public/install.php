@@ -107,6 +107,16 @@ if (isAjax() && isPost()) {
     $admin_password = trim($_POST['admin_password']);
     $adminUrl = trim($_POST['admin_url']);
 
+    // 验证表前缀格式
+    $prefixValidation = validatePrefix($prefix);
+    if ($prefixValidation !== true) {
+        $data = [
+            'code' => 0,
+            'msg'  => $prefixValidation,
+        ];
+        die(json_encode($data));
+    }
+
     // 数据库配置
     $config = [
         'type'     => 'mysql',
@@ -114,8 +124,9 @@ if (isAjax() && isPost()) {
         'hostport' => $hostport,
         'username' => $username,
         'password' => $password,
-        'charset'  => 'utf8',
+        'charset'  => 'utf8mb4',
         'prefix'   => $prefix,
+        'cover'    => $cover, // 添加覆盖安装参数
         'debug'    => true,
     ];
     
@@ -224,15 +235,87 @@ function checkDatabase($database)
 }
 
 /**
+ * 处理覆盖安装 - 删除现有表
+ * @param string $database 数据库名
+ * @param int $cover 是否覆盖安装
+ * @param string $prefix 表前缀
+ * @return bool|string 成功返回true，失败返回错误信息
+ */
+function handleCoverInstall($database, $cover, $prefix = 'ds_')
+{
+    if ($cover != 1) {
+        return true; // 不覆盖安装，直接返回
+    }
+
+    try {
+        // 切换到目标数据库
+        Db::execute("USE `{$database}`");
+
+        // 获取所有以指定前缀开头的表
+        $tables = Db::query("SHOW TABLES LIKE '{$prefix}%'");
+
+        if (!empty($tables)) {
+            // 禁用外键检查
+            Db::execute("SET FOREIGN_KEY_CHECKS = 0");
+
+            // 删除现有表
+            foreach ($tables as $table) {
+                $tableName = array_values($table)[0];
+                Db::execute("DROP TABLE IF EXISTS `{$tableName}`");
+            }
+
+            // 恢复外键检查
+            Db::execute("SET FOREIGN_KEY_CHECKS = 1");
+        }
+
+        return true;
+    } catch (\Exception $e) {
+        return "覆盖安装失败：" . $e->getMessage();
+    }
+}
+
+/**
  * 创建数据库
  */
 function createDatabase($database)
 {
     try {
-        Db::execute("CREATE DATABASE IF NOT EXISTS `{$database}` DEFAULT CHARACTER SET utf8");
+        Db::execute("CREATE DATABASE IF NOT EXISTS `{$database}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     } catch (\Exception $e) {
         return false;
     }
+    return true;
+}
+
+/**
+ * 验证表前缀格式
+ * @param string $prefix 表前缀
+ * @return bool|string 验证通过返回true，失败返回错误信息
+ */
+function validatePrefix($prefix)
+{
+    // 检查是否为空
+    if (empty($prefix)) {
+        return '表前缀不能为空';
+    }
+
+    // 检查前缀格式：必须以字母开头，可包含字母、数字、下划线，必须以下划线结尾
+    if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]*_$/', $prefix)) {
+        return '表前缀格式不正确，必须以字母开头，以下划线结尾，只能包含字母、数字和下划线';
+    }
+
+    // 检查长度
+    if (strlen($prefix) > 20) {
+        return '表前缀长度不能超过20个字符';
+    }
+
+    // 检查是否包含MySQL保留字
+    $reservedWords = ['select', 'insert', 'update', 'delete', 'create', 'drop', 'table', 'database'];
+    $prefixLower = strtolower(rtrim($prefix, '_'));
+    if (in_array($prefixLower, $reservedWords)) {
+        return '表前缀不能使用MySQL保留字';
+    }
+
     return true;
 }
 
@@ -278,22 +361,47 @@ function parseSql($sql = '', $to, $from)
 }
 
 /**
- * 执行安装程序
+ * 执行安装程序 (重构版本 - 支持覆盖安装和前缀验证)
  */
 function install($username, $password, $config, $adminUrl)
 {
-    // 使用标准的install.sql文件
-    $sqlPath = file_get_contents(INSTALL_PATH . 'sql' . DS . 'install.sql');
-    if (!$sqlPath) {
-        return '无法读取install.sql文件';
-    }
-
-    $sqlArray = parseSql($sqlPath, $config['prefix'], 'ds_');
-    Db::startTrans();
     try {
+        // 验证表前缀格式
+        $prefixValidation = validatePrefix($config['prefix']);
+        if ($prefixValidation !== true) {
+            return $prefixValidation;
+        }
+
+        // 处理覆盖安装
+        $coverResult = handleCoverInstall($config['database'], $config['cover'], $config['prefix']);
+        if ($coverResult !== true) {
+            return $coverResult;
+        }
+
+        // 读取SQL文件
+        $sqlPath = file_get_contents(INSTALL_PATH . 'sql' . DS . 'install.sql');
+        if (!$sqlPath) {
+            return '无法读取install.sql文件';
+        }
+
+        // 解析SQL并替换表前缀
+        $sqlArray = parseSql($sqlPath, $config['prefix'], 'ds_');
+
+        // 开始事务
+        Db::startTrans();
+
+        // 执行SQL语句
         foreach ($sqlArray as $vo) {
-            if (trim($vo)) {
+            $vo = trim($vo);
+            if (empty($vo)) {
+                continue;
+            }
+
+            try {
                 Db::connect('install')->execute($vo);
+            } catch (\Exception $e) {
+                Db::rollback();
+                return "SQL执行失败：" . $e->getMessage() . " SQL: " . substr($vo, 0, 100) . "...";
             }
         }
 

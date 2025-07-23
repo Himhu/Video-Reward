@@ -19,9 +19,21 @@ SET time_zone = "+00:00";
 -- 核心业务表
 -- ========================================
 
--- 
+-- 安全删除现有表 (支持覆盖安装)
+DROP TABLE IF EXISTS `ds_category`;
+DROP TABLE IF EXISTS `ds_admin`;
+DROP TABLE IF EXISTS `ds_config`;
+DROP TABLE IF EXISTS `ds_user`;
+DROP TABLE IF EXISTS `ds_video`;
+DROP TABLE IF EXISTS `ds_comment`;
+DROP TABLE IF EXISTS `ds_reward`;
+DROP TABLE IF EXISTS `ds_order`;
+DROP TABLE IF EXISTS `ds_payment`;
+DROP TABLE IF EXISTS `ds_log`;
+
+--
 -- 分类表 (适配新的Category模块)
--- 
+--
 CREATE TABLE `ds_category` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '分类ID',
   `pid` int(11) UNSIGNED NOT NULL DEFAULT '0' COMMENT '父级分类ID',
