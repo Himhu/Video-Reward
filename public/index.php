@@ -1,6 +1,6 @@
 <?php
 // +----------------------------------------------------------------------
-// | EasyAdmin - Video-Reward 应用入口文件
+// | EasyAdmin
 // +----------------------------------------------------------------------
 // | 版权所有:201912782@qq.com
 // +----------------------------------------------------------------------
@@ -8,59 +8,34 @@
 // +----------------------------------------------------------------------
 // | 无论您是从何处取得本代码，请遵守开源协议，及国家法律法规，在法律许可内使用该源代码。
 // +----------------------------------------------------------------------
-// | 本文件是基于 ThinkPHP 6.0 框架的 Web 应用程序入口文件
-// | 负责处理 HTTP 请求的初始化、CORS 配置、安装检查和应用启动
-// +----------------------------------------------------------------------
 
 // [ 应用入口文件 ]
 
 namespace think;
+ 
+$AllowOrigin = @$_SERVER["HTTP_ORIGIN"];
 
-// ============================================================================
-// CORS 跨域资源共享配置
-// ============================================================================
-// 获取请求来源域名，用于 CORS 配置
-// 使用 isset 检查避免未定义索引错误，保持向后兼容性
-$allowOrigin = isset($_SERVER['HTTP_ORIGIN']) ? $_SERVER['HTTP_ORIGIN'] : '';
+header("Access-Control-Allow-Origin: ".$AllowOrigin );
+header("Access-Control-Allow-Methods: *");
+header("Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, x-file-name");
+header('Access-Control-Allow-Credentials:true');
 
-// 设置 CORS 响应头，允许跨域请求
-// 注意：当前配置较为宽松，适用于开发环境或内部系统
-header('Access-Control-Allow-Origin: ' . $allowOrigin);
-header('Access-Control-Allow-Methods: *');
-header('Access-Control-Allow-Headers: Origin, X-Requested-With, Content-Type, Accept, x-file-name');
-header('Access-Control-Allow-Credentials: true');
-
-// ============================================================================
-// 框架自动加载和基础配置
-// ============================================================================
-// 加载 Composer 自动加载器，引入所有依赖包
 require __DIR__ . '/../vendor/autoload.php';
 
-// 定义全局常量，提高代码可读性和跨平台兼容性
-define('DS', DIRECTORY_SEPARATOR);                    // 目录分隔符常量
-define('ROOT_PATH', __DIR__ . DS . '..' . DS);        // 应用根目录路径常量
+// 声明全局变量
+define('DS', DIRECTORY_SEPARATOR);
+define('ROOT_PATH', __DIR__ . DS . '..' . DS);
 
-// ============================================================================
-// 应用安装状态检查
-// ============================================================================
-// 检查系统是否已完成安装，通过安装锁文件判断
-// 如果未安装，自动重定向到安装程序页面
-$installLockFile = ROOT_PATH . 'config' . DS . 'install' . DS . 'lock' . DS . 'install.lock';
-if (!is_file($installLockFile)) {
-    exit(header('location:/install.php'));
+// 判断是否安装程序
+if (!is_file(ROOT_PATH . 'config' . DS . 'install' . DS . 'lock' . DS . 'install.lock')) {
+    exit(header("location:/install.php"));
 }
 
-// ============================================================================
-// ThinkPHP 应用启动和请求处理
-// ============================================================================
-// 创建应用实例并获取 HTTP 服务
+// 执行HTTP应用并响应
 $http = (new App())->http;
 
-// 运行应用，处理当前 HTTP 请求
 $response = $http->run();
 
-// 发送响应到客户端
 $response->send();
 
-// 执行应用结束处理（中间件清理、日志写入等）
 $http->end($response);
