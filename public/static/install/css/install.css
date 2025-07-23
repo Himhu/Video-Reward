@@ -1,0 +1,413 @@
+/**
+ * Video-Reward 安装程序样式文件
+ * 
+ * 功能说明：
+ * - 提供安装程序的完整视觉样式
+ * - 响应式设计，支持移动端和桌面端
+ * - 现代化的渐变背景和卡片式布局
+ * - 完整的表单样式和交互效果
+ * 
+ * 设计特点：
+ * - 使用渐变背景提升视觉效果
+ * - 卡片式容器设计，增强层次感
+ * - 统一的色彩方案和字体规范
+ * - 流畅的动画和过渡效果
+ */
+
+/* ========================================
+   基础样式重置和全局设置
+   ======================================== */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.6;
+}
+
+/* ========================================
+   主容器样式
+   ======================================== */
+
+.install-container {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 600px;
+    overflow: hidden;
+    animation: slideInUp 0.6s ease-out;
+}
+
+/* 容器动画效果 */
+@keyframes slideInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   头部样式
+   ======================================== */
+
+.install-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.install-header::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: rotate 20s linear infinite;
+}
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.install-header h1 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+}
+
+.install-header p {
+    opacity: 0.9;
+    font-size: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+/* ========================================
+   主体内容样式
+   ======================================== */
+
+.install-body {
+    padding: 40px;
+}
+
+/* ========================================
+   表单样式
+   ======================================== */
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: 14px;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e1e5e9;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    background-color: #fff;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    transform: translateY(-1px);
+}
+
+.form-group input:hover,
+.form-group select:hover {
+    border-color: #b8c5f2;
+}
+
+/* 表单行布局 */
+.form-row {
+    display: flex;
+    gap: 15px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+/* ========================================
+   按钮样式
+   ======================================== */
+
+.install-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.install-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.install-btn:active {
+    transform: translateY(0);
+}
+
+.install-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* 按钮波纹效果 */
+.install-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.install-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* ========================================
+   消息提示样式
+   ======================================== */
+
+.error-message {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid #e74c3c;
+    animation: shake 0.5s ease-in-out;
+}
+
+.success-message {
+    background: #efe;
+    border: 1px solid #cfc;
+    color: #363;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid #27ae60;
+    animation: slideInDown 0.5s ease-out;
+}
+
+/* 错误消息摇摆动画 */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+/* 成功消息滑入动画 */
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ========================================
+   加载状态样式
+   ======================================== */
+
+.loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+}
+
+.loading-spinner {
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 15px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   架构信息样式
+   ======================================== */
+
+.architecture-info {
+    background: #f8f9fa;
+    border-left: 4px solid #667eea;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 6px 6px 0;
+    position: relative;
+}
+
+.architecture-info::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(to bottom, #667eea, #764ba2);
+}
+
+.architecture-info h4 {
+    color: #667eea;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.architecture-info ul {
+    margin-left: 20px;
+    list-style: none;
+}
+
+.architecture-info li {
+    margin-bottom: 5px;
+    color: #666;
+    position: relative;
+    padding-left: 10px;
+}
+
+.architecture-info li::before {
+    content: '•';
+    color: #667eea;
+    position: absolute;
+    left: -10px;
+    font-weight: bold;
+}
+
+/* ========================================
+   响应式设计
+   ======================================== */
+
+@media (max-width: 768px) {
+    .install-container {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .install-header {
+        padding: 20px;
+    }
+    
+    .install-header h1 {
+        font-size: 24px;
+    }
+    
+    .install-body {
+        padding: 20px;
+    }
+    
+    .form-row {
+        flex-direction: column;
+        gap: 0;
+    }
+    
+    .form-group input,
+    .form-group select {
+        padding: 10px;
+    }
+    
+    .install-btn {
+        padding: 12px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .install-container {
+        width: 100%;
+        margin: 10px;
+        border-radius: 0;
+    }
+    
+    .install-header h1 {
+        font-size: 20px;
+    }
+    
+    .install-body {
+        padding: 15px;
+    }
+}
+
+/* ========================================
+   打印样式
+   ======================================== */
+
+@media print {
+    body {
+        background: white;
+    }
+    
+    .install-container {
+        box-shadow: none;
+        border: 1px solid #ccc;
+    }
+    
+    .install-header {
+        background: #f5f5f5 !important;
+        color: #333 !important;
+    }
+    
+    .install-btn {
+        display: none;
+    }
+}
