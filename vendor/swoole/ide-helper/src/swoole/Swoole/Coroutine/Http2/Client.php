@@ -8,7 +8,7 @@ class Client
 {
     public $errCode = 0;
 
-    public $errMsg = '';
+    public $errMsg = 0;
 
     public $sock = -1;
 

@@ -14,18 +14,18 @@ final class Utils
     /**
      * Remove the items given by the keys, case insensitively from the data.
      *
-     * @param (string|int)[] $keys
+     * @param string[] $keys
      */
     public static function caselessRemove(array $keys, array $data): array
     {
         $result = [];
 
         foreach ($keys as &$key) {
-            $key = strtolower((string) $key);
+            $key = strtolower($key);
         }
 
         foreach ($data as $k => $v) {
-            if (!in_array(strtolower((string) $k), $keys)) {
+            if (!is_string($k) || !in_array(strtolower($k), $keys)) {
                 $result[$k] = $v;
             }
         }
@@ -90,7 +90,6 @@ final class Utils
                 }
                 $buffer .= $buf;
             }
-
             return $buffer;
         }
 
@@ -132,7 +131,7 @@ final class Utils
             hash_update($ctx, $stream->read(1048576));
         }
 
-        $out = hash_final($ctx, $rawOutput);
+        $out = hash_final($ctx, (bool) $rawOutput);
         $stream->seek($pos);
 
         return $out;
@@ -175,7 +174,7 @@ final class Utils
                     $standardPorts = ['http' => 80, 'https' => 443];
                     $scheme = $changes['uri']->getScheme();
                     if (isset($standardPorts[$scheme]) && $port != $standardPorts[$scheme]) {
-                        $changes['set_headers']['Host'] .= ':'.$port;
+                        $changes['set_headers']['Host'] .= ':' . $port;
                     }
                 }
             }
@@ -251,20 +250,6 @@ final class Utils
     }
 
     /**
-     * Redact the password in the user info part of a URI.
-     */
-    public static function redactUserInfo(UriInterface $uri): UriInterface
-    {
-        $userInfo = $uri->getUserInfo();
-
-        if (false !== ($pos = \strpos($userInfo, ':'))) {
-            return $uri->withUserInfo(\substr($userInfo, 0, $pos), '***');
-        }
-
-        return $uri;
-    }
-
-    /**
      * Create a new stream based on the input type.
      *
      * Options is an associative array that can contain the following keys:
@@ -306,7 +291,6 @@ final class Utils
                 fwrite($stream, (string) $resource);
                 fseek($stream, 0);
             }
-
             return new Stream($stream, $options);
         }
 
@@ -320,11 +304,10 @@ final class Utils
                 /** @var resource $resource */
                 if ((\stream_get_meta_data($resource)['uri'] ?? '') === 'php://input') {
                     $stream = self::tryFopen('php://temp', 'w+');
-                    stream_copy_to_stream($resource, $stream);
+                    fwrite($stream, stream_get_contents($resource));
                     fseek($stream, 0);
                     $resource = $stream;
                 }
-
                 return new Stream($resource, $options);
             case 'object':
                 /** @var object $resource */
@@ -337,7 +320,6 @@ final class Utils
                         }
                         $result = $resource->current();
                         $resource->next();
-
                         return $result;
                     }, $options);
                 } elseif (method_exists($resource, '__toString')) {
@@ -352,7 +334,7 @@ final class Utils
             return new PumpStream($resource, $options);
         }
 
-        throw new \InvalidArgumentException('Invalid resource type: '.gettype($resource));
+        throw new \InvalidArgumentException('Invalid resource type: ' . gettype($resource));
     }
 
     /**
@@ -402,53 +384,6 @@ final class Utils
         }
 
         return $handle;
-    }
-
-    /**
-     * Safely gets the contents of a given stream.
-     *
-     * When stream_get_contents fails, PHP normally raises a warning. This
-     * function adds an error handler that checks for errors and throws an
-     * exception instead.
-     *
-     * @param resource $stream
-     *
-     * @throws \RuntimeException if the stream cannot be read
-     */
-    public static function tryGetContents($stream): string
-    {
-        $ex = null;
-        set_error_handler(static function (int $errno, string $errstr) use (&$ex): bool {
-            $ex = new \RuntimeException(sprintf(
-                'Unable to read stream contents: %s',
-                $errstr
-            ));
-
-            return true;
-        });
-
-        try {
-            /** @var string|false $contents */
-            $contents = stream_get_contents($stream);
-
-            if ($contents === false) {
-                $ex = new \RuntimeException('Unable to read stream contents');
-            }
-        } catch (\Throwable $e) {
-            $ex = new \RuntimeException(sprintf(
-                'Unable to read stream contents: %s',
-                $e->getMessage()
-            ), 0, $e);
-        }
-
-        restore_error_handler();
-
-        if ($ex) {
-            /** @var $ex \RuntimeException */
-            throw $ex;
-        }
-
-        return $contents;
     }
 
     /**

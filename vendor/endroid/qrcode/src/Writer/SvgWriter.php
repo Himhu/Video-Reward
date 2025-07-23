@@ -17,7 +17,6 @@ final class SvgWriter implements WriterInterface
     public const DECIMAL_PRECISION = 10;
     public const WRITER_OPTION_BLOCK_ID = 'block_id';
     public const WRITER_OPTION_EXCLUDE_XML_DECLARATION = 'exclude_xml_declaration';
-    public const WRITER_OPTION_EXCLUDE_SVG_WIDTH_AND_HEIGHT = 'exclude_svg_width_and_height';
     public const WRITER_OPTION_FORCE_XLINK_HREF = 'force_xlink_href';
 
     public function write(QrCodeInterface $qrCode, LogoInterface $logo = null, LabelInterface $label = null, array $options = []): ResultInterface
@@ -30,19 +29,13 @@ final class SvgWriter implements WriterInterface
             $options[self::WRITER_OPTION_EXCLUDE_XML_DECLARATION] = false;
         }
 
-        if (!isset($options[self::WRITER_OPTION_EXCLUDE_SVG_WIDTH_AND_HEIGHT])) {
-            $options[self::WRITER_OPTION_EXCLUDE_SVG_WIDTH_AND_HEIGHT] = false;
-        }
-
         $matrixFactory = new MatrixFactory();
         $matrix = $matrixFactory->create($qrCode);
 
         $xml = new \SimpleXMLElement('<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"/>');
         $xml->addAttribute('version', '1.1');
-        if (!$options[self::WRITER_OPTION_EXCLUDE_SVG_WIDTH_AND_HEIGHT]) {
-            $xml->addAttribute('width', $matrix->getOuterSize().'px');
-            $xml->addAttribute('height', $matrix->getOuterSize().'px');
-        }
+        $xml->addAttribute('width', $matrix->getOuterSize().'px');
+        $xml->addAttribute('height', $matrix->getOuterSize().'px');
         $xml->addAttribute('viewBox', '0 0 '.$matrix->getOuterSize().' '.$matrix->getOuterSize());
         $xml->addChild('defs');
 
@@ -72,7 +65,7 @@ final class SvgWriter implements WriterInterface
             }
         }
 
-        $result = new SvgResult($matrix, $xml, boolval($options[self::WRITER_OPTION_EXCLUDE_XML_DECLARATION]));
+        $result = new SvgResult($xml, boolval($options[self::WRITER_OPTION_EXCLUDE_XML_DECLARATION]));
 
         if ($logo instanceof LogoInterface) {
             $this->addLogo($logo, $result, $options);
@@ -81,7 +74,7 @@ final class SvgWriter implements WriterInterface
         return $result;
     }
 
-    /** @param array<string, mixed> $options */
+    /** @param array<mixed> $options */
     private function addLogo(LogoInterface $logo, SvgResult $result, array $options): void
     {
         $logoImageData = LogoImageData::createForLogo($logo);

@@ -82,16 +82,11 @@ trait Conversion
      * 设置需要附加的输出属性
      * @access public
      * @param  array $append   属性列表
-     * @param  bool  $merge    是否合并
      * @return $this
      */
-    public function append(array $append = [], bool $merge = false)
+    public function append(array $append = [])
     {
-        if ($merge) {
-            $this->append = array_merge($this->append, $append);
-        } else {
-            $this->append = $append;
-        }
+        $this->append = $append;
 
         return $this;
     }
@@ -152,16 +147,11 @@ trait Conversion
      * 设置需要隐藏的输出属性
      * @access public
      * @param  array $hidden   属性列表
-     * @param  bool  $merge    是否合并
      * @return $this
      */
-    public function hidden(array $hidden = [], bool $merge = false)
+    public function hidden(array $hidden = [])
     {
-        if ($merge) {
-            $this->hidden = array_merge($this->hidden, $hidden);
-        } else {
-            $this->hidden = $hidden;
-        }
+        $this->hidden = $hidden;
 
         return $this;
     }
@@ -170,16 +160,11 @@ trait Conversion
      * 设置需要输出的属性
      * @access public
      * @param  array $visible
-     * @param  bool  $merge    是否合并
      * @return $this
      */
-    public function visible(array $visible = [], bool $merge = false)
+    public function visible(array $visible = [])
     {
-        if ($merge) {
-            $this->visible = array_merge($this->visible, $visible);
-        } else {
-            $this->visible = $visible;
-        }
+        $this->visible = $visible;
 
         return $this;
     }
@@ -204,35 +189,32 @@ trait Conversion
      */
     public function toArray(): array
     {
-        $item = $visible = $hidden = [];
+        $item       = [];
         $hasVisible = false;
 
         foreach ($this->visible as $key => $val) {
             if (is_string($val)) {
                 if (strpos($val, '.')) {
-                    [$relation, $name] = explode('.', $val);
-                    $visible[$relation][] = $name;
+                    [$relation, $name]          = explode('.', $val);
+                    $this->visible[$relation][] = $name;
                 } else {
-                    $visible[$val] = true;
-                    $hasVisible = true;
+                    $this->visible[$val] = true;
+                    $hasVisible          = true;
                 }
+                unset($this->visible[$key]);
             }
         }
 
         foreach ($this->hidden as $key => $val) {
             if (is_string($val)) {
                 if (strpos($val, '.')) {
-                    [$relation, $name] = explode('.', $val);
-                    $hidden[$relation][] = $name;
+                    [$relation, $name]         = explode('.', $val);
+                    $this->hidden[$relation][] = $name;
                 } else {
-                    $hidden[$val] = true;
+                    $this->hidden[$val] = true;
                 }
+                unset($this->hidden[$key]);
             }
-        }
-
-        // 追加属性（必须定义获取器）
-        foreach ($this->append as $key => $name) {
-            $this->appendAttrToArray($item, $key, $name, $visible, $hidden);
         }
 
         // 合并关联数据
@@ -241,18 +223,18 @@ trait Conversion
         foreach ($data as $key => $val) {
             if ($val instanceof Model || $val instanceof ModelCollection) {
                 // 关联模型对象
-                if (isset($visible[$key]) && is_array($visible[$key])) {
-                    $val->visible($visible[$key]);
-                } elseif (isset($hidden[$key]) && is_array($hidden[$key])) {
-                    $val->hidden($hidden[$key], true);
+                if (isset($this->visible[$key]) && is_array($this->visible[$key])) {
+                    $val->visible($this->visible[$key]);
+                } elseif (isset($this->hidden[$key]) && is_array($this->hidden[$key])) {
+                    $val->hidden($this->hidden[$key]);
                 }
                 // 关联模型对象
-                if (!isset($hidden[$key]) || true !== $hidden[$key]) {
+                if (!isset($this->hidden[$key]) || true !== $this->hidden[$key]) {
                     $item[$key] = $val->toArray();
                 }
-            } elseif (isset($visible[$key])) {
+            } elseif (isset($this->visible[$key])) {
                 $item[$key] = $this->getAttr($key);
-            } elseif (!isset($hidden[$key]) && !$hasVisible) {
+            } elseif (!isset($this->hidden[$key]) && !$hasVisible) {
                 $item[$key] = $this->getAttr($key);
             }
 
@@ -262,6 +244,11 @@ trait Conversion
                 $item[$mapName] = $item[$key];
                 unset($item[$key]);
             }
+        }
+
+        // 追加属性（必须定义获取器）
+        foreach ($this->append as $key => $name) {
+            $this->appendAttrToArray($item, $key, $name);
         }
 
         if ($this->convertNameToCamel) {
@@ -277,36 +264,25 @@ trait Conversion
         return $item;
     }
 
-    protected function appendAttrToArray(array &$item, $key, $name, array $visible, array $hidden)
+    protected function appendAttrToArray(array &$item, $key, $name)
     {
         if (is_array($name)) {
-            // 批量追加关联对象属性
-            $relation   = $this->getRelationWith($key, $hidden, $visible);
-            $item[$key] = $relation ? $relation->append($name)->toArray() : [];
+            // 追加关联对象属性
+            $relation   = $this->getRelation($key, true);
+            $item[$key] = $relation ? $relation->append($name)
+                ->toArray() : [];
         } elseif (strpos($name, '.')) {
-            // 追加单个关联对象属性
-            [$key, $attr]   = explode('.', $name);
-            $relation       = $this->getRelationWith($key, $hidden, $visible);
-            $item[$key]     = $relation ? $relation->append([$attr])->toArray() : [];
+            [$key, $attr] = explode('.', $name);
+            // 追加关联对象属性
+            $relation   = $this->getRelation($key, true);
+            $item[$key] = $relation ? $relation->append([$attr])
+                ->toArray() : [];
         } else {
-            $value          = $this->getAttr($name);
-            $item[$name]    = $value;
+            $value       = $this->getAttr($name);
+            $item[$name] = $value;
 
             $this->getBindAttrValue($name, $value, $item);
         }
-    }
-
-    protected function getRelationWith(string $key, array $hidden, array $visible)
-    {
-        $relation   = $this->getRelation($key, true);
-        if ($relation) {
-            if (isset($visible[$key])) {
-                $relation->visible($visible[$key]);
-            } elseif (isset($hidden[$key])) {
-                $relation->hidden($hidden[$key]);
-            }
-        }
-        return $relation;
     }
 
     protected function getBindAttrValue(string $name, $value, array &$item = [])

@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
@@ -13,6 +12,7 @@ use Psr\Http\Message\RequestInterface;
  */
 class HeaderLocation extends AbstractLocation
 {
+
     /**
      * Set the name of the location
      *
@@ -24,6 +24,10 @@ class HeaderLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Parameter        $param
+     *
      * @return MessageInterface
      */
     public function visit(
@@ -37,6 +41,10 @@ class HeaderLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Operation        $operation
+     *
      * @return RequestInterface
      */
     public function after(

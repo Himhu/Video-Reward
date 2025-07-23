@@ -22,7 +22,7 @@ class ObjectVersionListInfo
      * @param string $nextVersionIdMarker
      * @param string $maxKeys
      * @param string $delimiter
-     * @param null|string $isTruncated
+     * @param null $isTruncated
      * @param array $objectversionList
      * @param array $deleteMarkerList
      * @param array $prefixList
@@ -151,7 +151,7 @@ class ObjectVersionListInfo
     private $prefix = "";
     private $keyMarker = "";
     private $nextKeyMarker = "";
-    private $versionIdMarker = "";
+    private $versionIdmarker = "";
     private $nextVersionIdMarker = "";
     private $maxKeys = 0;
     private $delimiter = "";

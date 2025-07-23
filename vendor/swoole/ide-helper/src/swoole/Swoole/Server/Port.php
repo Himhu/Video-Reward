@@ -32,7 +32,7 @@ class Port
 
     private $onRequest;
 
-    private $onHandshake;
+    private $onHandShake;
 
     private $onOpen;
 

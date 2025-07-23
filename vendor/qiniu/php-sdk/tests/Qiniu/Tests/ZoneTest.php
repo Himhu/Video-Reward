@@ -1,12 +1,10 @@
 <?php
 namespace Qiniu\Tests;
 
-use PHPUnit\Framework\TestCase;
-
 use Qiniu;
 use Qiniu\Zone;
 
-class ZoneTest extends TestCase
+class ZoneTest extends \PHPUnit_Framework_TestCase
 {
     protected $zone;
     protected $zoneHttps;
@@ -19,10 +17,7 @@ class ZoneTest extends TestCase
     protected $bucketNameAS;
 
 
-    /**
-     * @before
-     */
-    protected function setUpZoneAndBucket()
+    protected function setUp()
     {
         global $bucketName;
         $this->bucketName = $bucketName;
@@ -102,12 +97,6 @@ class ZoneTest extends TestCase
     {
         $zone = Zone::zonez2();
         $this->assertContains('upload-z2.qiniup.com', $zone->cdnUpHosts);
-    }
-
-    public function testZoneCnEast2()
-    {
-        $zone = Zone::zoneCnEast2();
-        $this->assertContains('upload-cn-east-2.qiniup.com', $zone->cdnUpHosts);
     }
 
     public function testZoneNa0()

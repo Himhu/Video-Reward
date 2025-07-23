@@ -18,10 +18,6 @@ class MultipartUpload {
     private $progress;
     private $totalSize;
     private $uploadedSize;
-    private $concurrency;
-    private $partNumberList;
-    private $needMd5;
-    private $retry;
 
     public function __construct($client, $body, $options = array()) {
         $minPartSize = $options['PartSize'];
@@ -39,7 +35,6 @@ class MultipartUpload {
         $this->needMd5 = isset($options['ContentMD5']) ? $options['ContentMD5'] : true;
         $this->retry = isset($options['Retry']) ? $options['Retry'] : 3;
     }
-
     public function performUploading() {
         $uploadId= $this->initiateMultipartUpload();
         $this->uploadParts($uploadId);
@@ -56,7 +51,6 @@ class MultipartUpload {
         );
 
     }
-
     public function uploadParts($uploadId) {
         $uploadRequests = function ($uploadId) {
             $partNumber = 1;
@@ -106,15 +100,7 @@ class MultipartUpload {
                 $index = $index + 1;
                 $partNumber = $this->partNumberList[$index]['PartNumber'];
                 $partSize = $this->partNumberList[$index]['PartSize'];
-
-                //兼容两种写法，防止index为undefined
-                if (array_key_exists('etag', $response->getHeaders())) {
-                    $etag = $response->getHeaders()["etag"][0];
-                }
-
-                if (array_key_exists('ETag', $response->getHeaders())) {
-                    $etag = $response->getHeaders()["ETag"][0];
-                }
+                $etag = $response->getHeaders()["ETag"][0];
                 $part = array('PartNumber' => $partNumber, 'ETag' => $etag);
                 $this->parts[$partNumber] = $part;
                 $this->uploadedSize += $partSize;
@@ -169,4 +155,5 @@ class MultipartUpload {
         $result = $this->client->createMultipartUpload($this->options);
         return $result['UploadId'];
     }
+
 }

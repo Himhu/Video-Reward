@@ -42,17 +42,15 @@ class Url extends UrlBuild
             // 解析到控制器
             $url = substr($url, 1);
         } elseif ('' === $url) {
-            $url = $request->controller() . '/' . $request->action();
-            if (!$this->app->http->isBind()) {
-                $url = $this->getAppName() . '/' . $url;
-            }
+            $url = $this->getAppName() . '/' . $request->controller() . '/' . $request->action();
         } else {
             // 解析到 应用/控制器/操作
             $controller = $request->controller();
+            $app        = $this->getAppName();
             $path       = explode('/', $url);
             $action     = array_pop($path);
             $controller = empty($path) ? $controller : array_pop($path);
-            $app        = empty($path) ? $this->getAppName() : array_pop($path);
+            $app        = empty($path) ? $app : array_pop($path);
             $url        = $controller . '/' . $action;
             $bind       = $this->app->config->get('app.domain_bind', []);
 
@@ -60,20 +58,15 @@ class Url extends UrlBuild
                 isset($bind[$_SERVER['SERVER_NAME']]) && $domain = $_SERVER['SERVER_NAME'];
 
                 $domain = is_bool($domain) ? $key : $domain;
-            } elseif (!$this->app->http->isBind()) {
-                $map = $this->app->config->get('app.app_map', []);
-                if ($key = array_search($app, $map)) {
-                    $url = $key . '/' . $url;
-                } else {
-                    $url = $app . '/' . $url;
-                }
+            } else {
+                $url = $app . '/' . $url;
             }
         }
 
         return $url;
     }
 
-    public function build(): string
+    public function build()
     {
         // 解析URL
         $url     = $this->url;
@@ -146,10 +139,20 @@ class Url extends UrlBuild
             throw new \InvalidArgumentException('route name not exists:' . $name);
         } else {
             // 检测URL绑定
-            $bind = (string) $this->route->getDomainBind($domain && is_string($domain) ? $domain : null);
+            $bind = $this->route->getDomainBind($domain && is_string($domain) ? $domain : null);
 
             if ($bind && 0 === strpos($url, $bind)) {
                 $url = substr($url, strlen($bind) + 1);
+            } else {
+                $binds = $this->route->getBind();
+
+                foreach ($binds as $key => $val) {
+                    if (is_string($val) && 0 === strpos($url, $val) && substr_count($val, '/') > 1) {
+                        $url    = substr($url, strlen($val) + 1);
+                        $domain = $key;
+                        break;
+                    }
+                }
             }
 
             // 路由标识不存在 直接解析

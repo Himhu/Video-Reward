@@ -1,11 +1,4 @@
 <?php
-// +----------------------------------------------------------------------
-// | Video-Reward 安装程序 (重构版本)
-// +----------------------------------------------------------------------
-// | 支持新的模块化架构，兼容原项目功能
-// +----------------------------------------------------------------------
-// | 重构说明：适配新的目录结构，保持功能完全一致
-// +----------------------------------------------------------------------
 
 ini_set('display_errors', 'On');
 ini_set('display_startup_errors', 1);
@@ -16,26 +9,13 @@ use think\facade\Db;
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../vendor/topthink/framework/src/helper.php';
 
-// 定义路径常量
 define('DS', DIRECTORY_SEPARATOR);
 define('ROOT_PATH', __DIR__ . DS . '..' . DS);
 define('INSTALL_PATH', ROOT_PATH . 'config' . DS . 'install' . DS);
 define('CONFIG_PATH', ROOT_PATH . 'config' . DS);
 
-// 新增：模块化架构路径常量
-define('APP_PATH', ROOT_PATH . 'app' . DS);
-define('MODULES_PATH', APP_PATH . 'Modules' . DS);
-define('BASE_PATH', APP_PATH . 'Base' . DS);
-define('SHARED_PATH', APP_PATH . 'Shared' . DS);
-
 $currentHost = ($_SERVER['SERVER_PORT'] == 443 ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . '/';
 
-// 生成安全验证码
-$verify = md5(time() . mt_rand(1000, 9999));
-
-/**
- * 检查目录读写权限
- */
 function isReadWrite($file)
 {
     if (DIRECTORY_SEPARATOR == '\\') {
@@ -51,14 +31,13 @@ function isReadWrite($file)
     return true;
 }
 
-// 环境检查
 $errorInfo = null;
 if (is_file(INSTALL_PATH . 'lock' . DS . 'install.lock')) {
     $errorInfo = '已安装系统，如需重新安装请删除文件：/config/install/lock/install.lock';
 } elseif (!isReadWrite(ROOT_PATH . 'config' . DS)) {
     $errorInfo = ROOT_PATH . 'config' . DS . '：读写权限不足';
-} elseif (!isReadWrite(ROOT_PATH . 'storage' . DS)) {
-    $errorInfo = ROOT_PATH . 'storage' . DS . '：读写权限不足';
+} elseif (!isReadWrite(ROOT_PATH . 'runtime' . DS)) {
+    $errorInfo = ROOT_PATH . 'runtime' . DS . '：读写权限不足';
 } elseif (!isReadWrite(ROOT_PATH . 'public' . DS)) {
     $errorInfo = ROOT_PATH . 'public' . DS . '：读写权限不足';
 } elseif (!checkPhpVersion('7.1.0')) {
@@ -67,69 +46,61 @@ if (is_file(INSTALL_PATH . 'lock' . DS . 'install.lock')) {
     $errorInfo = '当前未开启PDO，无法进行安装';
 }
 
-// 新增：检查新架构目录是否存在
-if (!$errorInfo) {
-    $requiredDirs = [
-        APP_PATH => 'app目录',
-        BASE_PATH => 'app/Base目录',
-        SHARED_PATH => 'app/Shared目录',
-        MODULES_PATH => 'app/Modules目录'
-    ];
+// POST请求
+if (isAjax()) {
+    $post = $_POST;
 
-    foreach ($requiredDirs as $dir => $name) {
-        if (!is_dir($dir)) {
-            $errorInfo = "缺少必要的{$name}，请确保新架构目录结构完整";
-            break;
-        }
-    }
-}
+    $cover = $post['cover'] == 1 ? true : false;
+    $database = $post['database'];
+    $hostname = $post['hostname'];
+    $hostport = $post['hostport'];
+    $dbUsername = $post['db_username'];
+    $dbPassword = $post['db_password'];
+    $prefix = $post['prefix'];
+    $adminUrl = $post['admin_url'];
+    $username = $post['username'];
+    $password = $post['password'];
 
-// 新增：检查SQL安装文件是否存在
-if (!$errorInfo) {
-    $sqlFile = INSTALL_PATH . 'sql' . DS . 'install.sql';
-    if (!file_exists($sqlFile)) {
-        $errorInfo = '缺少必要的数据库安装文件：config/install/sql/install.sql';
-    }
-}
+    // 参数验证
+    $validateError = null;
 
-// POST请求处理
-if (isAjax() && isPost()) {
-    $hostname = trim($_POST['hostname']);
-    $hostport = trim($_POST['hostport']);
-    $database = trim($_POST['database']);
-    $username = trim($_POST['username']);
-    $password = trim($_POST['password']);
-    $prefix   = trim($_POST['prefix']);
-    $cover    = intval($_POST['cover']);
-    
-    // 管理员信息
-    $admin_username = trim($_POST['admin_username']);
-    $admin_password = trim($_POST['admin_password']);
-    $adminUrl = trim($_POST['admin_url']);
-
-    // 验证表前缀格式
-    $prefixValidation = validatePrefix($prefix);
-    if ($prefixValidation !== true) {
+    // 判断是否有特殊字符
+    $check = preg_match('/[0-9a-zA-Z]+$/', $adminUrl, $matches);
+    if (!$check) {
+        $validateError = '后台地址不能含有特殊字符, 只能包含字母或数字。';
         $data = [
             'code' => 0,
-            'msg'  => $prefixValidation,
+            'msg'  => $validateError,
         ];
         die(json_encode($data));
     }
 
-    // 数据库配置
+    if (strlen($adminUrl) < 2) {
+        $validateError = '后台的地址不能小于2位数';
+    } elseif (strlen($password) < 5) {
+        $validateError = '管理员密码不能小于5位数';
+    } elseif (strlen($username) < 4) {
+        $validateError = '管理员账号不能小于4位数';
+    }
+    if (!empty($validateError)) {
+        $data = [
+            'code' => 0,
+            'msg'  => $validateError,
+        ];
+        die(json_encode($data));
+    }
+
+    // DB类初始化
     $config = [
         'type'     => 'mysql',
         'hostname' => $hostname,
+        'username' => $dbUsername,
+        'password' => $dbPassword,
         'hostport' => $hostport,
-        'username' => $username,
-        'password' => $password,
-        'charset'  => 'utf8mb4',
+        'charset'  => 'utf8',
         'prefix'   => $prefix,
-        'cover'    => $cover, // 添加覆盖安装参数
         'debug'    => true,
     ];
-    
     Db::setConfig([
         'default'     => 'mysql',
         'connections' => [
@@ -146,7 +117,6 @@ if (isAjax() && isPost()) {
         ];
         die(json_encode($data));
     }
-    
     // 检测数据库是否存在
     if (!$cover && checkDatabase($database)) {
         $data = [
@@ -155,12 +125,10 @@ if (isAjax() && isPost()) {
         ];
         die(json_encode($data));
     }
-    
     // 创建数据库
     createDatabase($database);
-    
-    // 执行安装
-    $install = install($admin_username, $admin_password, array_merge($config, ['database' => $database]), $adminUrl);
+    // 导入sql语句等等
+    $install = install($username, $password, array_merge($config, ['database' => $database]), $adminUrl);
     if ($install !== true) {
         $data = [
             'code' => 0,
@@ -168,7 +136,6 @@ if (isAjax() && isPost()) {
         ];
         die(json_encode($data));
     }
-    
     $data = [
         'code' => 1,
         'msg'  => '系统安装成功，正在跳转登录页面',
@@ -177,9 +144,7 @@ if (isAjax() && isPost()) {
     die(json_encode($data));
 }
 
-/**
- * 检查是否为AJAX请求
- */
+
 function isAjax()
 {
     if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
@@ -189,18 +154,12 @@ function isAjax()
     }
 }
 
-/**
- * 检查是否为POST请求
- */
 function isPost()
 {
     return ($_SERVER['REQUEST_METHOD'] == 'POST' && checkurlHash($GLOBALS['verify'])
         && (empty($_SERVER['HTTP_REFERER']) || preg_replace("~https?:\/\/([^\:\/]+).*~i", "\\1", $_SERVER['HTTP_REFERER']) == preg_replace("~([^\:]+).*~", "\\1", $_SERVER['HTTP_HOST']))) ? 1 : 0;
 }
 
-/**
- * 检查PHP版本
- */
 function checkPhpVersion($version)
 {
     $php_version = explode('-', phpversion());
@@ -208,9 +167,6 @@ function checkPhpVersion($version)
     return $check;
 }
 
-/**
- * 检查数据库连接
- */
 function checkConnect()
 {
     try {
@@ -221,9 +177,6 @@ function checkConnect()
     return true;
 }
 
-/**
- * 检查数据库是否存在
- */
 function checkDatabase($database)
 {
     $check = Db::query("SELECT * FROM information_schema.schemata WHERE schema_name='{$database}'");
@@ -234,94 +187,16 @@ function checkDatabase($database)
     }
 }
 
-/**
- * 处理覆盖安装 - 删除现有表
- * @param string $database 数据库名
- * @param int $cover 是否覆盖安装
- * @param string $prefix 表前缀
- * @return bool|string 成功返回true，失败返回错误信息
- */
-function handleCoverInstall($database, $cover, $prefix = 'ds_')
-{
-    if ($cover != 1) {
-        return true; // 不覆盖安装，直接返回
-    }
-
-    try {
-        // 切换到目标数据库
-        Db::execute("USE `{$database}`");
-
-        // 获取所有以指定前缀开头的表
-        $tables = Db::query("SHOW TABLES LIKE '{$prefix}%'");
-
-        if (!empty($tables)) {
-            // 禁用外键检查
-            Db::execute("SET FOREIGN_KEY_CHECKS = 0");
-
-            // 删除现有表
-            foreach ($tables as $table) {
-                $tableName = array_values($table)[0];
-                Db::execute("DROP TABLE IF EXISTS `{$tableName}`");
-            }
-
-            // 恢复外键检查
-            Db::execute("SET FOREIGN_KEY_CHECKS = 1");
-        }
-
-        return true;
-    } catch (\Exception $e) {
-        return "覆盖安装失败：" . $e->getMessage();
-    }
-}
-
-/**
- * 创建数据库
- */
 function createDatabase($database)
 {
     try {
-        Db::execute("CREATE DATABASE IF NOT EXISTS `{$database}` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+        Db::execute("CREATE DATABASE IF NOT EXISTS `{$database}` DEFAULT CHARACTER SET utf8");
     } catch (\Exception $e) {
         return false;
     }
     return true;
 }
 
-/**
- * 验证表前缀格式
- * @param string $prefix 表前缀
- * @return bool|string 验证通过返回true，失败返回错误信息
- */
-function validatePrefix($prefix)
-{
-    // 检查是否为空
-    if (empty($prefix)) {
-        return '表前缀不能为空';
-    }
-
-    // 检查前缀格式：必须以字母开头，可包含字母、数字、下划线，必须以下划线结尾
-    if (!preg_match('/^[a-zA-Z][a-zA-Z0-9_]*_$/', $prefix)) {
-        return '表前缀格式不正确，必须以字母开头，以下划线结尾，只能包含字母、数字和下划线';
-    }
-
-    // 检查长度
-    if (strlen($prefix) > 20) {
-        return '表前缀长度不能超过20个字符';
-    }
-
-    // 检查是否包含MySQL保留字
-    $reservedWords = ['select', 'insert', 'update', 'delete', 'create', 'drop', 'table', 'database'];
-    $prefixLower = strtolower(rtrim($prefix, '_'));
-    if (in_array($prefixLower, $reservedWords)) {
-        return '表前缀不能使用MySQL保留字';
-    }
-
-    return true;
-}
-
-/**
- * 解析SQL文件
- */
 function parseSql($sql = '', $to, $from)
 {
     list($pure_sql, $comment) = [[], false];
@@ -360,78 +235,35 @@ function parseSql($sql = '', $to, $from)
     return $pure_sql;
 }
 
-/**
- * 执行安装程序 (重构版本 - 支持覆盖安装和前缀验证)
- */
 function install($username, $password, $config, $adminUrl)
 {
+    $sqlPath = file_get_contents(INSTALL_PATH . 'sql' . DS . 'install.sql');
+    $sqlArray = parseSql($sqlPath, $config['prefix'], 'ea_');
+    Db::startTrans();
     try {
-        // 验证表前缀格式
-        $prefixValidation = validatePrefix($config['prefix']);
-        if ($prefixValidation !== true) {
-            return $prefixValidation;
-        }
-
-        // 处理覆盖安装
-        $coverResult = handleCoverInstall($config['database'], $config['cover'], $config['prefix']);
-        if ($coverResult !== true) {
-            return $coverResult;
-        }
-
-        // 读取SQL文件
-        $sqlPath = file_get_contents(INSTALL_PATH . 'sql' . DS . 'install.sql');
-        if (!$sqlPath) {
-            return '无法读取install.sql文件';
-        }
-
-        // 解析SQL并替换表前缀
-        $sqlArray = parseSql($sqlPath, $config['prefix'], 'ds_');
-
-        // 开始事务
-        Db::startTrans();
-
-        // 执行SQL语句
         foreach ($sqlArray as $vo) {
-            $vo = trim($vo);
-            if (empty($vo)) {
-                continue;
-            }
-
-            try {
-                Db::connect('install')->execute($vo);
-            } catch (\Exception $e) {
-                Db::rollback();
-                return "SQL执行失败：" . $e->getMessage() . " SQL: " . substr($vo, 0, 100) . "...";
-            }
+            Db::connect('install')->execute($vo);
         }
-
-        // 创建管理员账户
         Db::connect('install')
-            ->name('admin')
+            ->name('system_admin')
             ->where('id', 1)
             ->delete();
         Db::connect('install')
-            ->name('admin')
+            ->name('system_admin')
             ->insert([
                 'id'          => 1,
                 'username'    => $username,
+                'head_img'    => '/static/admin/images/head.jpg',
                 'password'    => password($password),
                 'create_time' => time(),
-                'update_time' => time(),
             ]);
 
         // 处理安装文件
-        !is_dir(INSTALL_PATH) && @mkdir(INSTALL_PATH, 0755, true);
-        !is_dir(INSTALL_PATH . 'lock' . DS) && @mkdir(INSTALL_PATH . 'lock' . DS, 0755, true);
+        !is_dir(INSTALL_PATH) && @mkdir(INSTALL_PATH);
+        !is_dir(INSTALL_PATH . 'lock' . DS) && @mkdir(INSTALL_PATH . 'lock' . DS);
         @file_put_contents(INSTALL_PATH . 'lock' . DS . 'install.lock', date('Y-m-d H:i:s'));
-
-        // 生成配置文件（适配新架构）
         @file_put_contents(CONFIG_PATH . 'app.php', getAppConfig($adminUrl));
         @file_put_contents(CONFIG_PATH . 'database.php', getDatabaseConfig($config));
-
-        // 新增：创建模块化架构需要的配置
-        createModuleConfigs();
-
         Db::commit();
     } catch (\Exception $e) {
         Db::rollback();
@@ -440,29 +272,21 @@ function install($username, $password, $config, $adminUrl)
     return true;
 }
 
-/**
- * 密码加密
- */
 function password($value)
 {
     $value = sha1('blog_') . md5($value) . md5('_encrypt') . sha1($value);
     return sha1($value);
 }
 
-/**
- * 生成应用配置文件（适配新架构）
- */
 function getAppConfig($admin)
 {
     $config = <<<EOT
 <?php
 // +----------------------------------------------------------------------
-// | 应用设置 (重构版本)
-// +----------------------------------------------------------------------
-// | 支持新的模块化架构
+// | 应用设置
 // +----------------------------------------------------------------------
 
-use think\\facade\\Env;
+use think\\facade\Env;
 
 return [
     // 应用地址
@@ -479,170 +303,260 @@ return [
     'default_app'      => 'index',
     // 默认时区
     'default_timezone' => 'Asia/Shanghai',
-
     // 应用映射（自动多应用模式有效）
     'app_map'          => [
-        Env::get('easyadmin.admin', 'admin') => 'admin',
+        Env::get('easyadmin.admin', '{$admin}') => 'admin',
     ],
     // 后台别名
-    'admin_alias_name' => Env::get('easyadmin.admin', 'admin'),
+    'admin_alias_name' => Env::get('easyadmin.admin', '{$admin}'),
     // 域名绑定（自动多应用模式有效）
     'domain_bind'      => [],
-    // 禁止URL访问的应用
+    // 禁止URL访问的应用列表（自动多应用模式有效）
     'deny_app_list'    => ['common'],
-
     // 异常页面的模板文件
-    'exception_tmpl'   => app()->getThinkPath() . 'tpl/think_exception.tpl',
-
+    'exception_tmpl'   => Env::get('app_debug') == 1 ? app()->getThinkPath() . 'tpl/think_exception.tpl' : app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'think_exception.tpl',
+    // 跳转页面的成功模板文件
+    'dispatch_success_tmpl'   => app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dispatch_jump.tpl',
+    // 跳转页面的失败模板文件
+    'dispatch_error_tmpl'   => app()->getBasePath() . 'common' . DIRECTORY_SEPARATOR . 'tpl' . DIRECTORY_SEPARATOR . 'dispatch_jump.tpl',
     // 错误显示信息,非调试模式有效
     'error_message'    => '页面错误！请稍后再试～',
     // 显示错误信息
     'show_error_msg'   => false,
+    // 静态资源上传到OSS前缀
+    'oss_static_prefix'   => Env::get('easyadmin.oss_static_prefix', 'static_easyadmin'),
 ];
+
 EOT;
     return $config;
 }
 
-/**
- * 生成数据库配置文件
- */
-function getDatabaseConfig($config)
+function getDatabaseConfig($data)
 {
-    $database = <<<EOT
+    $config = <<<EOT
 <?php
-// +----------------------------------------------------------------------
-// | 数据库设置
-// +----------------------------------------------------------------------
+use think\\facade\Env;
 
 return [
-    // 默认数据库连接
-    'default'         => 'mysql',
+    // 默认使用的数据库连接配置
+    'default'         => Env::get('database.driver', 'mysql'),
+
+    // 自定义时间查询规则
+    'time_query_rule' => [],
+
+    // 自动写入时间戳字段
+    // true为自动识别类型 false关闭
+    // 字符串则明确指定时间字段类型 支持 int timestamp datetime date
+    'auto_timestamp'  => true,
+
+    // 时间字段取出后的默认时间格式
+    'datetime_format' => 'Y-m-d H:i:s',
 
     // 数据库连接配置信息
     'connections'     => [
         'mysql' => [
             // 数据库类型
-            'type'            => '{$config['type']}',
+            'type'              => Env::get('database.type', 'mysql'),
             // 服务器地址
-            'hostname'        => '{$config['hostname']}',
+            'hostname'          => Env::get('database.hostname', '{$data['hostname']}'),
             // 数据库名
-            'database'        => '{$config['database']}',
+            'database'          => Env::get('database.database', '{$data['database']}'),
             // 用户名
-            'username'        => '{$config['username']}',
+            'username'          => Env::get('database.username', '{$data['username']}'),
             // 密码
-            'password'        => '{$config['password']}',
+            'password'          => Env::get('database.password', '{$data['password']}'),
             // 端口
-            'hostport'        => '{$config['hostport']}',
+            'hostport'          => Env::get('database.hostport', '{$data['hostport']}'),
             // 数据库连接参数
-            'params'          => [],
+            'params'            => [],
             // 数据库编码默认采用utf8
-            'charset'         => '{$config['charset']}',
+            'charset'           => Env::get('database.charset', 'utf8'),
             // 数据库表前缀
-            'prefix'          => '{$config['prefix']}',
-            // 数据库调试模式
-            'debug'           => {$config['debug']},
+            'prefix'            => Env::get('database.prefix', '{$data['prefix']}'),
+
             // 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
-            'deploy'          => 0,
+            'deploy'            => 0,
             // 数据库读写是否分离 主从式有效
-            'rw_separate'     => false,
+            'rw_separate'       => false,
             // 读写分离后 主服务器数量
-            'master_num'      => 1,
+            'master_num'        => 1,
             // 指定从服务器序号
-            'slave_no'        => '',
-            // 自动读取主库数据
-            'read_master'     => false,
+            'slave_no'          => '',
             // 是否严格检查字段是否存在
-            'fields_strict'   => true,
+            'fields_strict'     => true,
+            // 是否需要断线重连
+            'break_reconnect'   => false,
+            // 监听SQL
+            'trigger_sql'       => true,
             // 开启字段缓存
-            'fields_cache'    => false,
+            'fields_cache'      => false,
+            // 字段缓存路径
+            'schema_cache_path' => app()->getRuntimePath() . 'schema' . DIRECTORY_SEPARATOR,
         ],
+
+        // 更多的数据库配置信息
     ],
 ];
+
 EOT;
-    return $database;
+    return $config;
 }
 
-/**
- * 创建模块化架构需要的配置
- */
-function createModuleConfigs()
-{
-    // 创建模块配置目录
-    $moduleConfigPath = CONFIG_PATH . 'modules' . DS;
-    if (!is_dir($moduleConfigPath)) {
-        @mkdir($moduleConfigPath, 0755, true);
-    }
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>安装EasyAdmin后台程序</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="static/plugs/layui-v2.5.6/css/layui.css?v=<?php echo time() ?>" media="all">
+    <link rel="stylesheet" href="static/common/css/insatll.css?v=<?php echo time() ?>" media="all">
+</head>
+<body>
+<h1><img src="static/common/images/logo-1.png"></h1>
+<h2>安装EasyAdmin后台系统</h2>
+<div class="content">
+    <p class="desc">
+        使用过程中遇到任何问题可参考
+        <a href="老表只要你健康" target="_blank">文档教程</a>
+        <a href="老表只要你健康">QQ交流群</a>
+    </p>
+    <form class="layui-form layui-form-pane" action="">
+        <?php if ($errorInfo): ?>
+            <div class="error">
+                <?php echo $errorInfo; ?>
+            </div>
+        <?php endif; ?>
+        <div class="bg">
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库地址</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="hostname" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据库地址" placeholder="请输入数据库地址" value="host.docker.internal">
+                </div>
+            </div>
 
-    // 创建Content模块配置
-    $contentConfig = <<<EOT
-<?php
-// +----------------------------------------------------------------------
-// | Content模块配置
-// +----------------------------------------------------------------------
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库端口</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="hostport" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据库端口" placeholder="请输入数据库端口" value="3306">
+                </div>
+            </div>
 
-return [
-    // 模块名称
-    'name' => 'Content',
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库名称</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="database" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据库名称" placeholder="请输入数据库名称" value="easyadmin">
+                </div>
+            </div>
 
-    // 模块描述
-    'description' => '内容管理模块',
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据表前缀</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="prefix" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据表前缀" placeholder="请输入数据表前缀" value="ea_">
+                </div>
+            </div>
 
-    // 模块版本
-    'version' => '1.0.0',
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库账号</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="db_username" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据库账号" placeholder="请输入数据库账号" value="root">
+                </div>
+            </div>
 
-    // 是否启用
-    'enabled' => true,
+            <div class="layui-form-item">
+                <label class="layui-form-label">数据库密码</label>
+                <div class="layui-input-block">
+                    <input type="password" class="layui-input" name="db_password" autocomplete="off" lay-verify="required" lay-reqtext="请输入数据库密码" placeholder="请输入数据库密码">
+                </div>
+            </div>
 
-    // 模块路由前缀
-    'route_prefix' => 'content',
+            <div class="layui-form-item">
+                <label class="layui-form-label">覆盖数据库</label>
+                <div class="layui-input-block" style="text-align: left">
+                    <input type="radio" name="cover" value="1" title="覆盖">
+                    <input type="radio" name="cover" value="0" title="不覆盖" checked>
+                </div>
+            </div>
+        </div>
+        <div class="bg">
+            <div class="layui-form-item">
+                <label class="layui-form-label">后台的地址</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" id="admin_url" name="admin_url" autocomplete="off" lay-verify="required" lay-reqtext="请输入后台的地址" placeholder="为了后台安全，不建议将后台路径设置为admin" value="admin">
+                    <span class="tips">后台登录地址： <?php echo $currentHost; ?><span id="admin_name">admin</span></span>
+                </div>
+            </div>
 
-    // 模块中间件
-    'middleware' => [],
+            <div class="layui-form-item">
+                <label class="layui-form-label">管理员账号</label>
+                <div class="layui-input-block">
+                    <input class="layui-input" name="username" autocomplete="off" lay-verify="required" lay-reqtext="请输入管理员账号" placeholder="请输入管理员账号" value="admin">
+                </div>
+            </div>
 
-    // 模块服务提供者
-    'providers' => [],
-];
-EOT;
-    @file_put_contents($moduleConfigPath . 'content.php', $contentConfig);
-}
+            <div class="layui-form-item">
+                <label class="layui-form-label">管理员密码</label>
+                <div class="layui-input-block">
+                    <input type="password" class="layui-input" name="password" autocomplete="off" lay-verify="required" lay-reqtext="请输入管理员密码" placeholder="请输入管理员密码">
+                </div>
+            </div>
+        </div>
 
-/**
- * 检查URL哈希
- */
-function checkurlHash($verify)
-{
-    return isset($_POST['verify']) && $_POST['verify'] === $verify;
-}
+        <div class="layui-form-item">
+            <button class="layui-btn layui-btn-normal <?php echo $errorInfo ? 'layui-btn-disabled' : '' ?>" lay-submit="" lay-filter="install">确定安装</button>
+        </div>
+    </form>
+</div>
+<script src="static/plugs/layui-v2.5.6/layui.js?v=<?php echo time() ?>" charset="utf-8"></script>
+<script>
+    layui.use(['form', 'layer'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            layer = layui.layer;
 
+        $("#admin_url").bind("input propertychange", function () {
+            var val = $(this).val();
+            $("#admin_name").text(val);
+        });
 
-/**
- * 渲染安装页面
- * 使用独立的HTML模板文件，实现前后端分离
- */
-function renderInstallPage() {
-    global $errorInfo, $verify, $currentHost;
-
-    // 模板文件路径
-    $templatePath = __DIR__ . '/static/install/templates/install.html';
-
-    // 读取模板内容
-    $template = file_get_contents($templatePath);
-
-    // 开始输出缓冲
-    ob_start();
-
-    // 执行模板（允许PHP代码执行）
-    eval('?>' . $template);
-
-    // 获取渲染结果
-    $output = ob_get_clean();
-
-    // 输出最终页面
-    echo $output;
-}
-
-// 如果不是AJAX请求，渲染安装页面
-if (!isAjax()) {
-    renderInstallPage();
-    exit;
-}
+        form.on('submit(install)', function (data) {
+            if ($(this).hasClass('layui-btn-disabled')) {
+                return false;
+            }
+            var _data = data.field;
+            var loading = layer.msg('正在安装...', {
+                icon: 16,
+                shade: 0.2,
+                time: false
+            });
+            $.ajax({
+                url: window.location.href,
+                type: 'post',
+                contentType: "application/x-www-form-urlencoded; charset=UTF-8",
+                dataType: "json",
+                data: _data,
+                timeout: 60000,
+                success: function (data) {
+                    layer.close(loading);
+                    if (data.code === 1) {
+                        layer.msg(data.msg, {icon: 1}, function () {
+                            window.location.href = location.protocol + '//' + location.host + '/' + data.url;
+                        });
+                    } else {
+                        layer.msg(data.msg, {icon: 2});
+                    }
+                },
+                error: function (xhr, textstatus, thrown) {
+                    layer.close(loading);
+                    layer.msg('Status:' + xhr.status + '，' + xhr.statusText + '，请稍后再试！', {icon: 2});
+                    return false;
+                }
+            });
+            return false;
+        });
+    });
+</script>
+</body>
+</html>

@@ -28,7 +28,7 @@ trait VisibilityAware
 	 */
 	public function setVisibility(?string $val): self
 	{
-		if (!in_array($val, [ClassType::VisibilityPublic, ClassType::VisibilityProtected, ClassType::VisibilityPrivate, null], true)) {
+		if (!in_array($val, [ClassType::VISIBILITY_PUBLIC, ClassType::VISIBILITY_PROTECTED, ClassType::VISIBILITY_PRIVATE, null], true)) {
 			throw new Nette\InvalidArgumentException('Argument must be public|protected|private.');
 		}
 
@@ -46,41 +46,41 @@ trait VisibilityAware
 	/** @return static */
 	public function setPublic(): self
 	{
-		$this->visibility = ClassType::VisibilityPublic;
+		$this->visibility = ClassType::VISIBILITY_PUBLIC;
 		return $this;
 	}
 
 
 	public function isPublic(): bool
 	{
-		return $this->visibility === ClassType::VisibilityPublic || $this->visibility === null;
+		return $this->visibility === ClassType::VISIBILITY_PUBLIC || $this->visibility === null;
 	}
 
 
 	/** @return static */
 	public function setProtected(): self
 	{
-		$this->visibility = ClassType::VisibilityProtected;
+		$this->visibility = ClassType::VISIBILITY_PROTECTED;
 		return $this;
 	}
 
 
 	public function isProtected(): bool
 	{
-		return $this->visibility === ClassType::VisibilityProtected;
+		return $this->visibility === ClassType::VISIBILITY_PROTECTED;
 	}
 
 
 	/** @return static */
 	public function setPrivate(): self
 	{
-		$this->visibility = ClassType::VisibilityPrivate;
+		$this->visibility = ClassType::VISIBILITY_PRIVATE;
 		return $this;
 	}
 
 
 	public function isPrivate(): bool
 	{
-		return $this->visibility === ClassType::VisibilityPrivate;
+		return $this->visibility === ClassType::VISIBILITY_PRIVATE;
 	}
 }

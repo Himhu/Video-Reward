@@ -11,7 +11,6 @@ use think\Container;
 use think\Cookie;
 use think\Event;
 use think\exception\Handle;
-use think\helper\Arr;
 use think\Http;
 use think\Middleware;
 use think\swoole\middleware\ResetVarDumper;
@@ -168,33 +167,11 @@ trait InteractsWithHttp
             ->withGet($req->get ?: [])
             ->withPost($req->post ?: [])
             ->withCookie($req->cookie ?: [])
-            ->withFiles($this->getFiles($req))
+            ->withFiles($req->files ?: [])
             ->withInput($req->rawContent())
             ->setBaseUrl($req->server['request_uri'])
             ->setUrl($req->server['request_uri'] . (!empty($req->server['query_string']) ? '?' . $req->server['query_string'] : ''))
             ->setPathinfo(ltrim($req->server['path_info'], '/'));
-    }
-
-    protected function getFiles(Request $req)
-    {
-        if (empty($req->files)) {
-            return [];
-        }
-
-        return array_map(function ($file) {
-            if (!Arr::isAssoc($file)) {
-                $files = [];
-                foreach ($file as $f) {
-                    $files['name'][]     = $f['name'];
-                    $files['type'][]     = $f['type'];
-                    $files['tmp_name'][] = $f['tmp_name'];
-                    $files['error'][]    = $f['error'];
-                    $files['size'][]     = $f['size'];
-                }
-                return $files;
-            }
-            return $file;
-        }, $req->files);
     }
 
     protected function sendResponse(Response $res, \think\Response $response, Cookie $cookie)

@@ -63,7 +63,7 @@ final class Factory
 		}
 
 		$class->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
-		$class->setAttributes($this->getAttributes($from));
+		$class->setAttributes(self::getAttributes($from));
 		if ($from->getParentClass()) {
 			$class->setExtends($from->getParentClass()->name);
 			$class->setImplements(array_diff($class->getImplements(), $from->getParentClass()->getInterfaceNames()));
@@ -153,7 +153,7 @@ final class Factory
 		$method->setReturnReference($from->returnsReference());
 		$method->setVariadic($from->isVariadic());
 		$method->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
-		$method->setAttributes($this->getAttributes($from));
+		$method->setAttributes(self::getAttributes($from));
 		if ($from->getReturnType() instanceof \ReflectionNamedType) {
 			$method->setReturnType($from->getReturnType()->getName());
 			$method->setReturnNullable($from->getReturnType()->allowsNull());
@@ -179,7 +179,7 @@ final class Factory
 			$function->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
 		}
 
-		$function->setAttributes($this->getAttributes($from));
+		$function->setAttributes(self::getAttributes($from));
 		if ($from->getReturnType() instanceof \ReflectionNamedType) {
 			$function->setReturnType($from->getReturnType()->getName());
 			$function->setReturnNullable($from->getReturnType()->allowsNull());
@@ -207,8 +207,8 @@ final class Factory
 	{
 		$ref = Nette\Utils\Callback::toReflection($from);
 		return $ref instanceof \ReflectionMethod
-			? $this->fromMethodReflection($ref)
-			: $this->fromFunctionReflection($ref);
+			? self::fromMethodReflection($ref)
+			: self::fromFunctionReflection($ref);
 	}
 
 
@@ -245,7 +245,7 @@ final class Factory
 			$param->setNullable($param->isNullable() && $param->getDefaultValue() !== null);
 		}
 
-		$param->setAttributes($this->getAttributes($from));
+		$param->setAttributes(self::getAttributes($from));
 		return $param;
 	}
 
@@ -257,7 +257,7 @@ final class Factory
 		$const->setVisibility($this->getVisibility($from));
 		$const->setFinal(PHP_VERSION_ID >= 80100 ? $from->isFinal() : false);
 		$const->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
-		$const->setAttributes($this->getAttributes($from));
+		$const->setAttributes(self::getAttributes($from));
 		return $const;
 	}
 
@@ -267,7 +267,7 @@ final class Factory
 		$const = new EnumCase($from->name);
 		$const->setValue($from->getValue()->value ?? null);
 		$const->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
-		$const->setAttributes($this->getAttributes($from));
+		$const->setAttributes(self::getAttributes($from));
 		return $const;
 	}
 
@@ -297,14 +297,14 @@ final class Factory
 		}
 
 		$prop->setComment(Helpers::unformatDocComment((string) $from->getDocComment()));
-		$prop->setAttributes($this->getAttributes($from));
+		$prop->setAttributes(self::getAttributes($from));
 		return $prop;
 	}
 
 
 	public function fromObject(object $obj): Literal
 	{
-		return new Literal('new \\' . get_class($obj) . '(/* unknown */)');
+		return new Literal('new ' . get_class($obj) . '(/* unknown */)');
 	}
 
 
@@ -348,8 +348,8 @@ final class Factory
 	private function getVisibility($from): string
 	{
 		return $from->isPrivate()
-			? ClassType::VisibilityPrivate
-			: ($from->isProtected() ? ClassType::VisibilityProtected : ClassType::VisibilityPublic);
+			? ClassType::VISIBILITY_PRIVATE
+			: ($from->isProtected() ? ClassType::VISIBILITY_PROTECTED : ClassType::VISIBILITY_PUBLIC);
 	}
 
 

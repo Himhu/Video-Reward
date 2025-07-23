@@ -5,20 +5,17 @@ namespace Qiniu\Cdn;
 use Qiniu\Auth;
 use Qiniu\Http\Error;
 use Qiniu\Http\Client;
-use Qiniu\Http\Proxy;
 
 final class CdnManager
 {
 
     private $auth;
     private $server;
-    private $proxy;
 
-    public function __construct(Auth $auth, $proxy = null, $proxy_auth = null, $proxy_user_password = null)
+    public function __construct(Auth $auth)
     {
         $this->auth = $auth;
         $this->server = 'http://fusion.qiniuapi.com';
-        $this->proxy = new Proxy($proxy, $proxy_auth, $proxy_user_password);
     }
 
     /**
@@ -228,7 +225,7 @@ final class CdnManager
     {
         $headers = $this->auth->authorization($url, $body, 'application/json');
         $headers['Content-Type'] = 'application/json';
-        $ret = Client::post($url, $body, $headers, $this->proxy->makeReqOpt());
+        $ret = Client::post($url, $body, $headers);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }

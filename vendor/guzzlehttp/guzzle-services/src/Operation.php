@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle;
 
 use GuzzleHttp\Command\ToArrayInterface;
@@ -46,12 +45,11 @@ class Operation implements ToArrayInterface
      * - additionalParameters: (null|array) Parameter schema to use when an
      *   option is passed to the operation that is not in the schema
      *
-     * @param array                $config      Array of configuration data
-     * @param DescriptionInterface $description Service description used to resolve models if $ref tags are found
-     *
+     * @param array                 $config      Array of configuration data
+     * @param DescriptionInterface  $description Service description used to resolve models if $ref tags are found
      * @throws \InvalidArgumentException
      */
-    public function __construct(array $config = [], ?DescriptionInterface $description = null)
+    public function __construct(array $config = [], DescriptionInterface $description = null)
     {
         static $defaults = [
             'name' => '',
@@ -65,7 +63,7 @@ class Operation implements ToArrayInterface
             'data' => [],
             'parameters' => [],
             'additionalParameters' => null,
-            'errorResponses' => [],
+            'errorResponses' => []
         ];
 
         $this->description = $description === null ? new Description([]) : $description;
@@ -242,7 +240,7 @@ class Operation implements ToArrayInterface
      * Get extra data from the operation
      *
      * @param string $name Name of the data point to retrieve or null to
-     *                     retrieve all of the extra data.
+     *     retrieve all of the extra data.
      *
      * @return mixed|null
      */
@@ -258,12 +256,14 @@ class Operation implements ToArrayInterface
     }
 
     /**
+     * @param $name
+     * @param array $config
      * @return array
      */
     private function resolveExtends($name, array $config)
     {
         if (!$this->description->hasOperation($name)) {
-            throw new \InvalidArgumentException('No operation named '.$name);
+            throw new \InvalidArgumentException('No operation named ' . $name);
         }
 
         // Merge parameters together one level deep

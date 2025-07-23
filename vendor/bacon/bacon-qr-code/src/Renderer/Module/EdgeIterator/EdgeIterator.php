@@ -41,7 +41,7 @@ final class EdgeIterator implements IteratorAggregate
     }
 
     /**
-     * @return Traversable<Edge>
+     * @return Edge[]
      */
     public function getIterator() : Traversable
     {

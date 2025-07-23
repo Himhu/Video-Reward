@@ -14,14 +14,10 @@ class BucketLiveChannelTest extends \PHPUnit\Framework\TestCase
 
     protected function setUp(): void
     {
-        try {
-            $this->client = Common::getOssClient();
-            $this->bucketName = 'php-sdk-test-rtmp-bucket-name-' . strval(rand(0, 10000));
-            $this->client->createBucket($this->bucketName);
-            Common::waitMetaSync();
-        }catch(\Exception $e) {
-
-        }
+        $this->client = Common::getOssClient();
+        $this->bucketName = 'php-sdk-test-rtmp-bucket-name-' . strval(rand(0, 10000));
+        $this->client->createBucket($this->bucketName);
+        Common::waitMetaSync();
     }
 
     protected function tearDown(): void

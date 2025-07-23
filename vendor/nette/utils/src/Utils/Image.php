@@ -90,27 +90,27 @@ use Nette;
  * @method void stringUp($font, $x, $y, string $s, $col)
  * @method void trueColorToPalette(bool $dither, $ncolors)
  * @method array ttfText($size, $angle, $x, $y, $color, string $fontfile, string $text)
- * @property-read positive-int $width
- * @property-read positive-int $height
+ * @property-read int $width
+ * @property-read int $height
  * @property-read resource|\GdImage $imageResource
  */
 class Image
 {
 	use Nette\SmartObject;
 
-	/** Prevent from getting resized to a bigger size than the original */
+	/** {@link resize()} only shrinks images */
 	public const SHRINK_ONLY = 0b0001;
 
-	/** Resizes to a specified width and height without keeping aspect ratio */
+	/** {@link resize()} will ignore aspect ratio */
 	public const STRETCH = 0b0010;
 
-	/** Resizes to fit into a specified width and height and preserves aspect ratio */
+	/** {@link resize()} fits in given area so its dimensions are less than or equal to the required dimensions */
 	public const FIT = 0b0000;
 
-	/** Resizes while bounding the smaller dimension to the specified width or height and preserves aspect ratio */
+	/** {@link resize()} fills given area so its dimensions are greater than or equal to the required dimensions */
 	public const FILL = 0b0100;
 
-	/** Resizes to the smallest possible size to completely cover specified width and height and reserves aspect ratio */
+	/** {@link resize()} fills given area exactly */
 	public const EXACT = 0b1000;
 
 	/** image types */
@@ -124,7 +124,7 @@ class Image
 
 	public const EMPTY_GIF = "GIF89a\x01\x00\x01\x00\x80\x00\x00\x00\x00\x00\x00\x00\x00!\xf9\x04\x01\x00\x00\x00\x00,\x00\x00\x00\x00\x01\x00\x01\x00\x00\x02\x02D\x01\x00;";
 
-	private const Formats = [self::JPEG => 'jpeg', self::PNG => 'png', self::GIF => 'gif', self::WEBP => 'webp', self::AVIF => 'avif', self::BMP => 'bmp'];
+	private const FORMATS = [self::JPEG => 'jpeg', self::PNG => 'png', self::GIF => 'gif', self::WEBP => 'webp', self::AVIF => 'avif', self::BMP => 'bmp'];
 
 	/** @var resource|\GdImage */
 	private $image;
@@ -161,7 +161,7 @@ class Image
 			throw new UnknownImageFileException(is_file($file) ? "Unknown type of file '$file'." : "File '$file' not found.");
 		}
 
-		return self::invokeSafe('imagecreatefrom' . self::Formats[$type], $file, "Unable to open file '$file'.", __METHOD__);
+		return self::invokeSafe('imagecreatefrom' . self::FORMATS[$type], $file, "Unable to open file '$file'.", __METHOD__);
 	}
 
 
@@ -205,8 +205,6 @@ class Image
 
 	/**
 	 * Creates a new true color image of the given dimensions. The default color is black.
-	 * @param  positive-int  $width
-	 * @param  positive-int  $height
 	 * @return static
 	 * @throws Nette\NotSupportedException if gd extension is not loaded
 	 */
@@ -236,20 +234,20 @@ class Image
 	/**
 	 * Returns the type of image from file.
 	 */
-	public static function detectTypeFromFile(string $file, &$width = null, &$height = null): ?int
+	public static function detectTypeFromFile(string $file): ?int
 	{
-		[$width, $height, $type] = @getimagesize($file); // @ - files smaller than 12 bytes causes read error
-		return isset(self::Formats[$type]) ? $type : null;
+		$type = @getimagesize($file)[2]; // @ - files smaller than 12 bytes causes read error
+		return isset(self::FORMATS[$type]) ? $type : null;
 	}
 
 
 	/**
 	 * Returns the type of image from string.
 	 */
-	public static function detectTypeFromString(string $s, &$width = null, &$height = null): ?int
+	public static function detectTypeFromString(string $s): ?int
 	{
-		[$width, $height, $type] = @getimagesizefromstring($s); // @ - strings smaller than 12 bytes causes read error
-		return isset(self::Formats[$type]) ? $type : null;
+		$type = @getimagesizefromstring($s)[2]; // @ - strings smaller than 12 bytes causes read error
+		return isset(self::FORMATS[$type]) ? $type : null;
 	}
 
 
@@ -258,26 +256,11 @@ class Image
 	 */
 	public static function typeToExtension(int $type): string
 	{
-		if (!isset(self::Formats[$type])) {
+		if (!isset(self::FORMATS[$type])) {
 			throw new Nette\InvalidArgumentException("Unsupported image type '$type'.");
 		}
 
-		return self::Formats[$type];
-	}
-
-
-	/**
-	 * Returns the `Image::XXX` constant for given file extension.
-	 */
-	public static function extensionToType(string $extension): int
-	{
-		$extensions = array_flip(self::Formats) + ['jpg' => self::JPEG];
-		$extension = strtolower($extension);
-		if (!isset($extensions[$extension])) {
-			throw new Nette\InvalidArgumentException("Unsupported file extension '$extension'.");
-		}
-
-		return $extensions[$extension];
+		return self::FORMATS[$type];
 	}
 
 
@@ -303,7 +286,6 @@ class Image
 
 	/**
 	 * Returns image width.
-	 * @return positive-int
 	 */
 	public function getWidth(): int
 	{
@@ -313,7 +295,6 @@ class Image
 
 	/**
 	 * Returns image height.
-	 * @return positive-int
 	 */
 	public function getHeight(): int
 	{
@@ -397,8 +378,7 @@ class Image
 		$newWidth,
 		$newHeight,
 		int $flags = self::FIT
-	): array
-	{
+	): array {
 		if ($newWidth === null) {
 		} elseif (self::isPercent($newWidth)) {
 			$newWidth = (int) round($srcWidth / 100 * abs($newWidth));
@@ -540,7 +520,7 @@ class Image
 	 * Puts another image into this image.
 	 * @param  int|string  $left in pixels or percent
 	 * @param  int|string  $top in pixels or percent
-	 * @param  int<0, 100>  $opacity 0..100
+	 * @param  int  $opacity 0..100
 	 * @return static
 	 */
 	public function place(self $image, $left = 0, $top = 0, int $opacity = 100)
@@ -607,7 +587,16 @@ class Image
 	 */
 	public function save(string $file, ?int $quality = null, ?int $type = null): void
 	{
-		$type = $type ?? self::extensionToType(pathinfo($file, PATHINFO_EXTENSION));
+		if ($type === null) {
+			$extensions = array_flip(self::FORMATS) + ['jpg' => self::JPEG];
+			$ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+			if (!isset($extensions[$ext])) {
+				throw new Nette\InvalidArgumentException("Unsupported file extension '$ext'.");
+			}
+
+			$type = $extensions[$ext];
+		}
+
 		$this->output($type, $quality, $file);
 	}
 
@@ -740,7 +729,7 @@ class Image
 	public function __clone()
 	{
 		ob_start(function () {});
-		imagepng($this->image, null, 0);
+		imagegd2($this->image);
 		$this->setImageResource(imagecreatefromstring(ob_get_clean()));
 	}
 

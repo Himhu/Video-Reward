@@ -18,7 +18,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
  *
  * Class Excel
  * @package jianyan\excel
- * @author jianyan74 <751393839@qq.com>
+ * @author jianyan74 <19382406@qq.com>
  */
 class Excel
 {

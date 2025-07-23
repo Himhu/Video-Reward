@@ -11,19 +11,13 @@ class Signature {
     // string: secret key.
     private $secretKey;
 
-    // array: cos config.
-    private $options;
+    // bool: host trigger
+    private $signHost;
 
-    // string: token.
-    private $token;
-
-    // array: sign header.
-    private $signHeader;
-
-    public function __construct( $accessKey, $secretKey, $options, $token = null ) {
+    public function __construct( $accessKey, $secretKey, $signHost, $token = null ) {
         $this->accessKey = $accessKey;
         $this->secretKey = $secretKey;
-        $this->options = $options;
+        $this->signHost = $signHost;
         $this->token = $token;
         $this->signHeader = [
             'cache-control',
@@ -32,6 +26,7 @@ class Signature {
             'content-length',
             'content-md5',
             'content-type',
+            'expect',
             'expires',
             'host',
             'if-match',
@@ -40,10 +35,16 @@ class Signature {
             'if-unmodified-since',
             'origin',
             'range',
+            'response-cache-control',
+            'response-content-disposition',
+            'response-content-encoding',
+            'response-content-language',
+            'response-content-type',
+            'response-expires',
             'transfer-encoding',
-            'pic-operations',
+            'versionid',
         ];
-        date_default_timezone_set($this->options['timezone']);
+        date_default_timezone_set( 'PRC' );
     }
 
     public function __destruct() {
@@ -51,9 +52,6 @@ class Signature {
 
     public function needCheckHeader( $header ) {
         if ( startWith( $header, 'x-cos-' ) ) {
-            return true;
-        }
-        if ( startWith( $header, 'x-ci-' ) ) {
             return true;
         }
         if ( in_array( $header, $this->signHeader ) ) {
@@ -84,7 +82,7 @@ class Signature {
                     $value = "";
                 }
                 //host开关
-                if (!$this->options['signHost'] && $key == 'host') {
+                if (!$this->signHost && $key == 'host') {
                     continue;
                 }
                 $urlParamListArray[$key] = $key. '='. $value;
@@ -98,7 +96,7 @@ class Signature {
         foreach ( $request->getHeaders() as $key => $value ) {
             $key = strtolower( urlencode( $key ) );
             $value = rawurlencode( $value[0] );
-            if ( !$this->options['signHost'] && $key == 'host' ) {
+            if ( !$this->signHost && $key == 'host' ) {
                 continue;
             }
             if ( $this->needCheckHeader( $key ) ) {

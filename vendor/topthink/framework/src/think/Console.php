@@ -4,7 +4,7 @@
 // +----------------------------------------------------------------------
 // | Copyright (c) 2015 http://www.topthink.com All rights reserved.
 // +----------------------------------------------------------------------
-// | Author: zhangyajun <448901948@qq.com>
+// | Author: zhangyajun <19382406@qq.com>
 // +----------------------------------------------------------------------
 declare (strict_types = 1);
 
@@ -117,9 +117,9 @@ class Console
      */
     protected function makeRequest()
     {
-        $url = $this->app->config->get('app.url', 'http://localhost');
+        $uri = $this->app->config->get('app.url', 'http://localhost');
 
-        $components = parse_url($url);
+        $components = parse_url($uri);
 
         $server = $_SERVER;
 
@@ -127,7 +127,6 @@ class Console
             $server = array_merge($server, [
                 'SCRIPT_FILENAME' => $components['path'],
                 'SCRIPT_NAME'     => $components['path'],
-                'REQUEST_URI'     => $components['path'],
             ]);
         }
 
@@ -150,6 +149,8 @@ class Console
             $server['SERVER_PORT'] = $components['port'];
             $server['HTTP_HOST'] .= ':' . $components['port'];
         }
+
+        $server['REQUEST_URI'] = $uri;
 
         /** @var Request $request */
         $request = $this->app->make('request');

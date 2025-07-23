@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
+// | Author: yunwuxin <19382406@qq.com>
 // +----------------------------------------------------------------------
 
 namespace think\console\output;
@@ -295,7 +295,7 @@ class Ask
             $width = max(array_map('strlen', array_keys($this->question->getChoices())));
 
             foreach ($this->question->getChoices() as $key => $value) {
-                $this->output->writeln(sprintf("  [<comment>%-{$width}s</comment>] %s", $key, $value));
+                $this->output->writeln(sprintf("  [<comment>%-${width}s</comment>] %s", $key, $value));
             }
         }
 

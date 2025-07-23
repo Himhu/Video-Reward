@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
+// | Author: yunwuxin <19382406@qq.com>
 // +----------------------------------------------------------------------
 namespace think\console\command\optimize;
 
@@ -67,12 +67,7 @@ class Schema extends Command
                 if (0 === strpos($file, '.')) {
                     continue;
                 }
-
                 $class = '\\' . $namespace . '\\model\\' . pathinfo($file, PATHINFO_FILENAME);
-                if (!class_exists($class)) {
-                    continue;
-                }
-                
                 $this->buildModelSchema($class);
             }
         }

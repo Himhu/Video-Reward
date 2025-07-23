@@ -5,7 +5,6 @@ namespace Qiniu\Storage;
 use Qiniu\Config;
 use Qiniu\Http\Error;
 use Qiniu\Http\Client;
-use Qiniu\Http\RequestOptions;
 
 final class FormUploader
 {
@@ -18,10 +17,10 @@ final class FormUploader
      * @param string $data 上传二进制流
      * @param Config $config 上传配置
      * @param string $params 自定义变量，规格参考
-     *                    {@link https://developer.qiniu.com/kodo/manual/1235/vars#xvar}
+     *                    https://developer.qiniu.com/kodo/manual/1235/vars#xvar
      * @param string $mime 上传数据的mimeType
+     *
      * @param string $fname
-     * @param RequestOptions $reqOpt
      *
      * @return array    包含已上传文件的信息，类似：
      *                                              [
@@ -36,12 +35,8 @@ final class FormUploader
         $config,
         $params,
         $mime,
-        $fname,
-        $reqOpt = null
+        $fname
     ) {
-        if ($reqOpt == null) {
-            $reqOpt = new RequestOptions();
-        }
         $fields = array('token' => $upToken);
         if ($key === null) {
         } else {
@@ -62,22 +57,13 @@ final class FormUploader
             return array(null, $err);
         }
 
-        list($upHost, $err) = $config->getUpHostV2($accessKey, $bucket, $reqOpt);
-        if ($err != null) {
+        try {
+            $upHost = $config->getUpHost($accessKey, $bucket);
+        } catch (\Exception $err) {
             return array(null, $err);
         }
 
-
-        $response = Client::multipartPost(
-            $upHost,
-            $fields,
-            'file',
-            $fname,
-            $data,
-            $mime,
-            array(),
-            $reqOpt
-        );
+        $response = Client::multipartPost($upHost, $fields, 'file', $fname, $data, $mime);
         if (!$response->ok()) {
             return array(null, new Error($upHost, $response));
         }
@@ -107,12 +93,9 @@ final class FormUploader
         $filePath,
         $config,
         $params,
-        $mime,
-        $reqOpt = null
+        $mime
     ) {
-        if ($reqOpt == null) {
-            $reqOpt = new RequestOptions();
-        }
+
 
         $fields = array('token' => $upToken, 'file' => self::createFile($filePath, $mime));
         if ($key !== null) {
@@ -134,12 +117,13 @@ final class FormUploader
             return array(null, $err);
         }
 
-        list($upHost, $err) = $config->getUpHostV2($accessKey, $bucket, $reqOpt);
-        if ($err != null) {
+        try {
+            $upHost = $config->getUpHost($accessKey, $bucket);
+        } catch (\Exception $err) {
             return array(null, $err);
         }
 
-        $response = Client::post($upHost, $fields, $headers, $reqOpt);
+        $response = Client::post($upHost, $fields, $headers);
         if (!$response->ok()) {
             return array(null, new Error($upHost, $response));
         }

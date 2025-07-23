@@ -153,9 +153,7 @@ abstract class Driver implements CacheInterface, CacheHandlerInterface
     public function remember(string $name, $value, $expire = null)
     {
         if ($this->has($name)) {
-            if (($hit = $this->get($name)) !== null) {
-                return $hit;
-            }
+            return $this->get($name);
         }
 
         $time = time();

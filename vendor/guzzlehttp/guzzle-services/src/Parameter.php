@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle;
 
 use GuzzleHttp\Command\ToArrayInterface;
@@ -7,78 +6,77 @@ use GuzzleHttp\Command\ToArrayInterface;
 /**
  * API parameter object used with service descriptions
  */
-#[\AllowDynamicProperties]
 class Parameter implements ToArrayInterface
 {
     private $originalData;
 
-    /** @var string */
+    /** @var string $name */
     private $name;
 
-    /** @var string */
+    /** @var string $description */
     private $description;
 
-    /** @var string|array */
+    /** @var string|array $type */
     private $type;
 
-    /** @var bool */
+    /** @var bool $required*/
     private $required;
 
-    /** @var array|null */
+    /** @var array|null $enum */
     private $enum;
 
-    /** @var string */
+    /** @var string $pattern */
     private $pattern;
 
-    /** @var int */
+    /** @var int $minimum*/
     private $minimum;
 
-    /** @var int */
+    /** @var int $maximum */
     private $maximum;
 
-    /** @var int */
+    /** @var int $minLength */
     private $minLength;
 
-    /** @var int */
+    /** @var int $maxLength */
     private $maxLength;
 
-    /** @var int */
+    /** @var int $minItems */
     private $minItems;
 
-    /** @var int */
+    /** @var int $maxItems */
     private $maxItems;
 
-    /** @var mixed */
+    /** @var mixed $default */
     private $default;
 
-    /** @var bool */
+    /** @var bool $static */
     private $static;
 
-    /** @var array */
+    /** @var array $filters */
     private $filters;
 
-    /** @var string */
+    /** @var string $location */
     private $location;
 
-    /** @var string */
+    /** @var string $sentAs */
     private $sentAs;
 
-    /** @var array */
+    /** @var array $data */
     private $data;
 
-    /** @var array */
+    /** @var array $properties */
     private $properties = [];
 
-    /** @var array|bool|Parameter */
+    /** @var array|bool|Parameter $additionalProperties */
     private $additionalProperties;
 
-    /** @var array|Parameter */
+    /** @var array|Parameter $items */
     private $items;
 
-    /** @var string */
+    /** @var string $format */
     private $format;
 
-    private $propertiesCache;
+    private $propertiesCache = null;
 
     /** @var Description */
     private $serviceDescription;
@@ -173,7 +171,7 @@ class Parameter implements ToArrayInterface
      *
      * @param array $data    Array of data as seen in service descriptions
      * @param array $options Options used when creating the parameter. You can
-     *                       specify a Guzzle service description in the 'description' key.
+     *     specify a Guzzle service description in the 'description' key.
      *
      * @throws \InvalidArgumentException
      */
@@ -254,9 +252,8 @@ class Parameter implements ToArrayInterface
      * @param mixed $value Value to filter
      *
      * @return mixed Returns the filtered value
-     *
      * @throws \RuntimeException when trying to format when no service
-     *                           description is available.
+     *     description is available.
      */
     public function filter($value)
     {
@@ -264,9 +261,8 @@ class Parameter implements ToArrayInterface
         if ($this->format) {
             if (!$this->serviceDescription) {
                 throw new \RuntimeException('No service description was set so '
-                    .'the value cannot be formatted.');
+                    . 'the value cannot be formatted.');
             }
-
             return $this->serviceDescription->format($this->format, $value);
         }
 
@@ -516,7 +512,7 @@ class Parameter implements ToArrayInterface
      *
      * @param string $name Name of the property to retrieve
      *
-     * @return Parameter|null
+     * @return null|Parameter
      */
     public function getProperty($name)
     {
@@ -622,7 +618,6 @@ class Parameter implements ToArrayInterface
      * @param string|array $filter Method to filter the value through
      *
      * @return self
-     *
      * @throws \InvalidArgumentException
      */
     private function addFilter($filter)
@@ -648,15 +643,13 @@ class Parameter implements ToArrayInterface
      * Check if a parameter has a specific variable and if it set.
      *
      * @param string $var
-     *
      * @return bool
      */
     public function has($var)
     {
         if (!is_string($var)) {
-            throw new \InvalidArgumentException('Expected a string. Got: '.(is_object($var) ? get_class($var) : gettype($var)));
+            throw new \InvalidArgumentException('Expected a string. Got: ' . (is_object($var) ? get_class($var) : gettype($var)));
         }
-
         return isset($this->{$var}) && !empty($this->{$var});
     }
 }

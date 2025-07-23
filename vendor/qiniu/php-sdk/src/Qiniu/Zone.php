@@ -20,11 +20,6 @@ class Zone extends Region
         return parent::regionHuanan();
     }
 
-    public static function zoneCnEast2()
-    {
-        return parent::regionHuadong2();
-    }
-
     public static function zoneAs0()
     {
         return parent::regionSingapore();
@@ -45,14 +40,8 @@ class Zone extends Region
         return parent::qvmRegionHuabei();
     }
 
-    public static function queryZone(
-        $ak,
-        $bucket,
-        $ucHost = null,
-        $backupUcHosts = array(),
-        $retryTimes = 2,
-        $reqOpt = null
-    ) {
-        return parent::queryRegion($ak, $bucket, $ucHost, $backupUcHosts, $retryTimes, $reqOpt);
+    public static function queryZone($ak, $bucket)
+    {
+        return parent::queryRegion($ak, $bucket);
     }
 }

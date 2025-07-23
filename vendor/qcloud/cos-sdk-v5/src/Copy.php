@@ -18,8 +18,6 @@ class Copy {
     private $size;
     private $commandList = [];
     private $requestList = [];
-    private $concurrency;
-    private $retry;
 
     public function __construct($client, $source, $options = array()) {
         $minPartSize = $options['PartSize'];
@@ -110,7 +108,7 @@ class Copy {
                         $this->parts[$index] = $part;
                     } catch(\Exception $e) {
                         if ($i == $retry) {
-                            throw $e;
+                            throw($e);
                         }
                     }
                 }
@@ -138,4 +136,5 @@ class Copy {
         $result = $this->client->createMultipartUpload($this->options);
         return $result['UploadId'];
     }
+
 }

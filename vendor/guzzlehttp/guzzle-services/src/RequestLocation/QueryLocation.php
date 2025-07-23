@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
@@ -23,9 +22,10 @@ class QueryLocation extends AbstractLocation
     /**
      * Set the name of the location
      *
-     * @param string $locationName
+     * @param string                        $locationName
+     * @param QuerySerializerInterface|null $querySerializer
      */
-    public function __construct($locationName = 'query', ?QuerySerializerInterface $querySerializer = null)
+    public function __construct($locationName = 'query', QuerySerializerInterface $querySerializer = null)
     {
         parent::__construct($locationName);
 
@@ -33,6 +33,10 @@ class QueryLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Parameter        $param
+     *
      * @return RequestInterface
      */
     public function visit(
@@ -54,6 +58,10 @@ class QueryLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Operation        $operation
+     *
      * @return RequestInterface
      */
     public function after(

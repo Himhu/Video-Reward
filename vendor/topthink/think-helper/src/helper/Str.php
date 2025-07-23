@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
+// | Author: yunwuxin <19382406@qq.com>
 // +----------------------------------------------------------------------
 namespace think\helper;
 
@@ -80,7 +80,7 @@ class Str
      * @param  string $addChars
      * @return string
      */
-    public static function random(int $length = 6, ?int $type = null, string $addChars = ''): string
+    public static function random(int $length = 6, int $type = null, string $addChars = ''): string
     {
         $str = '';
         switch ($type) {
@@ -158,7 +158,7 @@ class Str
      * @param  int|null $length
      * @return string
      */
-    public static function substr(string $string, int $start, ?int $length = null): string
+    public static function substr(string $string, int $start, int $length = null): string
     {
         return mb_substr($string, $start, $length, 'UTF-8');
     }

@@ -15,7 +15,7 @@ $key2 = 'niu.jpg';
 $testStartDate = '2020-08-18';
 $testEndDate = '2020-08-19';
 $testGranularity = 'day';
-$testLogDate = date('Y-m-d',strtotime("-1 days"));
+$testLogDate = '2020-08-18';
 
 $bucketNameBC = 'phpsdk-bc';
 $bucketNameNA = 'phpsdk-na';

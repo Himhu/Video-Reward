@@ -16,11 +16,7 @@ class TextWatermarkTemplate extends ImageTemplate
     private $dx;
     private $dy;
     private $batch;
-    private $spacing;
     private $degree;
-    private $shadow;
-    private $scatype;
-    private $spcent;
 
     public function __construct() {
         parent::__construct();
@@ -33,11 +29,7 @@ class TextWatermarkTemplate extends ImageTemplate
         $this->dx = "";
         $this->dy = "";
         $this->batch = "";
-        $this->spacing = "";
         $this->degree = "";
-        $this->shadow = "";
-        $this->scatype = "";
-        $this->spcent = "";
     }
 
     public function setText($value) {
@@ -76,24 +68,8 @@ class TextWatermarkTemplate extends ImageTemplate
         $this->batch = "/batch/" . $value;
     }
 
-    public function setSpacing($value) {
-        $this->spacing = "/spacing/" . $value;
-    }
-
     public function setDegree($value) {
         $this->degree = "/degree/" . $value;
-    }
-
-    public function setShadow($value) {
-        $this->shadow = "/shadow/" . $value;
-    }
-
-    public function setScatype($value) {
-        $this->scatype = "/scatype/" . $value;
-    }
-
-    public function setSpcent($value) {
-        $this->spcent = "/spcent/" . $value;
     }
 
     public function getText() {
@@ -132,24 +108,8 @@ class TextWatermarkTemplate extends ImageTemplate
         return $this->batch;
     }
 
-    public function getSpacing() {
-        return $this->spacing;
-    }
-
     public function getDegree() {
         return $this->degree;
-    }
-
-    public function getShadow() {
-        return $this->shadow;
-    }
-
-    public function getScatype() {
-        return $this->scatype;
-    }
-
-    public function getSpcent() {
-        return $this->spcent;
     }
 
     public function queryString() {
@@ -182,20 +142,8 @@ class TextWatermarkTemplate extends ImageTemplate
         if($this->batch) {
             $res .= $this->batch;
         }
-        if($this->spacing) {
-            $res .= $this->spacing;
-        }
         if($this->degree) {
             $res .= $this->degree;
-        }
-        if($this->shadow) {
-            $res .= $this->shadow;
-        }
-        if($this->scatype) {
-            $res .= $this->scatype;
-        }
-        if($this->spcent) {
-            $res .= $this->spcent;
         }
         if($res) {
             $res = $head . $res;
@@ -213,10 +161,6 @@ class TextWatermarkTemplate extends ImageTemplate
         $this->dx = "";
         $this->dy = "";
         $this->batch = "";
-        $this->spacing = "";
         $this->degree = "";
-        $this->shadow = "";
-        $this->scatype = "";
-        $this->spcent = "";
     }
 }

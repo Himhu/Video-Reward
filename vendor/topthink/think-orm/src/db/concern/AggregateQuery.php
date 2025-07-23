@@ -12,7 +12,6 @@ declare (strict_types = 1);
 
 namespace think\db\concern;
 
-use think\db\exception\DbException;
 use think\db\Raw;
 
 /**
@@ -43,27 +42,13 @@ trait AggregateQuery
     {
         if (!empty($this->options['group'])) {
             // 支持GROUP
-
-            if (!preg_match('/^[\w\.\*]+$/', $field)) {
-                throw new DbException('not support data:' . $field);
-            }
-
             $options = $this->getOptions();
-            if (isset($options['cache'])) {
-                $cache = $options['cache'];
-                unset($options['cache']);
-            }
-
-            $subSql = $this->options($options)
+            $subSql  = $this->options($options)
                 ->field('count(' . $field . ') AS think_count')
                 ->bind($this->bind)
                 ->buildSql();
 
-            $query = $this->newQuery();
-            if (isset($cache)) {
-                $query->setOption('cache', $cache);
-            }
-            $query->table([$subSql => '_group_count_']);
+            $query = $this->newQuery()->table([$subSql => '_group_count_']);
 
             $count = $query->aggregate('COUNT', '*');
         } else {

@@ -8,7 +8,7 @@ namespace Qiniu\Http;
 class Header implements \ArrayAccess, \IteratorAggregate, \Countable
 {
     /** @var array normalized key name map */
-    private $data = array();
+    private $data;
 
     /**
      * @param array $obj non-normalized header object
@@ -18,18 +18,8 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
         foreach ($obj as $key => $values) {
             $normalizedKey = self::normalizeKey($key);
             $normalizedValues = array();
-            if (!is_array($values)) {
-                array_push(
-                    $normalizedValues,
-                    self::normalizeValue($values)
-                );
-            } else {
-                foreach ($values as $value) {
-                    array_push(
-                        $normalizedValues,
-                        self::normalizeValue($value)
-                    );
-                }
+            foreach ($values as $value) {
+                array_push($normalizedValues, self::normalizeValue($value));
             }
             $this->data[$normalizedKey] = $normalizedValues;
         }
@@ -45,9 +35,8 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
      */
     public static function parseRawText($raw)
     {
-        $multipleHeaders = explode("\r\n\r\n", trim($raw));
         $headers = array();
-        $headerLines = explode("\r\n", end($multipleHeaders));
+        $headerLines = explode("\r\n", $raw);
         foreach ($headerLines as $line) {
             $headerLine = trim($line);
             $kv = explode(':', $headerLine);
@@ -93,7 +82,7 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
             return $key;
         }
 
-        return \Qiniu\ucwords(strtolower($key), '-');
+        return ucwords(strtolower($key), '-');
     }
 
     /**
@@ -122,7 +111,6 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
      *
      * @return boolean
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function offsetExists($offset)
     {
         $key = self::normalizeKey($offset);
@@ -134,7 +122,6 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
      *
      * @return string|null
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function offsetGet($offset)
     {
         $key = self::normalizeKey($offset);
@@ -151,11 +138,10 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
      *
      * @return void
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function offsetSet($offset, $value)
     {
         $key = self::normalizeKey($offset);
-        if (isset($this->data[$key]) && count($this->data[$key]) > 0) {
+        if (isset($this->data[$key]) && count($this->data[$key] > 0)) {
             $this->data[$key][0] = self::normalizeValue($value);
         } else {
             $this->data[$key] = array(self::normalizeValue($value));
@@ -165,7 +151,6 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * @return void
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function offsetUnset($offset)
     {
         $key = self::normalizeKey($offset);
@@ -175,7 +160,6 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * @return \ArrayIterator
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function getIterator()
     {
         $arr = array();
@@ -188,7 +172,6 @@ class Header implements \ArrayAccess, \IteratorAggregate, \Countable
     /**
      * @return int
      */
-    #[\ReturnTypeWillChange] // temporarily suppress the type check of php 8.x
     public function count()
     {
         return count($this->data);

@@ -13,6 +13,7 @@ declare (strict_types = 1);
 namespace think\db\concern;
 
 use think\db\Raw;
+use think\helper\Str;
 
 /**
  * JOIN和VIEW查询

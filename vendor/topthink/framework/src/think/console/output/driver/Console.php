@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
+// | Author: yunwuxin <19382406@qq.com>
 // +----------------------------------------------------------------------
 
 namespace think\console\output\driver;
@@ -214,12 +214,12 @@ class Console
 
     /**
      * 获取终端模式
-     * @return string <width>x<height>
+     * @return string <width>x<height> 或 null
      */
     private function getMode()
     {
         if (!function_exists('proc_open')) {
-            return '';
+            return;
         }
 
         $descriptorspec = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
@@ -234,8 +234,7 @@ class Console
                 return $matches[2] . 'x' . $matches[1];
             }
         }
-
-        return '';
+        return;
     }
 
     private function stringWidth(string $string): int

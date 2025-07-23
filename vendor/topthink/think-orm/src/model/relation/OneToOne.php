@@ -91,28 +91,14 @@ abstract class OneToOne extends Relation
         $query->via($joinAlias);
 
         if ($this instanceof BelongsTo) {
-
-            $foreignKeyExp = $this->foreignKey;
-
-            if (strpos($foreignKeyExp, '.') === false) {
-                $foreignKeyExp = $name . '.' . $this->foreignKey;
-            }
-
-            $joinOn = $foreignKeyExp . '=' . $joinAlias . '.' . $this->localKey;
+            $joinOn = $name . '.' . $this->foreignKey . '=' . $joinAlias . '.' . $this->localKey;
         } else {
-
-            $foreignKeyExp = $this->foreignKey;
-
-            if (strpos($foreignKeyExp, '.') === false) {
-                $foreignKeyExp = $joinAlias . '.' . $this->foreignKey;
-            }
-
-            $joinOn = $name . '.' . $this->localKey . '=' . $foreignKeyExp;
+            $joinOn = $name . '.' . $this->localKey . '=' . $joinAlias . '.' . $this->foreignKey;
         }
 
         if ($closure) {
             // 执行闭包查询
-            $closure($this->getClosureType($closure, $query));
+            $closure($this->getClosureType($closure));
 
             // 使用withField指定获取关联的字段
             if ($this->withField) {
@@ -205,26 +191,11 @@ abstract class OneToOne extends Relation
             $data = $data->getData();
         }
 
-        $model = $this->make();
-
-        return $model->replace($replace)->save($data) ? $model : false;
-    }
-
-    /**
-     * 创建关联对象实例
-     * @param array|Model $data
-     * @return Model
-     */
-    public function make($data = []): Model
-    {
-        if ($data instanceof Model) {
-            $data = $data->getData();
-        }
-
+        $model = new $this->model;
         // 保存关联表数据
         $data[$this->foreignKey] = $this->parent->{$this->localKey};
 
-        return (new $this->model($data))->setSuffix($this->getModel()->getSuffix());
+        return $model->replace($replace)->save($data) ? $model : false;
     }
 
     /**

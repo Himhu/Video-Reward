@@ -6,6 +6,7 @@ use Qcloud\Cos\Exception\ServiceResponseException;
 use GuzzleHttp\Promise\PromiseInterface;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use GuzzleHttp\Exception\RequestException;
 
 class ExceptionMiddleware {
     private $nextHandler;
@@ -42,6 +43,7 @@ class ExceptionMiddleware {
 			return $response;
 		}
 
+		//throw RequestException::create($request, $response);
         $parts = $this->parser->parse($request, $response);
 
         $className = 'Qcloud\\Cos\\Exception\\' . $parts['code'];

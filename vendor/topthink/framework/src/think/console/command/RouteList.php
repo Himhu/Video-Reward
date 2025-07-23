@@ -6,7 +6,7 @@
 // +----------------------------------------------------------------------
 // | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
 // +----------------------------------------------------------------------
-// | Author: yunwuxin <448901948@qq.com>
+// | Author: yunwuxin <19382406@qq.com>
 // +----------------------------------------------------------------------
 namespace think\console\command;
 
@@ -56,8 +56,8 @@ class RouteList extends Command
 
     protected function getRouteList(string $dir = null): string
     {
+        $this->app->route->setTestMode(true);
         $this->app->route->clear();
-        $this->app->route->lazy(false);
 
         if ($dir) {
             $path = $this->app->getRootPath() . 'route' . DIRECTORY_SEPARATOR . $dir . DIRECTORY_SEPARATOR;

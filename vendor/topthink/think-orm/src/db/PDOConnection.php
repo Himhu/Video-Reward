@@ -8,7 +8,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-declare(strict_types=1);
+declare (strict_types = 1);
 
 namespace think\db;
 
@@ -81,8 +81,6 @@ abstract class PDOConnection extends Connection
         'break_reconnect' => false,
         // 断线标识字符串
         'break_match_str' => [],
-        // 自动参数绑定
-        'auto_param_bind' => true,
     ];
 
     /**
@@ -354,13 +352,15 @@ abstract class PDOConnection extends Connection
         if (!isset($this->info[$schema]) || $force) {
             // 读取字段缓存
             $cacheKey   = $this->getSchemaCacheKey($schema);
-            if ($this->config['fields_cache'] && !empty($this->cache) && !$force) {
+            $cacheField = $this->config['fields_cache'] && !empty($this->cache);
+
+            if ($cacheField && !$force) {
                 $info = $this->cache->get($cacheKey);
             }
 
             if (empty($info)) {
                 $info = $this->getTableFieldsInfo($tableName);
-                if (!empty($this->cache) && ($this->config['fields_cache'] || $force)) {
+                if ($cacheField) {
                     $this->cache->set($cacheKey, $info);
                 }
             }
@@ -622,14 +622,15 @@ abstract class PDOConnection extends Connection
      * @access public
      * @param BaseQuery  $query     查询对象
      * @param string     $sql       sql指令
+     * @param array      $bind      参数绑定
      * @param Model|null $model     模型对象实例
      * @param null       $condition 查询条件
      * @return \Generator
      * @throws DbException
      */
-    public function getCursor(BaseQuery $query, string $sql, $model = null, $condition = null)
+    public function getCursor(BaseQuery $query, string $sql, array $bind = [], $model = null, $condition = null)
     {
-        $this->queryPDOStatement($query, $sql);
+        $this->queryPDOStatement($query, $sql, $bind);
 
         // 返回结果集
         while ($result = $this->PDOStatement->fetch($this->fetchType)) {
@@ -652,7 +653,7 @@ abstract class PDOConnection extends Connection
      */
     public function query(string $sql, array $bind = [], bool $master = false): array
     {
-        return $this->pdoQuery($this->newQuery()->bind($bind), $sql, $master);
+        return $this->pdoQuery($this->newQuery(), $sql, $bind, $master);
     }
 
     /**
@@ -665,7 +666,7 @@ abstract class PDOConnection extends Connection
      */
     public function execute(string $sql, array $bind = []): int
     {
-        return $this->pdoExecute($this->newQuery()->bind($bind), $sql, true);
+        return $this->pdoExecute($this->newQuery(), $sql, $bind, true);
     }
 
     /**
@@ -673,27 +674,25 @@ abstract class PDOConnection extends Connection
      * @access protected
      * @param BaseQuery $query  查询对象
      * @param mixed     $sql    sql指令
+     * @param array     $bind   参数绑定
      * @param bool      $master 主库读取
      * @return array
      * @throws DbException
      */
-    protected function pdoQuery(BaseQuery $query, $sql, bool $master = null): array
+    protected function pdoQuery(BaseQuery $query, $sql, array $bind = [], bool $master = null): array
     {
         // 分析查询表达式
         $query->parseOptions();
-        $bind = $query->getBind();
 
         if ($query->getOptions('cache')) {
             // 检查查询缓存
             $cacheItem = $this->parseCache($query, $query->getOptions('cache'));
-            if (!$query->getOptions('force_cache')) {
-                $key       = $cacheItem->getKey();
+            $key       = $cacheItem->getKey();
 
-                $data = $this->cache->get($key);
+            $data = $this->cache->get($key);
 
-                if (null !== $data) {
-                    return $data;
-                }
+            if (null !== $data) {
+                return $data;
             }
         }
 
@@ -710,10 +709,9 @@ abstract class PDOConnection extends Connection
 
         $this->getPDOStatement($sql, $bind, $master, $procedure);
 
-        $resultSet    = $this->getResult($procedure);
-        $requireCache = $query->getOptions('cache_always') || !empty($resultSet);
+        $resultSet = $this->getResult($procedure);
 
-        if (isset($cacheItem) && $requireCache) {
+        if (isset($cacheItem) && $resultSet) {
             // 缓存数据集
             $cacheItem->set($resultSet);
             $this->cacheData($cacheItem);
@@ -731,10 +729,11 @@ abstract class PDOConnection extends Connection
      */
     public function pdo(BaseQuery $query): PDOStatement
     {
+        $bind = $query->getBind();
         // 生成查询SQL
         $sql = $this->builder->select($query);
 
-        return $this->queryPDOStatement($query, $sql);
+        return $this->queryPDOStatement($query, $sql, $bind);
     }
 
     /**
@@ -806,17 +805,18 @@ abstract class PDOConnection extends Connection
      * @access protected
      * @param BaseQuery $query  查询对象
      * @param string    $sql    sql指令
+     * @param array     $bind   参数绑定
      * @param bool      $origin 是否原生查询
      * @return int
      * @throws DbException
      */
-    protected function pdoExecute(BaseQuery $query, string $sql, bool $origin = false): int
+    protected function pdoExecute(BaseQuery $query, string $sql, array $bind = [], bool $origin = false): int
     {
         if ($origin) {
             $query->parseOptions();
         }
 
-        $this->queryPDOStatement($query->master(true), $sql);
+        $this->queryPDOStatement($query->master(true), $sql, $bind);
 
         if (!$origin && !empty($this->config['deploy']) && !empty($this->config['read_master'])) {
             $this->readMaster = true;
@@ -843,13 +843,13 @@ abstract class PDOConnection extends Connection
     /**
      * @param BaseQuery $query
      * @param string    $sql
+     * @param array     $bind
      * @return PDOStatement
      * @throws DbException
      */
-    protected function queryPDOStatement(BaseQuery $query, string $sql): PDOStatement
+    protected function queryPDOStatement(BaseQuery $query, string $sql, array $bind = []): PDOStatement
     {
         $options   = $query->getOptions();
-        $bind      = $query->getBind();
         $master    = !empty($options['master']) ? true : false;
         $procedure = !empty($options['procedure']) ? true : in_array(strtolower(substr(trim($sql), 0, 4)), ['call', 'exec']);
 
@@ -897,7 +897,7 @@ abstract class PDOConnection extends Connection
         $condition = $options['where']['AND'] ?? null;
 
         // 执行查询操作
-        return $this->getCursor($query, $sql, $query->getModel(), $condition);
+        return $this->getCursor($query, $sql, $query->getBind(), $query->getModel(), $condition);
     }
 
     /**
@@ -937,7 +937,7 @@ abstract class PDOConnection extends Connection
         $sql = $this->builder->insert($query);
 
         // 执行操作
-        $result = '' == $sql ? 0 : $this->pdoExecute($query, $sql);
+        $result = '' == $sql ? 0 : $this->pdoExecute($query, $sql, $query->getBind());
 
         if ($result) {
             $sequence  = $options['sequence'] ?? null;
@@ -976,11 +976,12 @@ abstract class PDOConnection extends Connection
      */
     public function insertAll(BaseQuery $query, array $dataSet = [], int $limit = 0): int
     {
-        $query->parseOptions();
-
         if (!is_array(reset($dataSet))) {
             return 0;
         }
+
+        $options = $query->parseOptions();
+        $replace = !empty($options['replace']);
 
         if (0 === $limit && count($dataSet) >= 5000) {
             $limit = 1000;
@@ -995,8 +996,8 @@ abstract class PDOConnection extends Connection
                 $count = 0;
 
                 foreach ($array as $item) {
-                    $sql = $this->builder->insertAll($query, $item);
-                    $count += $this->pdoExecute($query, $sql);
+                    $sql = $this->builder->insertAll($query, $item, $replace);
+                    $count += $this->pdoExecute($query, $sql, $query->getBind());
                 }
 
                 // 提交事务
@@ -1009,56 +1010,9 @@ abstract class PDOConnection extends Connection
             return $count;
         }
 
-        $sql = $this->builder->insertAll($query, $dataSet);
+        $sql = $this->builder->insertAll($query, $dataSet, $replace);
 
-        return $this->pdoExecute($query, $sql);
-    }
-
-    /**
-     * 批量插入记录
-     * @access public
-     * @param BaseQuery $query   查询对象
-     * @param array     $keys 键值
-     * @param array     $values 数据
-     * @param integer   $limit   每次写入数据限制
-     * @return integer
-     * @throws \Exception
-     * @throws \Throwable
-     */
-    public function insertAllByKeys(BaseQuery $query, array $keys, array $values, int $limit = 0): int
-    {
-        $query->parseOptions();
-
-        if (0 === $limit && count($values) >= 5000) {
-            $limit = 1000;
-        }
-
-        if ($limit) {
-            // 分批写入 自动启动事务支持
-            $this->startTrans();
-
-            try {
-                $array = array_chunk($values, $limit, true);
-                $count = 0;
-
-                foreach ($array as $item) {
-                    $sql = $this->builder->insertAllByKeys($query, $keys, $item);
-                    $count += $this->pdoExecute($query, $sql);
-                }
-
-                // 提交事务
-                $this->commit();
-            } catch (\Exception | \Throwable $e) {
-                $this->rollback();
-                throw $e;
-            }
-
-            return $count;
-        }
-
-        $sql = $this->builder->insertAllByKeys($query, $keys, $values);
-
-        return $this->pdoExecute($query, $sql);
+        return $this->pdoExecute($query, $sql, $query->getBind());
     }
 
     /**
@@ -1077,7 +1031,7 @@ abstract class PDOConnection extends Connection
 
         $sql = $this->builder->selectInsert($query, $fields, $table);
 
-        return $this->pdoExecute($query, $sql);
+        return $this->pdoExecute($query, $sql, $query->getBind());
     }
 
     /**
@@ -1095,7 +1049,7 @@ abstract class PDOConnection extends Connection
         $sql = $this->builder->update($query);
 
         // 执行操作
-        $result = '' == $sql ? 0 : $this->pdoExecute($query, $sql);
+        $result = '' == $sql ? 0 : $this->pdoExecute($query, $sql, $query->getBind());
 
         if ($result) {
             $this->db->trigger('after_update', $query);
@@ -1120,7 +1074,7 @@ abstract class PDOConnection extends Connection
         $sql = $this->builder->delete($query);
 
         // 执行操作
-        $result = $this->pdoExecute($query, $sql);
+        $result = $this->pdoExecute($query, $sql, $query->getBind());
 
         if ($result) {
             $this->db->trigger('after_delete', $query);
@@ -1154,13 +1108,10 @@ abstract class PDOConnection extends Connection
 
         if (!empty($options['cache'])) {
             $cacheItem = $this->parseCache($query, $options['cache'], 'value');
+            $key       = $cacheItem->getKey();
 
-            if (!$query->getOptions('force_cache')) {
-                $key       = $cacheItem->getKey();
-
-                if ($this->cache->has($key)) {
-                    return $this->cache->get($key);
-                }
+            if ($this->cache->has($key)) {
+                return $this->cache->get($key);
             }
         }
 
@@ -1233,13 +1184,13 @@ abstract class PDOConnection extends Connection
             $key = null;
         }
 
-        if (is_string($column)) {
-            $column = trim($column);
+        if (\is_string($column)) {
+            $column = \trim($column);
             if ('*' !== $column) {
-                $column = array_map('trim', explode(',', $column));
+                $column = \array_map('\trim', \explode(',', $column));
             }
-        } elseif (is_array($column)) {
-            if (in_array('*', $column)) {
+        } elseif (\is_array($column)) {
+            if (\in_array('*', $column)) {
                 $column = '*';
             }
         } else {
@@ -1247,7 +1198,7 @@ abstract class PDOConnection extends Connection
         }
 
         $field = $column;
-        if ('*' !== $column && $key && !in_array($key, $column)) {
+        if ('*' !== $column && $key && !\in_array($key, $column)) {
             $field[] = $key;
         }
 
@@ -1256,12 +1207,10 @@ abstract class PDOConnection extends Connection
         if (!empty($options['cache'])) {
             // 判断查询缓存
             $cacheItem = $this->parseCache($query, $options['cache'], 'column');
-            if (!$query->getOptions('force_cache')) {
-                $name      = $cacheItem->getKey();
+            $name      = $cacheItem->getKey();
 
-                if ($this->cache->has($name)) {
-                    return $this->cache->get($name);
-                }
+            if ($this->cache->has($name)) {
+                return $this->cache->get($name);
             }
         }
 
@@ -1284,23 +1233,19 @@ abstract class PDOConnection extends Connection
 
         if (empty($resultSet)) {
             $result = [];
-        } elseif ('*' !== $column && count($column) === 1) {
-            $column = array_shift($column);
-            if (strpos($column, ' ')) {
-                $column = substr(strrchr(trim($column), ' '), 1);
+        } elseif ('*' !== $column && \count($column) === 1) {
+            $column = \array_shift($column);
+            if (\strpos($column, ' ')) {
+                $column = \substr(\strrchr(\trim($column), ' '), 1);
             }
 
-            if (strpos($column, '.')) {
-                [$alias, $column] = explode('.', $column);
+            if (\strpos($column, '.')) {
+                [$alias, $column] = \explode('.', $column);
             }
 
-            if (strpos($column, '->')) {
-                $column = $this->builder->parseKey($query, $column);
-            }
-
-            $result = array_column($resultSet, $column, $key);
+            $result = \array_column($resultSet, $column, $key);
         } elseif ($key) {
-            $result = array_column($resultSet, null, $key);
+            $result = \array_column($resultSet, null, $key);
         } else {
             $result = $resultSet;
         }
@@ -1328,15 +1273,15 @@ abstract class PDOConnection extends Connection
             $type  = is_array($val) ? $val[1] : PDO::PARAM_STR;
 
             if (self::PARAM_FLOAT == $type || PDO::PARAM_STR == $type) {
-                $value = '\'' . addslashes($value) . '\'';
+                $value = '\'' . addcslashes($value, "'") . '\'';
             } elseif (PDO::PARAM_INT == $type && '' === $value) {
                 $value = '0';
             }
 
             // 判断占位符
             $sql = is_numeric($key) ?
-                substr_replace($sql, $value, strpos($sql, '?'), 1) :
-                substr_replace($sql, $value, strpos($sql, ':' . $key), strlen(':' . $key));
+            substr_replace($sql, $value, strpos($sql, '?'), 1) :
+            substr_replace($sql, $value, strpos($sql, ':' . $key), strlen(':' . $key));
         }
 
         return rtrim($sql);
@@ -1595,16 +1540,17 @@ abstract class PDOConnection extends Connection
      * @access public
      * @param BaseQuery $query    查询对象
      * @param array     $sqlArray SQL批处理指令
+     * @param array     $bind     参数绑定
      * @return bool
      */
-    public function batchQuery(BaseQuery $query, array $sqlArray = []): bool
+    public function batchQuery(BaseQuery $query, array $sqlArray = [], array $bind = []): bool
     {
         // 自动启动事务支持
         $this->startTrans();
 
         try {
             foreach ($sqlArray as $sql) {
-                $this->pdoExecute($query, $sql);
+                $this->pdoExecute($query, $sql, $bind);
             }
             // 提交事务
             $this->commit();
@@ -1697,7 +1643,7 @@ abstract class PDOConnection extends Connection
         $pk = $query->getAutoInc();
 
         if ($pk) {
-            $type = $this->getFieldsBind($query->getTable())[$pk];
+            $type = $this->getFieldBindType($pk);
 
             if (PDO::PARAM_INT == $type) {
                 $insertId = (int) $insertId;
@@ -1812,17 +1758,6 @@ abstract class PDOConnection extends Connection
     }
 
     /**
-     * 获取数据库的唯一标识
-     * @access public
-     * @param string $suffix 标识后缀
-     * @return string
-     */
-    public function getUniqueXid(string $suffix = ''): string
-    {
-        return $this->config['hostname'] . '_' . $this->config['database'] . $suffix;
-    }
-
-    /**
      * 执行数据库Xa事务
      * @access public
      * @param  callable $callback 数据操作方法回调
@@ -1847,7 +1782,7 @@ abstract class PDOConnection extends Connection
                 $dbs[$key] = $db;
             }
 
-            $db->startTransXa($db->getUniqueXid('_' . $xid) );
+            $db->startTransXa($xid);
         }
 
         try {
@@ -1857,17 +1792,17 @@ abstract class PDOConnection extends Connection
             }
 
             foreach ($dbs as $db) {
-                $db->prepareXa($db->getUniqueXid('_' . $xid));
+                $db->prepareXa($xid);
             }
 
             foreach ($dbs as $db) {
-                $db->commitXa($db->getUniqueXid('_' . $xid) );
+                $db->commitXa($xid);
             }
 
             return $result;
         } catch (\Exception | \Throwable $e) {
             foreach ($dbs as $db) {
-                $db->rollbackXa($db->getUniqueXid('_' . $xid) );
+                $db->rollbackXa($xid);
             }
             throw $e;
         }
@@ -1880,8 +1815,7 @@ abstract class PDOConnection extends Connection
      * @return void
      */
     public function startTransXa(string $xid): void
-    {
-    }
+    {}
 
     /**
      * 预编译XA事务
@@ -1890,8 +1824,7 @@ abstract class PDOConnection extends Connection
      * @return void
      */
     public function prepareXa(string $xid): void
-    {
-    }
+    {}
 
     /**
      * 提交XA事务
@@ -1900,8 +1833,7 @@ abstract class PDOConnection extends Connection
      * @return void
      */
     public function commitXa(string $xid): void
-    {
-    }
+    {}
 
     /**
      * 回滚XA事务
@@ -1910,6 +1842,5 @@ abstract class PDOConnection extends Connection
      * @return void
      */
     public function rollbackXa(string $xid): void
-    {
-    }
+    {}
 }

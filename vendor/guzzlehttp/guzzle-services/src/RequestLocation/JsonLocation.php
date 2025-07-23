@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle\RequestLocation;
 
 use GuzzleHttp\Command\CommandInterface;
@@ -24,7 +23,7 @@ class JsonLocation extends AbstractLocation
     /**
      * @param string $locationName Name of the location
      * @param string $contentType  Content-Type header to add to the request if
-     *                             JSON is added to the body. Pass an empty string to omit.
+     *     JSON is added to the body. Pass an empty string to omit.
      */
     public function __construct($locationName = 'json', $contentType = 'application/json')
     {
@@ -33,6 +32,10 @@ class JsonLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Parameter        $param
+     *
      * @return RequestInterface
      */
     public function visit(
@@ -49,6 +52,10 @@ class JsonLocation extends AbstractLocation
     }
 
     /**
+     * @param CommandInterface $command
+     * @param RequestInterface $request
+     * @param Operation        $operation
+     *
      * @return MessageInterface
      */
     public function after(

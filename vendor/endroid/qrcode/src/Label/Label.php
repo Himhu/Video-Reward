@@ -15,22 +15,24 @@ use Endroid\QrCode\Label\Margin\MarginInterface;
 
 final class Label implements LabelInterface
 {
+    private string $text;
     private FontInterface $font;
     private LabelAlignmentInterface $alignment;
     private MarginInterface $margin;
     private ColorInterface $textColor;
 
     public function __construct(
-        private string $text,
+        string $text,
         FontInterface $font = null,
         LabelAlignmentInterface $alignment = null,
         MarginInterface $margin = null,
         ColorInterface $textColor = null
     ) {
-        $this->font = $font ?? new Font(__DIR__.'/../../assets/noto_sans.otf', 16);
-        $this->alignment = $alignment ?? new LabelAlignmentCenter();
-        $this->margin = $margin ?? new Margin(0, 10, 10, 10);
-        $this->textColor = $textColor ?? new Color(0, 0, 0);
+        $this->text = $text;
+        $this->font = isset($font) ? $font : new Font(__DIR__.'/../../assets/noto_sans.otf', 16);
+        $this->alignment = isset($alignment) ? $alignment : new LabelAlignmentCenter();
+        $this->margin = isset($margin) ? $margin : new Margin(0, 10, 10, 10);
+        $this->textColor = isset($textColor) ? $textColor : new Color(0, 0, 0);
     }
 
     public static function create(string $text): self

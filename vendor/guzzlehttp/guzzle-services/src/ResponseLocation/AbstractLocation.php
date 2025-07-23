@@ -1,5 +1,4 @@
 <?php
-
 namespace GuzzleHttp\Command\Guzzle\ResponseLocation;
 
 use GuzzleHttp\Command\Guzzle\Parameter;
@@ -8,14 +7,18 @@ use Psr\Http\Message\ResponseInterface;
 
 /**
  * Class AbstractLocation
+ *
+ * @package GuzzleHttp\Command\Guzzle\ResponseLocation
  */
 abstract class AbstractLocation implements ResponseLocationInterface
 {
-    /** @var string */
+    /** @var string $locationName */
     protected $locationName;
 
     /**
      * Set the name of the location
+     *
+     * @param $locationName
      */
     public function __construct($locationName)
     {
@@ -23,6 +26,9 @@ abstract class AbstractLocation implements ResponseLocationInterface
     }
 
     /**
+     * @param ResultInterface $result
+     * @param ResponseInterface $response
+     * @param Parameter $model
      * @return ResultInterface
      */
     public function before(
@@ -34,6 +40,9 @@ abstract class AbstractLocation implements ResponseLocationInterface
     }
 
     /**
+     * @param ResultInterface $result
+     * @param ResponseInterface $response
+     * @param Parameter $model
      * @return ResultInterface
      */
     public function after(
@@ -45,6 +54,9 @@ abstract class AbstractLocation implements ResponseLocationInterface
     }
 
     /**
+     * @param ResultInterface $result
+     * @param ResponseInterface $response
+     * @param Parameter $param
      * @return ResultInterface
      */
     public function visit(

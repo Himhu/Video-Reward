@@ -35,10 +35,11 @@ use think\initializer\RegisterService;
  * @property Cookie     $cookie
  * @property Session    $session
  * @property Validate   $validate
+ * @property Filesystem $filesystem
  */
 class App extends Container
 {
-    const VERSION = '6.1.4';
+    const VERSION = '6.0.12LTS';
 
     /**
      * 应用调试模式
@@ -151,6 +152,7 @@ class App extends Container
         'session'                 => Session::class,
         'validate'                => Validate::class,
         'view'                    => View::class,
+        'filesystem'              => Filesystem::class,
         'think\DbManager'         => Db::class,
         'think\LogManager'        => Log::class,
         'think\CacheManager'      => Cache::class,

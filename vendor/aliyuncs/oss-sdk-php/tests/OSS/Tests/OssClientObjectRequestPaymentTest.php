@@ -451,12 +451,12 @@ class OssClientObjectRequestPaymentTest extends TestOssClientBase
     {
         parent::setUp();
         $this->payerClient = new OssClient(
-            Common::getPayerAccessKeyId(),
-            Common::getPayerAccessKeySecret(),
-            Common::getEndpoint(), false);
+            getenv('OSS_PAYER_ACCESS_KEY_ID'),
+            getenv('OSS_PAYER_ACCESS_KEY_SECRET'),
+            getenv('OSS_ENDPOINT'), false);
 
         $policy = '{"Version":"1","Statement":[{"Action":["oss:*"],"Effect": "Allow",'.
-                  '"Principal":["' . Common::getPayerUid() . '"],'.
+                  '"Principal":["' . getenv('OSS_PAYER_UID') . '"],'.
                   '"Resource": ["acs:oss:*:*:' . $this->bucket . '","acs:oss:*:*:' . $this->bucket . '/*"]}]}';
 
         $this->ossClient->putBucketPolicy($this->bucket, $policy);

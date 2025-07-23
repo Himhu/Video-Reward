@@ -20,8 +20,7 @@ class Serializer extends DefaultSerializer
         array $requestLocations = []
     ) {
         // Override Guzzle's body location as it isn't raw binary data
-        $requestLocations['body'] = new Request\BodyLocation();
-        $requestLocations['xml'] = new Request\XmlLocation();
+        $requestLocations['body'] = new Request\BodyLocation;
         parent::__construct($description, $requestLocations);
     }
     /**

@@ -113,9 +113,8 @@ class RuleName
      */
     public function clear(): void
     {
-        $this->item  = [];
-        $this->rule  = [];
-        $this->group = [];
+        $this->item = [];
+        $this->rule = [];
     }
 
     /**

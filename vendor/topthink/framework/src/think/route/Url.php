@@ -358,7 +358,7 @@ class Url
      * @access public
      * @return string
      */
-    public function build(): string
+    public function build()
     {
         // 解析URL
         $url     = $this->url;

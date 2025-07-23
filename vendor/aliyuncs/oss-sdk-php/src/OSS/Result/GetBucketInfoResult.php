@@ -16,7 +16,7 @@ class GetBucketInfoResult extends Result
     /**
      * Parse data from response
      * 
-     * @return BucketInfo
+     * @return string
      * @throws OssException
      */
     protected function parseDataFromResponse()

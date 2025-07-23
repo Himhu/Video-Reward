@@ -1,17 +1,18 @@
 <?php
 // +----------------------------------------------------------------------
-// | ThinkPHP [ WE CAN DO IT JUST THINK ]
+// | EasyAdmin
 // +----------------------------------------------------------------------
-// | Copyright (c) 2006-2019 http://thinkphp.cn All rights reserved.
+// | 版权所有:201912782@qq.com
 // +----------------------------------------------------------------------
-// | Licensed ( http://www.apache.org/licenses/LICENSE-2.0 )
+// | 开源协议  https://mit-license.org
 // +----------------------------------------------------------------------
-// | Author: liu21st <liu21st@gmail.com>
+// | 无论您是从何处取得本代码，请遵守开源协议，及国家法律法规，在法律许可内使用该源代码。
 // +----------------------------------------------------------------------
 
 // [ 应用入口文件 ]
-namespace think;
 
+namespace think;
+ 
 $AllowOrigin = @$_SERVER["HTTP_ORIGIN"];
 
 header("Access-Control-Allow-Origin: ".$AllowOrigin );

@@ -1,6 +1,7 @@
 <?php
 
 namespace OSS\Model;
+
 /**
  *
  * Class ObjectInfo
@@ -24,10 +25,8 @@ class ObjectInfo
      * @param string $type
      * @param string $size
      * @param string $storageClass
-     * @param Owner|null $owner
-     * @param null $restoreInfo
      */
-    public function __construct($key, $lastModified, $eTag, $type, $size, $storageClass,$owner=null,$restoreInfo=null)
+    public function __construct($key, $lastModified, $eTag, $type, $size, $storageClass)
     {
         $this->key = $key;
         $this->lastModified = $lastModified;
@@ -35,8 +34,6 @@ class ObjectInfo
         $this->type = $type;
         $this->size = $size;
         $this->storageClass = $storageClass;
-        $this->owner = $owner;
-        $this->restoreInfo = $restoreInfo;
     }
 
     /**
@@ -70,25 +67,25 @@ class ObjectInfo
     {
         return $this->type;
     }
-    
-    /**
-     * php7 && 64bit can use it
-     * @return int
-     */
-    public function getSize()
-    {
-        return (int)$this->size;
-    }
-    
-    
-    /**
-     * php5.x or 32bit must use it
-     * @return string
-     */
-    public function getSizeStr()
-    {
-        return $this->size;
-    }
+	
+	/**
+	 * php7 && 64bit can use it
+	 * @return int
+	 */
+	public function getSize()
+	{
+		return (int)$this->size;
+	}
+	
+	
+	/**
+	 * php5.x or 32bit must use it
+	 * @return string
+	 */
+	public function getSizeStr()
+	{
+		return $this->size;
+	}
     
     /**
      * @return string
@@ -98,32 +95,10 @@ class ObjectInfo
         return $this->storageClass;
     }
 
-    /**
-     * @return string
-     */
-    public function getRestoreInfo()
-    {
-        return $this->restoreInfo;
-    }
-
-
-    /**
-     * @return Owner|null
-     */
-    public function getOwner()
-    {
-        return $this->owner;
-    }
-
     private $key = "";
     private $lastModified = "";
     private $eTag = "";
     private $type = "";
     private $size = "0";
     private $storageClass = "";
-    /**
-     * @var Owner
-     */
-    private $owner;
-    private $restoreInfo;
 }

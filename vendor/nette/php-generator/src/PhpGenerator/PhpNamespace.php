@@ -26,14 +26,9 @@ final class PhpNamespace
 	use Nette\SmartObject;
 
 	public const
-		NameNormal = 'n',
-		NameFunction = 'f',
-		NameConstant = 'c';
-
-	public const
-		NAME_NORMAL = self::NameNormal,
-		NAME_FUNCTION = self::NameFunction,
-		NAME_CONSTANT = self::NameConstant;
+		NAME_NORMAL = 'n',
+		NAME_FUNCTION = 'f',
+		NAME_CONSTANT = 'c';
 
 	/** @var string */
 	private $name;
@@ -43,9 +38,9 @@ final class PhpNamespace
 
 	/** @var string[][] */
 	private $aliases = [
-		self::NameNormal => [],
-		self::NameFunction => [],
-		self::NameConstant => [],
+		self::NAME_NORMAL => [],
+		self::NAME_FUNCTION => [],
+		self::NAME_CONSTANT => [],
 	];
 
 	/** @var ClassType[] */
@@ -99,21 +94,21 @@ final class PhpNamespace
 	 * @throws InvalidStateException
 	 * @return static
 	 */
-	public function addUse(string $name, ?string $alias = null, string $of = self::NameNormal): self
+	public function addUse(string $name, ?string $alias = null, string $of = self::NAME_NORMAL): self
 	{
 		if (
 			!Helpers::isNamespaceIdentifier($name, true)
-			|| (Helpers::isIdentifier($name) && isset(Helpers::Keywords[strtolower($name)]))
+			|| (Helpers::isIdentifier($name) && isset(Helpers::KEYWORDS[strtolower($name)]))
 		) {
 			throw new Nette\InvalidArgumentException("Value '$name' is not valid class/function/constant name.");
 
-		} elseif ($alias && (!Helpers::isIdentifier($alias) || isset(Helpers::Keywords[strtolower($alias)]))) {
+		} elseif ($alias && (!Helpers::isIdentifier($alias) || isset(Helpers::KEYWORDS[strtolower($alias)]))) {
 			throw new Nette\InvalidArgumentException("Value '$alias' is not valid alias.");
 		}
 
 		$name = ltrim($name, '\\');
 		$aliases = array_change_key_case($this->aliases[$of]);
-		$used = [self::NameNormal => $this->classes, self::NameFunction => $this->functions, self::NameConstant => []][$of];
+		$used = [self::NAME_NORMAL => $this->classes, self::NAME_FUNCTION => $this->functions, self::NAME_CONSTANT => []][$of];
 
 		if ($alias === null) {
 			$base = Helpers::extractShortName($name);
@@ -139,32 +134,22 @@ final class PhpNamespace
 	}
 
 
-	public function removeUse(string $name, string $of = self::NameNormal): void
-	{
-		foreach ($this->aliases[$of] as $alias => $item) {
-			if (strcasecmp($item, $name) === 0) {
-				unset($this->aliases[$of][$alias]);
-			}
-		}
-	}
-
-
 	/** @return static */
 	public function addUseFunction(string $name, ?string $alias = null): self
 	{
-		return $this->addUse($name, $alias, self::NameFunction);
+		return $this->addUse($name, $alias, self::NAME_FUNCTION);
 	}
 
 
 	/** @return static */
 	public function addUseConstant(string $name, ?string $alias = null): self
 	{
-		return $this->addUse($name, $alias, self::NameConstant);
+		return $this->addUse($name, $alias, self::NAME_CONSTANT);
 	}
 
 
 	/** @return string[] */
-	public function getUses(string $of = self::NameNormal): array
+	public function getUses(string $of = self::NAME_NORMAL): array
 	{
 		asort($this->aliases[$of]);
 		return array_filter(
@@ -182,16 +167,16 @@ final class PhpNamespace
 	}
 
 
-	public function resolveName(string $name, string $of = self::NameNormal): string
+	public function resolveName(string $name, string $of = self::NAME_NORMAL): string
 	{
-		if (isset(Helpers::Keywords[strtolower($name)]) || $name === '') {
+		if (isset(Helpers::KEYWORDS[strtolower($name)]) || $name === '') {
 			return $name;
 		} elseif ($name[0] === '\\') {
 			return substr($name, 1);
 		}
 
 		$aliases = array_change_key_case($this->aliases[$of]);
-		if ($of !== self::NameNormal) {
+		if ($of !== self::NAME_NORMAL) {
 			return $aliases[strtolower($name)]
 				?? $this->resolveName(Helpers::extractNamespace($name) . '\\') . Helpers::extractShortName($name);
 		}
@@ -203,21 +188,21 @@ final class PhpNamespace
 	}
 
 
-	public function simplifyType(string $type, string $of = self::NameNormal): string
+	public function simplifyType(string $type, string $of = self::NAME_NORMAL): string
 	{
 		return preg_replace_callback('~[\w\x7f-\xff\\\\]+~', function ($m) use ($of) { return $this->simplifyName($m[0], $of); }, $type);
 	}
 
 
-	public function simplifyName(string $name, string $of = self::NameNormal): string
+	public function simplifyName(string $name, string $of = self::NAME_NORMAL): string
 	{
-		if (isset(Helpers::Keywords[strtolower($name)]) || $name === '') {
+		if (isset(Helpers::KEYWORDS[strtolower($name)]) || $name === '') {
 			return $name;
 		}
 
 		$name = ltrim($name, '\\');
 
-		if ($of !== self::NameNormal) {
+		if ($of !== self::NAME_NORMAL) {
 			foreach ($this->aliases[$of] as $alias => $original) {
 				if (strcasecmp($original, $name) === 0) {
 					return $alias;
@@ -262,7 +247,7 @@ final class PhpNamespace
 		}
 
 		$lower = strtolower($name);
-		if ($orig = array_change_key_case($this->aliases[self::NameNormal])[$lower] ?? null) {
+		if ($orig = array_change_key_case($this->aliases[self::NAME_NORMAL])[$lower] ?? null) {
 			throw new Nette\InvalidStateException("Name '$name' used already as alias for $orig.");
 		}
 
@@ -306,7 +291,7 @@ final class PhpNamespace
 	public function addFunction(string $name): GlobalFunction
 	{
 		$lower = strtolower($name);
-		if ($orig = array_change_key_case($this->aliases[self::NameFunction])[$lower] ?? null) {
+		if ($orig = array_change_key_case($this->aliases[self::NAME_FUNCTION])[$lower] ?? null) {
 			throw new Nette\InvalidStateException("Name '$name' used already as alias for $orig.");
 		}
 

@@ -6,19 +6,17 @@ use Qiniu\Auth;
 use Qiniu\Config;
 use Qiniu\Http\Error;
 use Qiniu\Http\Client;
-use Qiniu\Http\Proxy;
 
 class Sms
 {
     private $auth;
     private $baseURL;
-    private $proxy;
 
-    public function __construct(Auth $auth, $proxy = null, $proxy_auth = null, $proxy_user_password = null)
+    public function __construct(Auth $auth)
     {
         $this->auth = $auth;
+
         $this->baseURL = sprintf("%s/%s/", Config::SMS_HOST, Config::SMS_VERSION);
-        $this->proxy = new Proxy($proxy, $proxy_auth, $proxy_user_password);
     }
 
     /**
@@ -337,7 +335,7 @@ class Sms
     {
         $headers = $this->auth->authorizationV2($url, "GET", null, $contentType);
         $headers['Content-Type'] = $contentType;
-        $ret = Client::get($url, $headers, $this->proxy->makeReqOpt());
+        $ret = Client::get($url, $headers);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }
@@ -348,7 +346,7 @@ class Sms
     {
         $headers = $this->auth->authorizationV2($url, "DELETE", null, $contentType);
         $headers['Content-Type'] = $contentType;
-        $ret = Client::delete($url, $headers, $this->proxy->makeReqOpt());
+        $ret = Client::delete($url, $headers);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }
@@ -360,7 +358,7 @@ class Sms
         $headers = $this->auth->authorizationV2($url, "POST", $body, $contentType);
 
         $headers['Content-Type'] = $contentType;
-        $ret = Client::post($url, $body, $headers, $this->proxy->makeReqOpt());
+        $ret = Client::post($url, $body, $headers);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }
@@ -372,7 +370,7 @@ class Sms
     {
         $headers = $this->auth->authorizationV2($url, "PUT", $body, $contentType);
         $headers['Content-Type'] = $contentType;
-        $ret = Client::put($url, $body, $headers, $this->proxy->makeReqOpt());
+        $ret = Client::put($url, $body, $headers);
         if (!$ret->ok()) {
             return array(null, new Error($url, $ret));
         }

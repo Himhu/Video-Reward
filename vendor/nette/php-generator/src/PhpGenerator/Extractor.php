@@ -62,7 +62,8 @@ final class Extractor
 	{
 		$nodeFinder = new NodeFinder;
 		$classNode = $nodeFinder->findFirst($this->statements, function (Node $node) use ($className) {
-			return $node instanceof Node\Stmt\ClassLike && $node->namespacedName->toString() === $className;
+			return ($node instanceof Node\Stmt\Class_ || $node instanceof Node\Stmt\Trait_)
+				&& $node->namespacedName->toString() === $className;
 		});
 
 		$res = [];
@@ -99,14 +100,14 @@ final class Extractor
 
 	private function prepareReplacements(array $statements): array
 	{
-		$start = $this->getNodeStartPos($statements[0]);
+		$start = $statements[0]->getStartFilePos();
 		$replacements = [];
 		(new NodeFinder)->find($statements, function (Node $node) use (&$replacements, $start) {
 			if ($node instanceof Node\Name\FullyQualified) {
 				if ($node->getAttribute('originalName') instanceof Node\Name) {
 					$of = $node->getAttribute('parent') instanceof Node\Expr\ConstFetch
-							? PhpNamespace::NameConstant
-							: ($node->getAttribute('parent') instanceof Node\Expr\FuncCall ? PhpNamespace::NameFunction : PhpNamespace::NameNormal);
+							? PhpNamespace::NAME_CONSTANT
+							: ($node->getAttribute('parent') instanceof Node\Expr\FuncCall ? PhpNamespace::NAME_FUNCTION : PhpNamespace::NAME_NORMAL);
 					$replacements[] = [
 						$node->getStartFilePos() - $start,
 						$node->getEndFilePos() - $start,
@@ -163,9 +164,6 @@ final class Extractor
 		$phpFile = new PhpFile;
 		$namespace = '';
 		$visitor = new class extends PhpParser\NodeVisitorAbstract {
-			public $callback;
-
-
 			public function enterNode(Node $node)
 			{
 				return ($this->callback)($node);
@@ -224,9 +222,9 @@ final class Extractor
 	private function addUseToNamespace(Node\Stmt\Use_ $node, PhpNamespace $namespace): void
 	{
 		$of = [
-			$node::TYPE_NORMAL => PhpNamespace::NameNormal,
-			$node::TYPE_FUNCTION => PhpNamespace::NameFunction,
-			$node::TYPE_CONSTANT => PhpNamespace::NameConstant,
+			$node::TYPE_NORMAL => PhpNamespace::NAME_NORMAL,
+			$node::TYPE_FUNCTION => PhpNamespace::NAME_FUNCTION,
+			$node::TYPE_CONSTANT => PhpNamespace::NAME_CONSTANT,
 		][$node->type];
 		foreach ($node->uses as $use) {
 			$namespace->addUse($use->name->toString(), $use->alias ? $use->alias->toString() : null, $of);
@@ -310,7 +308,12 @@ final class Extractor
 		foreach ($node->props as $item) {
 			$prop = $class->addProperty($item->name->toString());
 			$prop->setStatic($node->isStatic());
-			$prop->setVisibility($this->toVisibility($node->flags));
+			if ($node->isPrivate()) {
+				$prop->setPrivate();
+			} elseif ($node->isProtected()) {
+				$prop->setProtected();
+			}
+
 			$prop->setType($node->type ? $this->toPhp($node->type) : null);
 			if ($item->default) {
 				$prop->setValue(new Literal($this->getReformattedContents([$item->default], 1)));
@@ -328,7 +331,12 @@ final class Extractor
 		$method->setAbstract($node->isAbstract());
 		$method->setFinal($node->isFinal());
 		$method->setStatic($node->isStatic());
-		$method->setVisibility($this->toVisibility($node->flags));
+		if ($node->isPrivate()) {
+			$method->setPrivate();
+		} elseif ($node->isProtected()) {
+			$method->setProtected();
+		}
+
 		$this->setupFunction($method, $node);
 	}
 
@@ -338,7 +346,12 @@ final class Extractor
 		foreach ($node->consts as $item) {
 			$value = $this->getReformattedContents([$item->value], 1);
 			$const = $class->addConstant($item->name->toString(), new Literal($value));
-			$const->setVisibility($this->toVisibility($node->flags));
+			if ($node->isPrivate()) {
+				$const->setPrivate();
+			} elseif ($node->isProtected()) {
+				$const->setProtected();
+			}
+
 			$const->setFinal(method_exists($node, 'isFinal') && $node->isFinal());
 			$this->addCommentAndAttributes($const, $node);
 		}
@@ -386,12 +399,8 @@ final class Extractor
 	{
 		$function->setReturnReference($node->returnsByRef());
 		$function->setReturnType($node->getReturnType() ? $this->toPhp($node->getReturnType()) : null);
-		foreach ($node->getParams() as $item) {
-			$visibility = $this->toVisibility($item->flags);
-			$isReadonly = (bool) ($item->flags & Node\Stmt\Class_::MODIFIER_READONLY);
-			$param = $visibility
-				? ($function->addPromotedParameter($item->var->name))->setVisibility($visibility)->setReadonly($isReadonly)
-				: $function->addParameter($item->var->name);
+		foreach ($node->params as $item) {
+			$param = $function->addParameter($item->var->name);
 			$param->setType($item->type ? $this->toPhp($item->type) : null);
 			$param->setReference($item->byRef);
 			$function->setVariadic($item->variadic);
@@ -403,22 +412,9 @@ final class Extractor
 		}
 
 		$this->addCommentAndAttributes($function, $node);
-		if ($node->getStmts()) {
-			$function->setBody($this->getReformattedContents($node->getStmts(), 2));
+		if ($node->stmts) {
+			$function->setBody($this->getReformattedContents($node->stmts, 2));
 		}
-	}
-
-
-	private function toVisibility(int $flags): ?string
-	{
-		if ($flags & Node\Stmt\Class_::MODIFIER_PUBLIC) {
-			return ClassType::VisibilityPublic;
-		} elseif ($flags & Node\Stmt\Class_::MODIFIER_PROTECTED) {
-			return ClassType::VisibilityProtected;
-		} elseif ($flags & Node\Stmt\Class_::MODIFIER_PRIVATE) {
-			return ClassType::VisibilityPrivate;
-		}
-		return null;
 	}
 
 
@@ -430,15 +426,7 @@ final class Extractor
 
 	private function getNodeContents(Node ...$nodes): string
 	{
-		$start = $this->getNodeStartPos($nodes[0]);
+		$start = $nodes[0]->getStartFilePos();
 		return substr($this->code, $start, end($nodes)->getEndFilePos() - $start + 1);
-	}
-
-
-	private function getNodeStartPos(Node $node): int
-	{
-		return ($comments = $node->getComments())
-			? $comments[0]->getStartFilePos()
-			: $node->getStartFilePos();
 	}
 }

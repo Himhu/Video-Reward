@@ -1,5 +1,4 @@
 <?php
-
 namespace Qiniu;
 
 use Qiniu\Http\Header;
@@ -9,19 +8,11 @@ final class Auth
 {
     private $accessKey;
     private $secretKey;
-    public $options;
 
-    public function __construct($accessKey, $secretKey, $options = null)
+    public function __construct($accessKey, $secretKey)
     {
         $this->accessKey = $accessKey;
         $this->secretKey = $secretKey;
-        $defaultOptions = array(
-            'disableQiniuTimestampSignature' => null
-        );
-        if ($options == null) {
-            $options = $defaultOptions;
-        }
-        $this->options = array_merge($defaultOptions, $options);
     }
 
     public function getAccessKey()
@@ -95,7 +86,7 @@ final class Auth
             $data .= ":" . $url["port"];
         }
 
-        // try to append content type
+        // try append content type
         if ($headers != null && isset($headers["Content-Type"])) {
             // append content type
             $data .= "\n";
@@ -123,43 +114,19 @@ final class Auth
 
         // append body
         $data .= "\n\n";
-        if (!is_null($body)
-            && strlen($body) > 0
+        if (count($body) > 0
             && isset($headers["Content-Type"])
             && $headers["Content-Type"] != "application/octet-stream"
         ) {
             $data .= $body;
         }
 
-        return array($this->sign($data), null);
+        return array($this->sign(utf8_encode($data)), null);
     }
 
-    public function verifyCallback(
-        $contentType,
-        $originAuthorization,
-        $url,
-        $body,
-        $method = "GET",
-        $headers = array()
-    ) {
-        if (strpos($originAuthorization, 'Qiniu') === 0) {
-            $qnHeaders = new Header($headers);
-            if (!isset($qnHeaders['Content-Type'])) {
-                $qnHeaders['Content-Type'] = $contentType;
-            }
-            list($sign, $err) = $this->signQiniuAuthorization(
-                $url,
-                $method,
-                $body,
-                $qnHeaders
-            );
-            if ($err !== null) {
-                return false;
-            }
-            $authorization = 'Qiniu ' . $sign;
-        } else {
-            $authorization = 'QBox ' . $this->signRequest($url, $body, $contentType);
-        }
+    public function verifyCallback($contentType, $originAuthorization, $url, $body)
+    {
+        $authorization = 'QBox ' . $this->signRequest($url, $body, $contentType);
         return $originAuthorization === $authorization;
     }
 
@@ -219,19 +186,13 @@ final class Auth
         'fsizeMin',
         'fsizeLimit',
 
-        'persistentOps', // 与 persistentWorkflowTemplateID 二选一
+        'persistentOps',
         'persistentNotifyUrl',
         'persistentPipeline',
-        'persistentType', // 为 `1` 时开启闲时任务
-        'persistentWorkflowTemplateID', // 与 persistentOps 二选一
 
         'deleteAfterDays',
         'fileType',
         'isPrefixalScope',
-
-        'transform', // deprecated
-        'transformFallbackKey', // deprecated
-        'transformFallbackMode', // deprecated
     );
 
     private static function copyPolicy(&$policy, $originPolicy, $strictPolicy)
@@ -255,29 +216,14 @@ final class Auth
 
     public function authorizationV2($url, $method, $body = null, $contentType = null)
     {
-        $headers = new Header();
+        $headers = null;
         $result = array();
         if ($contentType != null) {
-            $headers['Content-Type'] = $contentType;
+            $headers = new Header(array(
+                'Content-Type' => array($contentType),
+            ));
             $result['Content-Type'] = $contentType;
         }
-
-        $signDate = gmdate('Ymd\THis\Z', time());
-        if ($this->options['disableQiniuTimestampSignature'] !== null) {
-            if (!$this->options['disableQiniuTimestampSignature']) {
-                $headers['X-Qiniu-Date'] = $signDate;
-                $result['X-Qiniu-Date'] = $signDate;
-            }
-        } elseif (getenv("DISABLE_QINIU_TIMESTAMP_SIGNATURE")) {
-            if (strtolower(getenv("DISABLE_QINIU_TIMESTAMP_SIGNATURE")) !== "true") {
-                $headers['X-Qiniu-Date'] = $signDate;
-                $result['X-Qiniu-Date'] = $signDate;
-            }
-        } else {
-            $headers['X-Qiniu-Date'] = $signDate;
-            $result['X-Qiniu-Date'] = $signDate;
-        }
-
         list($sign) = $this->signQiniuAuthorization($url, $method, $body, $headers);
         $result['Authorization'] = 'Qiniu ' . $sign;
         return $result;

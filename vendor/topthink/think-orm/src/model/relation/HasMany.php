@@ -15,6 +15,7 @@ namespace think\model\relation;
 use Closure;
 use think\Collection;
 use think\db\BaseQuery as Query;
+use think\helper\Str;
 use think\Model;
 use think\model\Relation;
 
@@ -55,6 +56,10 @@ class HasMany extends Relation
     {
         if ($closure) {
             $closure($this->getClosureType($closure));
+        }
+
+        if ($this->withLimit) {
+            $this->query->limit($this->withLimit);
         }
 
         return $this->query
@@ -205,11 +210,6 @@ class HasMany extends Relation
             $this->query->withoutField($this->withoutField);
         }
 
-        $withLimit = $this->query->getOptions('limit');
-        if ($withLimit) {
-            $this->query->removeOption('limit');
-        }
-
         $list = $this->query
             ->where($where)
             ->cache($cache[0] ?? false, $cache[1] ?? null, $cache[2] ?? null)
@@ -217,12 +217,12 @@ class HasMany extends Relation
             ->select();
 
         // 组装模型数据
-        $data      = [];
-        
+        $data = [];
+
         foreach ($list as $set) {
             $key = $set->$foreignKey;
 
-            if ($withLimit && isset($data[$key]) && count($data[$key]) >= $withLimit) {
+            if ($this->withLimit && isset($data[$key]) && count($data[$key]) >= $this->withLimit) {
                 continue;
             }
 
@@ -241,10 +241,6 @@ class HasMany extends Relation
      */
     public function save($data, bool $replace = true)
     {
-        if ($data instanceof Model) {
-            $data = $data->getData();
-        }
-
         $model = $this->make();
 
         return $model->replace($replace)->save($data) ? $model : false;
@@ -264,7 +260,7 @@ class HasMany extends Relation
         // 保存关联表数据
         $data[$this->foreignKey] = $this->parent->{$this->localKey};
 
-        return (new $this->model($data))->setSuffix($this->getModel()->getSuffix());
+        return new $this->model($data);
     }
 
     /**

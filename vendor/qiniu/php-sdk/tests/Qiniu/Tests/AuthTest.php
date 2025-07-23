@@ -11,14 +11,12 @@ namespace Qiniu {
 }
 
 namespace Qiniu\Tests {
-    use PHPUnit\Framework\TestCase;
-
     use Qiniu\Auth;
     use Qiniu\Http\Header;
 
     // @codingStandardsIgnoreEnd
 
-    class AuthTest extends TestCase
+    class AuthTest extends \PHPUnit_Framework_TestCase
     {
 
         public function testSign()
@@ -67,230 +65,147 @@ namespace Qiniu\Tests {
             unset($_SERVER['override_qiniu_auth_time']);
         }
 
+        public function testVerifyCallback()
+        {
+        }
+
         public function testSignQiniuAuthorization()
         {
             $auth = new Auth("ak", "sk");
 
-            $testCases = array(
-                array(
-                    "url" => "",
-                    "method" => "",
-                    "headers" => array(
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                        "Content-Type" => array("application/x-www-form-urlencoded")
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:0i1vKClRDWFyNkcTFzwcE7PzX74="
-                ),
-                array(
-                    "url" => "",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/json")
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:K1DI0goT05yhGizDFE5FiPJxAj4="
-                ),
-                array(
-                    "url" => "",
-                    "method" => "GET",
-                    "headers" => array(
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:0i1vKClRDWFyNkcTFzwcE7PzX74="
-                ),
-                array(
-                    "url" => "",
-                    "method" => "POST",
-                    "headers" => array(
-                        "Content-Type" => array("application/json"),
-                        "X-Qiniu" => array("b"),
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:0ujEjW_vLRZxebsveBgqa3JyQ-w="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com",
-                    "method" => "",
-                    "headers" => array(
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:GShw5NitGmd5TLoo38nDkGUofRw="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/json"),
-                        "X-Qiniu-Bbb" => array("BBB", "AAA"),
-                        "X-Qiniu-Aaa" => array("DDD", "CCC"),
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                    ),
-                    "body" => "{\"name\": \"test\"}",
-                    "expectedToken" => "ak:DhNA1UCaBqSHCsQjMOLRfVn63GQ="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                        "X-Qiniu-Bbb" => array("BBB", "AAA"),
-                        "X-Qiniu-Aaa" => array("DDD", "CCC"),
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                    ),
-                    "body" => "name=test&language=go",
-                    "expectedToken" => "ak:KUAhrYh32P9bv0COD8ugZjDCmII="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/x-www"),
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                        "X-Qiniu-Bbb" => array("BBB", "AAA"),
-                        "X-Qiniu-Aaa" => array("DDD", "CCC"),
-                    ),
-                    "body" => "name=test&language=go",
-                    "expectedToken" => "ak:KUAhrYh32P9bv0COD8ugZjDCmII="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com/mkfile/sdf.jpg",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                        "X-Qiniu-Bbb" => array("BBB", "AAA"),
-                        "X-Qiniu-Aaa" => array("DDD", "CCC"),
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                    ),
-                    "body" => "name=test&language=go",
-                    "expectedToken" => "ak:fkRck5_LeyfwdkyyLk-hyNwGKac="
-                ),
-                array(
-                    "url" => "http://upload.qiniup.com/mkfile/sdf.jpg?s=er3&df",
-                    "method" => "",
-                    "headers" => array(
-                        "Content-Type" => array("application/x-www-form-urlencoded"),
-                        "X-Qiniu-Bbb" => array("BBB", "AAA"),
-                        "X-Qiniu-Aaa" => array("DDD", "CCC"),
-                        "X-Qiniu-" => array("a"),
-                        "X-Qiniu" => array("b"),
-                    ),
-                    "body" => "name=test&language=go",
-                    "expectedToken" => "ak:PUFPWsEUIpk_dzUvvxTTmwhp3p4="
-                )
-            );
-
-            foreach ($testCases as $testCase) {
-                list($sign, $err) = $auth->signQiniuAuthorization(
-                    $testCase["url"],
-                    $testCase["method"],
-                    $testCase["body"],
-                    new Header($testCase["headers"])
-                );
-
-                $this->assertNull($err);
-                $this->assertEquals($testCase["expectedToken"], $sign);
-            }
-        }
-
-        public function testDisableQiniuTimestampSignatureDefault()
-        {
-            $auth = new Auth("ak", "sk");
-            $authedHeaders = $auth->authorizationV2("https://example.com", "GET");
-            $this->assertArrayHasKey("X-Qiniu-Date", $authedHeaders);
-        }
-
-        public function testDisableQiniuTimestampSignature()
-        {
-            $auth = new Auth("ak", "sk", array(
-                "disableQiniuTimestampSignature" => true
+            // ---
+            $url = "";
+            $method = "";
+            $headers = new Header(array(
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+                "Content-Type" => array("application/x-www-form-urlencoded"),
             ));
-            $authedHeaders = $auth->authorizationV2("https://example.com", "GET");
-            $this->assertArrayNotHasKey("X-Qiniu-Date", $authedHeaders);
-        }
-        public function testDisableQiniuTimestampSignatureEnv()
-        {
-            putenv("DISABLE_QINIU_TIMESTAMP_SIGNATURE=true");
-            $auth = new Auth("ak", "sk");
-            $authedHeaders = $auth->authorizationV2("https://example.com", "GET");
-            $this->assertArrayNotHasKey("X-Qiniu-Date", $authedHeaders);
-            putenv('DISABLE_QINIU_TIMESTAMP_SIGNATURE');
-        }
-        public function testDisableQiniuTimestampSignatureEnvBeIgnored()
-        {
-            putenv("DISABLE_QINIU_TIMESTAMP_SIGNATURE=true");
-            $auth = new Auth("ak", "sk", array(
-                "disableQiniuTimestampSignature" => false
+            $body = "{\"name\": \"test\"}";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:0i1vKClRDWFyNkcTFzwcE7PzX74=", $sign);
+
+            // ---
+            $url = "";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/json"),
             ));
-            $authedHeaders = $auth->authorizationV2("https://example.com", "GET");
-            $this->assertArrayHasKey("X-Qiniu-Date", $authedHeaders);
-            putenv('DISABLE_QINIU_TIMESTAMP_SIGNATURE');
-        }
-        public function testQboxVerifyCallbackShouldOkWithRequiredOptions()
-        {
-            $auth = new Auth('abcdefghklmnopq', '1234567890');
-            $ok = $auth->verifyCallback(
-                'application/x-www-form-urlencoded',
-                'QBox abcdefghklmnopq:T7F-SjxX7X2zI4Fc1vANiNt1AUE=',
-                'https://test.qiniu.com/callback',
-                'name=sunflower.jpg&hash=Fn6qeQi4VDLQ347NiRm-RlQx_4O2&location=Shanghai&price=1500.00&uid=123'
-            );
-            $this->assertTrue($ok);
-        }
-        public function testQboxVerifyCallbackShouldOkWithOmitOptions()
-        {
-            $auth = new Auth('abcdefghklmnopq', '1234567890');
-            $ok = $auth->verifyCallback(
-                'application/x-www-form-urlencoded',
-                'QBox abcdefghklmnopq:T7F-SjxX7X2zI4Fc1vANiNt1AUE=',
-                'https://test.qiniu.com/callback',
-                'name=sunflower.jpg&hash=Fn6qeQi4VDLQ347NiRm-RlQx_4O2&location=Shanghai&price=1500.00&uid=123',
-                'POST', // this should be omit
-                array(
-                    'X-Qiniu-Bbb' => 'BBB'
-                ) // this should be omit
-            );
-            $this->assertTrue($ok);
-        }
-        public function testQiniuVerifyCallbackShouldOk()
-        {
-            $auth = new Auth('abcdefghklmnopq', '1234567890');
-            $ok = $auth->verifyCallback(
-                'application/x-www-form-urlencoded',
-                'Qiniu abcdefghklmnopq:ZqS7EZuAKrhZaEIxqNGxDJi41IQ=',
-                'https://test.qiniu.com/callback',
-                'name=sunflower.jpg&hash=Fn6qeQi4VDLQ347NiRm-RlQx_4O2&location=Shanghai&price=1500.00&uid=123',
-                'GET',
-                array(
-                    'X-Qiniu-Bbb' => 'BBB'
-                )
-            );
-            $this->assertTrue($ok);
-        }
-        public function testQiniuVerifyCallbackShouldFailed()
-        {
-            $auth = new Auth('abcdefghklmnopq', '1234567890');
-            $ok = $auth->verifyCallback(
-                'application/x-www-form-urlencoded',
-                'Qiniu abcdefghklmnopq:ZqS7EZuAKrhZaEIxqNGxDJi41IQ=',
-                'https://test.qiniu.com/callback',
-                'name=sunflower.jpg&hash=Fn6qeQi4VDLQ347NiRm-RlQx_4O2&location=Shanghai&price=1500.00&uid=123',
-                'POST',
-                array(
-                    'X-Qiniu-Bbb' => 'BBB'
-                )
-            );
-            $this->assertFalse($ok);
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:K1DI0goT05yhGizDFE5FiPJxAj4=", $sign);
+
+            // ---
+            $url = "";
+            $method = "GET";
+            $headers = new Header(array(
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+            ));
+            $body = "{\"name\": \"test\"}";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:0i1vKClRDWFyNkcTFzwcE7PzX74=", $sign);
+
+            // ---
+            $url = "";
+            $method = "POST";
+            $headers = new Header(array(
+                "Content-Type" => array("application/json"),
+                "X-Qiniu" => array("b"),
+            ));
+            $body = "{\"name\": \"test\"}";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:0ujEjW_vLRZxebsveBgqa3JyQ-w=", $sign);
+
+            // ---
+            $url = "http://upload.qiniup.com";
+            $method = "";
+            $headers = new Header(array(
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+            ));
+            $body = "{\"name\": \"test\"}";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:GShw5NitGmd5TLoo38nDkGUofRw=", $sign);
+
+            // ---
+            $url = "http://upload.qiniup.com";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/json"),
+                "X-Qiniu-Bbb" => array("BBB", "AAA"),
+                "X-Qiniu-Aaa" => array("DDD", "CCC"),
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+            ));
+            $body = "{\"name\": \"test\"}";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:DhNA1UCaBqSHCsQjMOLRfVn63GQ=", $sign);
+
+            // ---
+            $url = "http://upload.qiniup.com";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+                "X-Qiniu-Bbb" => array("BBB", "AAA"),
+                "X-Qiniu-Aaa" => array("DDD", "CCC"),
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+            ));
+            $body = "name=test&language=go";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:KUAhrYh32P9bv0COD8ugZjDCmII=", $sign);
+
+            // ---
+            $url = "http://upload.qiniup.com";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/x-www"),
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+                "X-Qiniu-Bbb" => array("BBB", "AAA"),
+                "X-Qiniu-Aaa" => array("DDD", "CCC"),
+            ));
+            $body = "name=test&language=go";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:KUAhrYh32P9bv0COD8ugZjDCmII=", $sign);
+
+            // ---
+            $url = "http://upload.qiniup.com/mkfile/sdf.jpg";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+                "X-Qiniu-Bbb" => array("BBB", "AAA"),
+                "X-Qiniu-Aaa" => array("DDD", "CCC"),
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+            ));
+            $body = "name=test&language=go";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:fkRck5_LeyfwdkyyLk-hyNwGKac=", $sign);
+
+            $url = "http://upload.qiniup.com/mkfile/sdf.jpg?s=er3&df";
+            $method = "";
+            $headers = new Header(array(
+                "Content-Type" => array("application/x-www-form-urlencoded"),
+                "X-Qiniu-Bbb" => array("BBB", "AAA"),
+                "X-Qiniu-Aaa" => array("DDD", "CCC"),
+                "X-Qiniu-" => array("a"),
+                "X-Qiniu" => array("b"),
+            ));
+            $body = "name=test&language=go";
+            list($sign, $err) = $auth->signQiniuAuthorization($url, $method, $body, $headers);
+            $this->assertNull($err);
+            $this->assertEquals("ak:PUFPWsEUIpk_dzUvvxTTmwhp3p4=", $sign);
         }
     }
 }

@@ -350,7 +350,7 @@ abstract class BaseQuery
             $field = array_merge((array) $this->options['field'], $field);
         }
 
-        $this->options['field'] = array_unique($field, SORT_REGULAR);
+        $this->options['field'] = array_unique($field);
 
         return $this;
     }
@@ -379,7 +379,7 @@ abstract class BaseQuery
             $field = array_merge((array) $this->options['field'], $field);
         }
 
-        $this->options['field'] = array_unique($field, SORT_REGULAR);
+        $this->options['field'] = array_unique($field);
 
         return $this;
     }
@@ -424,7 +424,7 @@ abstract class BaseQuery
             $field = array_merge((array) $this->options['field'], $field);
         }
 
-        $this->options['field'] = array_unique($field, SORT_REGULAR);
+        $this->options['field'] = array_unique($field);
 
         return $this;
     }
@@ -628,7 +628,7 @@ abstract class BaseQuery
         if (!isset($total) && !$simple) {
             $options = $this->getOptions();
 
-            unset($this->options['order'], $this->options['cache'], $this->options['limit'], $this->options['page'], $this->options['field']);
+            unset($this->options['order'], $this->options['limit'], $this->options['page'], $this->options['field']);
 
             $bind  = $this->bind;
             $total = $this->count();
@@ -705,7 +705,7 @@ abstract class BaseQuery
             ->limit(1)
             ->find();
 
-        $result = $data[$key] ?? 0;
+        $result = $data[$key];
 
         if (is_numeric($result)) {
             $lastId = 'asc' == $sort ? ($result - 1) + ($page - 1) * $listRows : ($result + 1) - ($page - 1) * $listRows;
@@ -765,7 +765,7 @@ abstract class BaseQuery
     }
 
     /**
-     * 查询缓存 数据为空不缓存
+     * 查询缓存
      * @access public
      * @param mixed             $key    缓存key
      * @param integer|\DateTime $expire 缓存有效期
@@ -783,38 +783,9 @@ abstract class BaseQuery
             $key    = true;
         }
 
-        $this->options['cache']     = [$key, $expire, $tag ?: $this->getTable()];
+        $this->options['cache'] = [$key, $expire, $tag];
 
         return $this;
-    }
-
-    /**
-     * 查询缓存 允许缓存空数据
-     * @access public
-     * @param mixed             $key    缓存key
-     * @param integer|\DateTime $expire 缓存有效期
-     * @param string|array      $tag    缓存标签
-     * @return $this
-     */
-    public function cacheAlways($key = true, $expire = null, $tag = null)
-    {
-        $this->options['cache_always'] = true;
-        return $this->cache($key, $expire, $tag);
-    }
-
-    /**
-     * 强制更新缓存
-     *
-     * @param mixed         $key    缓存key
-     * @param int|\DateTime $expire 缓存有效期
-     * @param string|array  $tag    缓存标签
-     *
-     * @return $this
-     */
-    public function cacheForce($key = true, $expire = null, $tag = null)
-    {
-        $this->options['force_cache'] = true;
-        return $this->cache($key, $expire, $tag);
     }
 
     /**
@@ -1038,23 +1009,6 @@ abstract class BaseQuery
         }
 
         return $this->connection->insertAll($this, $dataSet, $limit);
-    }
-
-    /**
-     * 批量插入记录
-     * @access public
-     * @param array   $keys 键值
-     * @param array   $values 数据
-     * @param integer $limit   每次写入数据限制
-     * @return integer
-     */
-    public function insertAllByKeys(array $keys, array $values, int $limit = 0): int
-    {
-        if (empty($limit) && !empty($this->options['limit']) && is_numeric($this->options['limit'])) {
-            $limit = (int) $this->options['limit'];
-        }
-
-        return $this->connection->insertAllByKeys($this, $keys, $values, $limit);
     }
 
     /**

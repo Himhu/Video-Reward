@@ -68,7 +68,7 @@ if (!function_exists('parse_args')) {
                     break;
             }
 
-            $result[] = is_int($key) ? $value : sprintf('\'%s\' => %s', htmlentities($key), $value);
+            $result[] = is_int($key) ? $value : "'{$key}' => {$value}";
         }
 
         return implode(', ', $result);
@@ -492,7 +492,7 @@ if (!function_exists('echo_value')) {
                 }
             })();
 
-            $.getScript('//cdn.bootcdn.net/ajax/libs/prettify/r298/prettify.min.js', function(){
+            $.getScript('//cdn.bootcss.com/prettify/r298/prettify.min.js', function(){
                 prettyPrint();
             });
         })();

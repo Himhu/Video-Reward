@@ -3,7 +3,6 @@
 namespace OSS\Tests;
 
 require_once __DIR__ . '/Common.php';
-require_once __DIR__ . DIRECTORY_SEPARATOR . 'TestOssClientBase.php';
 
 class ObjectAclTest extends TestOssClientBase
 {

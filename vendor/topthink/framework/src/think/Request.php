@@ -1237,7 +1237,7 @@ class Request implements ArrayAccess
      * @access public
      * @param  string $name header名称
      * @param  string $default 默认值
-     * @return string|array|null
+     * @return string|array
      */
     public function header(string $name = '', string $default = null)
     {
@@ -1416,10 +1416,6 @@ class Request implements ArrayAccess
         foreach ($filters as $filter) {
             if (is_callable($filter)) {
                 // 调用函数或者方法过滤
-                if (is_null($value)) {
-                    continue;
-                }
-
                 $value = call_user_func($filter, $value);
             } elseif (is_scalar($value)) {
                 if (is_string($filter) && false !== strpos($filter, '/')) {
@@ -1494,7 +1490,7 @@ class Request implements ArrayAccess
             if (is_int($key)) {
                 $default = null;
                 $key     = $val;
-                if (!key_exists($key, $data)) {
+                if (!isset($data[$key])) {
                     continue;
                 }
             } else {

@@ -10,9 +10,6 @@ namespace Qiniu\Http;
 final class Error
 {
     private $url;
-    /**
-     * @var Response
-     */
     private $response;
 
     public function __construct($url, $response)
