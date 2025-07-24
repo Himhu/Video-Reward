@@ -19,16 +19,16 @@ use Psr\Log\LoggerInterface;
  */
 class InstallationService
 {
-    private Config $config;
-    private LoggerInterface $logger;
+    private ?Config $config = null;
+    private ?LoggerInterface $logger = null;
 
     /**
      * 构造函数
      *
-     * @param Config $config 配置实例
-     * @param LoggerInterface $logger 日志实例
+     * @param Config|null $config 配置实例
+     * @param LoggerInterface|null $logger 日志实例
      */
-    public function __construct(Config $config, LoggerInterface $logger)
+    public function __construct(?Config $config = null, ?LoggerInterface $logger = null)
     {
         $this->config = $config;
         $this->logger = $logger;
@@ -44,13 +44,43 @@ class InstallationService
         $lockFile = $this->getLockFilePath();
         $exists = file_exists($lockFile);
 
-        $this->logger->info('检查安装状态', [
-            'lock_file' => $lockFile,
-            'exists' => $exists,
-            'installed' => $exists
-        ]);
+        if ($this->logger) {
+            $this->logger->info('检查安装状态', [
+                'lock_file' => $lockFile,
+                'exists' => $exists,
+                'installed' => $exists
+            ]);
+        }
 
         return $exists;
+    }
+
+    /**
+     * 创建安装锁文件
+     *
+     * @return bool 是否创建成功
+     */
+    public function createInstallLock(): bool
+    {
+        $lockFile = $this->getLockFilePath();
+        $lockDir = dirname($lockFile);
+
+        // 确保目录存在
+        if (!is_dir($lockDir)) {
+            mkdir($lockDir, 0755, true);
+        }
+
+        // 创建锁文件
+        $result = file_put_contents($lockFile, date('Y-m-d H:i:s')) !== false;
+
+        if ($this->logger) {
+            $this->logger->info('创建安装锁文件', [
+                'lock_file' => $lockFile,
+                'success' => $result
+            ]);
+        }
+
+        return $result;
     }
 
     /**

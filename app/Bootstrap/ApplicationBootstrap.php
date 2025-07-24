@@ -66,11 +66,8 @@ class ApplicationBootstrap
             
             // 2. 安全检查
             $this->handleSecurity();
-            
-            // 3. 安装状态检查
-            $this->checkInstallation();
-            
-            // 4. 启动应用
+
+            // 3. 启动应用 (安装状态已在入口文件检查)
             return $this->startApplication();
             
         } catch (Exception $e) {
@@ -122,25 +119,29 @@ class ApplicationBootstrap
     }
 
     /**
-     * 检查安装状态
+     * 验证安装完整性
      *
-     * @throws ApplicationException 安装检查失败
+     * 注意：基础安装状态检查已在入口文件完成
+     * 这里只进行深度的安装完整性验证
+     *
+     * @throws ApplicationException 安装验证失败
      */
-    private function checkInstallation(): void
+    private function validateInstallationIntegrity(): void
     {
-        if (!$this->installationService->isInstalled()) {
-            $installUrl = $this->config->get('path.install_url', '/install.php');
-            
-            $this->logger->info('系统未安装，重定向到安装页面', [
-                'install_url' => $installUrl
-            ]);
-            
-            // 重定向到安装页面
-            header("Location: {$installUrl}");
-            exit;
+        if (!$this->installationService->validateInstallation()) {
+            $this->logger->warning('安装完整性验证失败');
+
+            throw new ApplicationException(
+                '系统安装不完整，请重新运行安装程序',
+                500,
+                null,
+                'warning',
+                true,
+                '系统配置不完整，请联系管理员'
+            );
         }
-        
-        $this->logger->info('安装状态检查通过');
+
+        $this->logger->info('安装完整性验证通过');
     }
 
     /**
