@@ -234,120 +234,41 @@ function handleError(\Throwable $e): void
 function renderPage(bool $hasError, string $errorMsg, string $host): string
 {
     $disabled = $hasError ? 'disabled' : '';
-    $errorSection = $hasError ? "<div style='color:red;margin:20px;padding:15px;border:1px solid red;'>{$errorMsg}</div>" : '';
-    
-    return <<<HTML
-<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Video-Reward 系统安装</title>
-    <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        .form-group { margin: 15px 0; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="password"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
-        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; }
-        button:disabled { background: #ccc; cursor: not-allowed; }
-        .section { border: 1px solid #ddd; padding: 20px; margin: 20px 0; border-radius: 4px; }
-    </style>
-</head>
-<body>
-    <h1>🎬 Video-Reward 系统安装</h1>
-    {$errorSection}
-    
-    <form id="installForm" onsubmit="return submitForm(event)">
-        <div class="section">
-            <h3>数据库配置</h3>
-            <div class="form-group">
-                <label>数据库地址:</label>
-                <input type="text" name="hostname" value="localhost" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>数据库端口:</label>
-                <input type="text" name="hostport" value="3306" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>数据库名称:</label>
-                <input type="text" name="database" value="video_reward" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>数据表前缀:</label>
-                <input type="text" name="prefix" value="vr_" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>数据库用户名:</label>
-                <input type="text" name="db_username" value="root" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>数据库密码:</label>
-                <input type="password" name="db_password" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" name="cover" value="1"> 覆盖已存在的数据库</label>
-            </div>
-        </div>
-        
-        <div class="section">
-            <h3>管理员配置</h3>
-            <div class="form-group">
-                <label>后台访问地址:</label>
-                <input type="text" name="admin_url" value="admin" required {$disabled}>
-                <small>完整地址: {$host}<span id="preview">admin</span></small>
-            </div>
-            <div class="form-group">
-                <label>管理员账号:</label>
-                <input type="text" name="username" value="admin" required {$disabled}>
-            </div>
-            <div class="form-group">
-                <label>管理员密码:</label>
-                <input type="password" name="password" required {$disabled}>
-            </div>
-        </div>
-        
-        <button type="submit" {$disabled}>开始安装</button>
-    </form>
-    
-    <script>
-        document.querySelector('input[name="admin_url"]').addEventListener('input', function() {
-            document.getElementById('preview').textContent = this.value || 'admin';
-        });
-        
-        function submitForm(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button');
-            btn.disabled = true;
-            btn.textContent = '安装中...';
-            
-            const formData = new FormData(e.target);
-            
-            fetch(window.location.href, {
-                method: 'POST',
-                body: formData,
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(r => r.json())
-            .then(data => {
-                if (data.code === 1) {
-                    alert('安装成功！即将跳转...');
-                    window.location.href = '/' + formData.get('admin_url');
-                } else {
-                    alert('安装失败：' + data.msg);
-                    btn.disabled = false;
-                    btn.textContent = '开始安装';
-                }
-            })
-            .catch(err => {
-                alert('安装出错：' + err.message);
-                btn.disabled = false;
-                btn.textContent = '开始安装';
-            });
-            
-            return false;
-        }
-    </script>
-</body>
-</html>
-HTML;
+
+    // 准备模板变量
+    $templateVars = [
+        'hasError' => $hasError,
+        'errorMsg' => $errorMsg,
+        'host' => $host,
+        'disabled' => $disabled
+    ];
+
+    // 渲染模板
+    return renderTemplate('install', $templateVars);
+}
+
+/**
+ * 简单的模板渲染器
+ */
+function renderTemplate(string $template, array $vars = []): string
+{
+    $templateFile = __DIR__ . '/install/templates/' . $template . '.php';
+
+    if (!file_exists($templateFile)) {
+        throw new \InvalidArgumentException("模板文件不存在: {$template}");
+    }
+
+    // 提取变量到当前作用域
+    extract($vars, EXTR_SKIP);
+
+    // 开启输出缓冲
+    ob_start();
+
+    try {
+        include $templateFile;
+        return ob_get_clean();
+    } catch (\Throwable $e) {
+        ob_end_clean();
+        throw $e;
+    }
 }
