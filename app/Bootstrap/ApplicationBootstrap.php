@@ -124,18 +124,27 @@ class ApplicationBootstrap
     private function startApplication(): Response
     {
         $this->logger->info('开始启动ThinkPHP应用');
-        
+
         // 创建应用实例
         $app = new App();
-        
+
+        // 初始化应用（加载环境变量和配置）
+        $app->initialize();
+
+        // 手动注册核心服务
+        $app->bind('env', \think\Env::class);
+
+        // 手动注册多应用服务
+        $app->register(\think\app\Service::class);
+
         // 获取HTTP应用
         $http = $app->http;
-        
-        // 运行应用并获取响应
-        $response = $http->run($this->request);
-        
+
+        // 运行应用并获取响应（不传递自定义请求，让ThinkPHP自动处理）
+        $response = $http->run();
+
         $this->logger->info('ThinkPHP应用启动成功');
-        
+
         return $response;
     }
 
@@ -177,7 +186,37 @@ class ApplicationBootstrap
      */
     private function getCurrentRequest(): Request
     {
-        return Request::createFromGlobals();
+        // 创建 Request 实例并设置全局数据
+        $request = new Request();
+
+        // 设置服务器数据
+        $request->withServer($_SERVER);
+
+        // 设置请求头
+        if (function_exists('apache_request_headers') && $result = apache_request_headers()) {
+            $header = $result;
+        } else {
+            $header = [];
+            foreach ($_SERVER as $key => $val) {
+                if (0 === strpos($key, 'HTTP_')) {
+                    $key = str_replace('_', '-', strtolower(substr($key, 5)));
+                    $header[$key] = $val;
+                }
+            }
+            if (isset($_SERVER['CONTENT_TYPE'])) {
+                $header['content-type'] = $_SERVER['CONTENT_TYPE'];
+            }
+            if (isset($_SERVER['CONTENT_LENGTH'])) {
+                $header['content-length'] = $_SERVER['CONTENT_LENGTH'];
+            }
+        }
+        $request->withHeader(array_change_key_case($header));
+
+        // 设置输入数据
+        $input = file_get_contents('php://input');
+        $request->withInput($input);
+
+        return $request;
     }
 
 

@@ -1,0 +1,8 @@
+[2025-07-25T02:16:03+08:00][error] [1]Uncaught Error: Call to undefined method think\Request::path() in Command line code:8
+Stack trace:
+#0 {main}
+  thrown[Command line code:8]
+[2025-07-25T02:18:28+08:00][error] [1]Uncaught Error: Call to undefined method think\App::getServices() in Command line code:5
+Stack trace:
+#0 {main}
+  thrown[Command line code:5]

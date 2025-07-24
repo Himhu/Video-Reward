@@ -49,13 +49,15 @@ InstallationGuard::checkAndRedirect(APP_PATH);
 // ============================================================================
 
 try {
-    // 创建应用引导实例
-    $bootstrap = new ApplicationBootstrap();
+    // 临时直接使用 ThinkPHP 标准启动方式
+    $app = new \think\App();
+    $app->initialize();
 
-    // 启动应用并获取响应
-    $response = $bootstrap->boot();
+    // 手动注册多应用服务
+    $app->register(\think\app\Service::class);
 
-    // 发送响应
+    $http = $app->http;
+    $response = $http->run();
     $response->send();
 
 } catch (ApplicationException $e) {
@@ -63,8 +65,8 @@ try {
     ResponseHelper::handleException($e, $e->shouldDisplay(), $e->getUserMessage());
 
 } catch (Throwable $e) {
-    // 使用统一的异常处理
-    ResponseHelper::handleException($e, false, '系统内部错误，请稍后重试');
+    // 使用统一的异常处理 (临时显示详细错误)
+    ResponseHelper::handleException($e, true, '系统内部错误，请稍后重试');
 }
 
 // ============================================================================

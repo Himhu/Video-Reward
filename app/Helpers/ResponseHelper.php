@@ -146,8 +146,8 @@ class ResponseHelper
             $message = $userMessage;
             $displayDetails = false;
         } else {
-            $message = $shouldDisplay ? $exception->getMessage() : $userMessage;
-            $displayDetails = $shouldDisplay;
+            $message = $exception->getMessage() . ' in ' . $exception->getFile() . ':' . $exception->getLine(); // 临时强制显示详细错误
+            $displayDetails = true;
         }
         
         if (self::isAjaxRequest()) {

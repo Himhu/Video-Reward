@@ -5,3 +5,5 @@
 *.env.example
 
 *.zip
+
+*install.lock
