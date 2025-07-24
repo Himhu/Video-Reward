@@ -76,11 +76,11 @@ return [
 
     // 应用映射（自动多应用模式有效）
     'app_map'          => [
-        Env::get('admin.url', '{$adminUrl}') => 'admin',
+        Env::get('video_reward.admin_url', '{$adminUrl}') => 'admin',
     ],
 
     // 后台别名
-    'admin_alias_name' => Env::get('admin.url', '{$adminUrl}'),
+    'admin_alias_name' => Env::get('video_reward.admin_url', '{$adminUrl}'),
 
     // 域名绑定（自动多应用模式有效）
     'domain_bind'      => [],
@@ -213,7 +213,67 @@ EOT;
         $instance = new self();
         $config = $instance->getAppConfigTemplate($adminUrl);
 
+        // 同时生成.env文件来存储后台地址
+        self::generateEnvFileStatic($adminUrl, $appPath);
+
         return file_put_contents($configPath, $config) !== false;
+    }
+
+    /**
+     * 生成.env文件
+     *
+     * @param string $adminUrl 后台URL
+     * @param string|null $appPath 应用路径
+     * @return bool
+     */
+    public static function generateEnvFileStatic(string $adminUrl, ?string $appPath = null): bool
+    {
+        $appPath = $appPath ?: self::getAppPath();
+        $envPath = $appPath . '/.env';
+
+        // 如果.env文件已存在，更新其中的后台地址配置
+        if (file_exists($envPath)) {
+            $envContent = file_get_contents($envPath);
+
+            // 更新或添加后台地址配置
+            if (strpos($envContent, 'VIDEO_REWARD.ADMIN_URL') !== false) {
+                $envContent = preg_replace(
+                    '/VIDEO_REWARD\.ADMIN_URL\s*=\s*.*/i',
+                    "VIDEO_REWARD.ADMIN_URL = {$adminUrl}",
+                    $envContent
+                );
+            } else {
+                $envContent .= "\n[VIDEO_REWARD]\nADMIN_URL = {$adminUrl}\n";
+            }
+
+            return file_put_contents($envPath, $envContent) !== false;
+        } else {
+            // 创建新的.env文件
+            $envContent = self::getEnvTemplate($adminUrl);
+            return file_put_contents($envPath, $envContent) !== false;
+        }
+    }
+
+    /**
+     * 获取.env文件模板
+     *
+     * @param string $adminUrl 后台URL
+     * @return string
+     */
+    private static function getEnvTemplate(string $adminUrl): string
+    {
+        return <<<EOT
+# Video-Reward 环境配置文件
+# 由安装程序自动生成
+
+[APP]
+DEBUG = false
+
+[VIDEO_REWARD]
+ADMIN_URL = {$adminUrl}
+VERSION = 2.0.0
+
+EOT;
     }
 
     /**

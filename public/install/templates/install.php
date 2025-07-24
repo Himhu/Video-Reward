@@ -56,8 +56,35 @@
                             </div>
                         </div>
                         <div class="checkbox-group">
-                            <input type="checkbox" name="cover" value="1" id="cover" <?= $disabled ?>>
-                            <label for="cover">覆盖已存在的数据库（谨慎操作）</label>
+                            <input type="checkbox" name="cover" value="1" id="cover" <?= $disabled ?> onchange="toggleCleanMode()">
+                            <label for="cover">覆盖已存在的数据库（⚠️ 危险操作）</label>
+                        </div>
+
+                        <div id="cleanModeSection" style="display: none; margin-top: 15px; padding: 15px; background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 5px;">
+                            <h4 style="color: #856404; margin: 0 0 10px 0;">⚠️ 数据库清理模式选择</h4>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: block; margin-bottom: 5px;">
+                                    <input type="radio" name="clean_mode" value="smart" checked <?= $disabled ?>>
+                                    <strong>智能清理（推荐）</strong> - 仅删除Video-Reward相关表
+                                </label>
+                                <small style="color: #856404; margin-left: 20px;">只删除匹配表前缀的表，保留数据库中的其他表</small>
+                            </div>
+                            <div style="margin-bottom: 10px;">
+                                <label style="display: block; margin-bottom: 5px;">
+                                    <input type="radio" name="clean_mode" value="full" <?= $disabled ?>>
+                                    <strong>完全清理（危险）</strong> - 清空整个数据库
+                                </label>
+                                <small style="color: #dc3545; margin-left: 20px;">⚠️ 将删除数据库中的所有表，包括其他应用的数据！</small>
+                            </div>
+                            <div style="background: #f8d7da; padding: 10px; border-radius: 3px; margin-top: 10px;">
+                                <strong style="color: #721c24;">🚨 重要提醒：</strong>
+                                <ul style="margin: 5px 0 0 20px; color: #721c24;">
+                                    <li>覆盖安装将永久删除现有数据</li>
+                                    <li>请确保已备份重要数据</li>
+                                    <li>建议在测试环境中先验证</li>
+                                    <li>完全清理模式将影响整个数据库</li>
+                                </ul>
+                            </div>
                         </div>
                     </div>
                     
@@ -100,5 +127,23 @@
     </div>
     
     <script src="install/assets/js/install.js"></script>
+    <script>
+        // 控制清理模式选择区域的显示/隐藏
+        function toggleCleanMode() {
+            const coverCheckbox = document.getElementById('cover');
+            const cleanModeSection = document.getElementById('cleanModeSection');
+
+            if (coverCheckbox.checked) {
+                cleanModeSection.style.display = 'block';
+            } else {
+                cleanModeSection.style.display = 'none';
+            }
+        }
+
+        // 页面加载时初始化状态
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleCleanMode();
+        });
+    </script>
 </body>
 </html>

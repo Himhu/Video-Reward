@@ -4,13 +4,31 @@ declare(strict_types=1);
 
 /**
  * Video-Reward 系统安装程序 (简化版)
- * 
+ *
  * 不依赖完整ThinkPHP框架的轻量级安装程序
- * 
+ *
  * @author Video-Reward Team
  * @version 2.0
  * @since 2025-01-23
  */
+
+// 设置错误处理，防止HTML错误输出污染JSON响应
+ini_set('display_errors', '0');
+ini_set('log_errors', '1');
+
+// 设置自定义错误处理器
+set_error_handler(function($severity, $message, $file, $line) {
+    // 记录错误到日志而不是输出
+    error_log("PHP Error: [$severity] $message in $file on line $line");
+
+    // 对于AJAX请求，不输出任何内容
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) &&
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+        return true; // 阻止默认错误输出
+    }
+
+    return false; // 让PHP处理其他情况
+});
 
 // 定义应用常量
 define('APP_PATH', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
@@ -74,23 +92,60 @@ function isAjaxRequest(): bool
  */
 function handleAjaxRequest(): void
 {
-    header('Content-Type: application/json; charset=utf-8');
-    
+    // 启用输出缓冲区，捕获任何意外输出
+    ob_start();
+
+    // 设置错误处理，确保错误不会直接输出
+    $originalErrorReporting = error_reporting(E_ALL);
+    $originalDisplayErrors = ini_get('display_errors');
+    ini_set('display_errors', '0');
+
     try {
+        // 清理任何之前的输出
+        if (ob_get_level()) {
+            ob_clean();
+        }
+
+        header('Content-Type: application/json; charset=utf-8');
+
         $params = validateParams();
         $result = performInstall($params);
-        
+
+        // 确保没有意外输出
+        $unexpectedOutput = ob_get_clean();
+        if (!empty($unexpectedOutput)) {
+            error_log("安装程序意外输出: " . $unexpectedOutput);
+        }
+
         echo json_encode([
             'code' => $result['success'] ? 1 : 0,
             'msg' => $result['message'],
             'data' => $result['success'] ? ['redirect_url' => $params['admin_url']] : []
         ], JSON_UNESCAPED_UNICODE);
-        
+
     } catch (\Throwable $e) {
+        // 清理输出缓冲区
+        if (ob_get_level()) {
+            $unexpectedOutput = ob_get_clean();
+            if (!empty($unexpectedOutput)) {
+                error_log("安装程序异常时的意外输出: " . $unexpectedOutput);
+            }
+        }
+
+        // 确保头部正确设置
+        if (!headers_sent()) {
+            header('Content-Type: application/json; charset=utf-8');
+        }
+
         echo json_encode([
             'code' => 0,
             'msg' => '安装失败: ' . $e->getMessage()
         ], JSON_UNESCAPED_UNICODE);
+
+    } finally {
+        // 恢复原始错误设置
+        error_reporting($originalErrorReporting);
+        ini_set('display_errors', $originalDisplayErrors);
     }
 }
 
@@ -146,28 +201,35 @@ function checkEnvironment(): array
  */
 function validateParams(): array
 {
-    $required = ['hostname', 'hostport', 'database', 'db_username', 'db_password', 
+    $required = ['hostname', 'hostport', 'database', 'db_username', 'db_password',
                 'prefix', 'admin_url', 'username', 'password'];
-    
+
     foreach ($required as $field) {
         if (empty($_POST[$field])) {
             throw new \InvalidArgumentException("字段 {$field} 不能为空");
         }
     }
-    
+
     if (!preg_match('/^[0-9a-zA-Z]+$/', $_POST['admin_url'])) {
         throw new \InvalidArgumentException('后台地址只能包含字母和数字');
     }
-    
+
     if (strlen($_POST['admin_url']) < 2) {
         throw new \InvalidArgumentException('后台地址不能少于2位');
     }
-    
+
     if (strlen($_POST['password']) < 5) {
         throw new \InvalidArgumentException('管理员密码不能少于5位');
     }
-    
-    return $_POST;
+
+    // 处理覆盖选项
+    $params = $_POST;
+    $params['cover'] = isset($_POST['cover']) && $_POST['cover'] == '1';
+
+    // 处理清理模式选项
+    $params['clean_mode'] = $_POST['clean_mode'] ?? 'smart'; // smart: 智能清理, full: 完全清理
+
+    return $params;
 }
 
 /**
