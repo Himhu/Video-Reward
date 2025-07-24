@@ -208,12 +208,14 @@ class CorsService
      */
     public function getCorsConfig(): array
     {
+        // 使用统一的配置管理器获取CORS配置
+        $corsConfig = $this->configManager->getCorsConfig();
         return [
-            'allowed_origins' => $this->config->get('cors.allowed_origins', '*'),
-            'allowed_methods' => $this->config->get('cors.allowed_methods', 'GET,POST,PUT,DELETE,OPTIONS'),
-            'allowed_headers' => $this->config->get('cors.allowed_headers', 'Content-Type,Authorization,X-Requested-With'),
-            'allow_credentials' => $this->config->get('cors.allow_credentials', 'true'),
-            'max_age' => $this->config->get('cors.max_age', '86400')
+            'allowed_origins' => $corsConfig['allowed_origins'],
+            'allowed_methods' => $corsConfig['allowed_methods'],
+            'allowed_headers' => $corsConfig['allowed_headers'],
+            'allow_credentials' => $corsConfig['allow_credentials'] ? 'true' : 'false',
+            'max_age' => (string)$corsConfig['max_age']
         ];
     }
 }

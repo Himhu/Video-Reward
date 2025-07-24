@@ -186,26 +186,15 @@ class DatabaseService
 
     /**
      * 替换表前缀
-     * 
+     *
      * @param string $sql SQL内容
      * @param string $prefix 新前缀
      * @return string
      */
     private function replaceTablePrefix(string $sql, string $prefix): string
     {
-        // 替换CREATE TABLE语句中的表前缀
-        $sql = preg_replace('/CREATE TABLE `ds_/', "CREATE TABLE `{$prefix}", $sql);
-        
-        // 替换INSERT INTO语句中的表前缀
-        $sql = preg_replace('/INSERT INTO `ds_/', "INSERT INTO `{$prefix}", $sql);
-        
-        // 替换外键约束中的表前缀
-        $sql = preg_replace('/REFERENCES `ds_/', "REFERENCES `{$prefix}", $sql);
-        
-        // 替换ALTER TABLE语句中的表前缀
-        $sql = preg_replace('/ALTER TABLE `ds_/', "ALTER TABLE `{$prefix}", $sql);
-        
-        return $sql;
+        // 使用统一的数据库配置助手类
+        return \app\Helpers\DatabaseConfigHelper::replaceTablePrefix($sql, $prefix);
     }
 
     /**
@@ -324,7 +313,7 @@ class DatabaseService
             $sqlContent = file_get_contents($sqlFile);
 
             // 替换表前缀
-            $sqlContent = self::replaceTablePrefixStatic($sqlContent, $config['prefix']);
+            $sqlContent = \app\Helpers\DatabaseConfigHelper::replaceTablePrefix($sqlContent, $config['prefix']);
 
             // 解析并执行SQL
             $sqlStatements = self::parseSqlStatementsStatic($sqlContent);
@@ -675,49 +664,15 @@ class DatabaseService
     /**
      * 静态方法：替换表前缀
      *
+     * @deprecated 使用 DatabaseConfigHelper::replaceTablePrefix() 替代
      * @param string $sql SQL内容
      * @param string $prefix 新前缀
      * @return string
      */
     private static function replaceTablePrefixStatic(string $sql, string $prefix): string
     {
-        // 1. 替换CREATE TABLE语句中的表前缀
-        $sql = preg_replace('/CREATE TABLE `ds_/', "CREATE TABLE `{$prefix}", $sql);
 
-        // 2. 替换INSERT INTO语句中的表前缀
-        $sql = preg_replace('/INSERT INTO `ds_/', "INSERT INTO `{$prefix}", $sql);
-
-        // 3. 替换外键约束中的表前缀
-        $sql = preg_replace('/REFERENCES `ds_/', "REFERENCES `{$prefix}", $sql);
-
-        // 4. 替换ALTER TABLE语句中的表前缀
-        $sql = preg_replace('/ALTER TABLE `ds_/', "ALTER TABLE `{$prefix}", $sql);
-
-        // 5. 替换约束名称中的表前缀（外键约束名）
-        $sql = preg_replace('/CONSTRAINT `fk_(\w+)_/', "CONSTRAINT `fk_{$prefix}\\1_", $sql);
-
-        // 6. 替换索引名称中的表前缀
-        $sql = preg_replace('/KEY `idx_(\w+)/', "KEY `idx_{$prefix}\\1", $sql);
-
-        // 7. 替换注释中的表名引用（用于文档说明）
-        $sql = preg_replace('/-- 表的结构 `ds_/', "-- 表的结构 `{$prefix}", $sql);
-        $sql = preg_replace('/-- 插入.*数据 `ds_/', "-- 插入数据到 `{$prefix}", $sql);
-
-        // 8. 替换AUTO_INCREMENT设置中的表前缀
-        $sql = preg_replace('/ALTER TABLE `ds_(\w+)` AUTO_INCREMENT/', "ALTER TABLE `{$prefix}\\1` AUTO_INCREMENT", $sql);
-
-        // 9. 替换COMMENT中的表名引用
-        $sql = preg_replace_callback('/COMMENT=\'([^\']*ds_[^\']*)\'/i', function($matches) use ($prefix) {
-            return "COMMENT='" . str_replace('ds_', $prefix, $matches[1]) . "'";
-        }, $sql);
-
-        // 验证替换完整性
-        $validation = self::validatePrefixReplacementStatic($sql, $prefix);
-        if (!$validation['success']) {
-            error_log("Video-Reward安装：表前缀替换验证发现问题: " . json_encode($validation['issues']));
-        }
-
-        return $sql;
+        return \app\Helpers\DatabaseConfigHelper::replaceTablePrefix($sql, $prefix);
     }
 
     /**

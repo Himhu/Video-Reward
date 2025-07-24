@@ -7,6 +7,7 @@ namespace app\Bootstrap;
 use app\Services\Security\CorsService;
 use app\Services\System\EnvironmentService;
 use app\Services\System\InstallationService;
+use app\Services\System\ConfigManager;
 use app\Exceptions\ApplicationException;
 use think\App;
 use think\Request;
@@ -29,28 +30,25 @@ class ApplicationBootstrap
     private CorsService $corsService;
     private EnvironmentService $environmentService;
     private InstallationService $installationService;
-    // 重构说明：移除未使用的 SecurityService 属性
-    // private SecurityService $securityService;
     private Request $request;
-    private Config $config;
+    private ConfigManager $configManager;
     private LoggerInterface $logger;
 
     /**
      * 构造函数
-     * 
+     *
      * 使用依赖注入初始化所需服务
      */
     public function __construct()
     {
         $this->request = $this->getCurrentRequest();
-        $this->config = $this->createConfig();
+        $this->configManager = ConfigManager::getInstance();
         $this->logger = $this->createLogger();
-        
+
         // 初始化服务
-        $this->corsService = new CorsService($this->config, $this->logger);
+        $this->corsService = new CorsService($this->logger);
         $this->environmentService = new EnvironmentService($this->logger);
-        $this->installationService = new InstallationService($this->config, $this->logger);
-        $this->securityService = new SecurityService($this->config, $this->logger);
+        $this->installationService = new InstallationService($this->configManager, $this->logger);
     }
 
     /**
@@ -111,17 +109,11 @@ class ApplicationBootstrap
         // 处理CORS
         $this->corsService->handleCors($this->request);
         
-        // 其他安全检查
-        if (!$this->securityService->validateRequest($this->request)) {
-            throw new ApplicationException('安全验证失败');
-        }
+        // 基础安全检查（简化版本，如需完整安全验证请实现专门的安全服务）
+        $this->performBasicSecurityCheck();
         
         $this->logger->info('安全检查通过');
     }
-
-    // 重构说明：validateInstallationIntegrity() 方法已被移除
-    // 原因：该方法从未被调用，属于沉淀代码
-    // 安装完整性验证已在入口文件的 InstallationGuard::checkAndRedirect() 中完成
 
     /**
      * 启动ThinkPHP应用
@@ -148,6 +140,37 @@ class ApplicationBootstrap
     }
 
     /**
+     * 执行基础安全检查
+     *
+     * @throws ApplicationException 安全检查失败时抛出异常
+     */
+    private function performBasicSecurityCheck(): void
+    {
+        // 基础安全检查逻辑
+        // 注意：这是简化版本，生产环境应实现更完整的安全验证
+
+        // 检查请求方法
+        $allowedMethods = ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD'];
+        if (!in_array($this->request->getMethod(), $allowedMethods)) {
+            throw new ApplicationException('不支持的请求方法', 405);
+        }
+
+        // 检查User-Agent（防止空User-Agent攻击）
+        $userAgent = $this->request->header('User-Agent');
+        if (empty($userAgent) || strlen($userAgent) < 3) {
+            $this->logger->warning('检测到可疑的空User-Agent请求');
+        }
+
+        // 检查Content-Length（防止过大请求）
+        $contentLength = $this->request->header('Content-Length');
+        if ($contentLength && (int)$contentLength > 50 * 1024 * 1024) { // 50MB限制
+            throw new ApplicationException('请求体过大', 413);
+        }
+
+        $this->logger->debug('基础安全检查通过');
+    }
+
+    /**
      * 获取当前请求实例
      *
      * @return Request 请求实例
@@ -157,30 +180,6 @@ class ApplicationBootstrap
         return Request::createFromGlobals();
     }
 
-    /**
-     * 创建配置实例
-     *
-     * @return Config 配置实例
-     */
-    private function createConfig(): Config
-    {
-        return new Config([
-            'cors' => [
-                'allowed_origins' => $_ENV['CORS_ALLOWED_ORIGINS'] ?? '*',
-                'allowed_methods' => $_ENV['CORS_ALLOWED_METHODS'] ?? 'GET,POST,PUT,DELETE,OPTIONS',
-                'allowed_headers' => $_ENV['CORS_ALLOWED_HEADERS'] ?? 'Content-Type,Authorization,X-Requested-With',
-                'allow_credentials' => $_ENV['CORS_ALLOW_CREDENTIALS'] ?? 'true',
-            ],
-            'path' => [
-                'install_lock' => $_ENV['INSTALL_LOCK_PATH'] ?? 'config/install/lock/install.lock',
-                'install_url' => $_ENV['INSTALL_URL'] ?? '/install.php',
-            ],
-            'security' => [
-                'trusted_proxies' => $_ENV['TRUSTED_PROXIES'] ?? '',
-                'force_https' => $_ENV['FORCE_HTTPS'] ?? false,
-            ]
-        ]);
-    }
 
     /**
      * 创建日志实例
@@ -209,52 +208,3 @@ class ApplicationBootstrap
     }
 }
 
-/**
- * 简单的配置类
- */
-class Config
-{
-    private array $data;
-
-    public function __construct(array $data = [])
-    {
-        $this->data = $data;
-    }
-
-    public function get(string $key, $default = null)
-    {
-        $keys = explode('.', $key);
-        $value = $this->data;
-
-        foreach ($keys as $k) {
-            if (!isset($value[$k])) {
-                return $default;
-            }
-            $value = $value[$k];
-        }
-
-        return $value;
-    }
-}
-
-/**
- * 简单的安全服务类
- */
-class SecurityService
-{
-    private Config $config;
-    private LoggerInterface $logger;
-
-    public function __construct(Config $config, LoggerInterface $logger)
-    {
-        $this->config = $config;
-        $this->logger = $logger;
-    }
-
-    public function validateRequest(Request $request): bool
-    {
-        // 基础安全检查
-        // 实际项目中应该包含更多安全验证逻辑
-        return true;
-    }
-}

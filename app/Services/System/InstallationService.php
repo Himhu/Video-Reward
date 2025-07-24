@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace app\Services\System;
 
-use app\Bootstrap\Config;
+use app\Services\System\ConfigManager;
 use Psr\Log\LoggerInterface;
 
 /**
@@ -19,18 +19,18 @@ use Psr\Log\LoggerInterface;
  */
 class InstallationService
 {
-    private ?Config $config = null;
+    private ?ConfigManager $configManager = null;
     private ?LoggerInterface $logger = null;
 
     /**
      * 构造函数
      *
-     * @param Config|null $config 配置实例
+     * @param ConfigManager|null $configManager 配置管理器实例
      * @param LoggerInterface|null $logger 日志实例
      */
-    public function __construct(?Config $config = null, ?LoggerInterface $logger = null)
+    public function __construct(?ConfigManager $configManager = null, ?LoggerInterface $logger = null)
     {
-        $this->config = $config;
+        $this->configManager = $configManager;
         $this->logger = $logger;
     }
 
@@ -90,7 +90,9 @@ class InstallationService
      */
     public function getLockFilePath(): string
     {
-        $relativePath = $this->config->get('path.install_lock', 'config/install/lock/install.lock');
+        $relativePath = $this->configManager ?
+            $this->configManager->get('path.install_lock', 'config/install/lock/install.lock') :
+            'config/install/lock/install.lock';
         $rootPath = dirname(__DIR__, 3);
         
         return $rootPath . DIRECTORY_SEPARATOR . $relativePath;
