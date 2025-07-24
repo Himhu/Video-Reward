@@ -111,41 +111,75 @@ class ResponseHelper
     
     /**
      * 处理应用异常的统一响应
-     * 
-     * @param \Exception $exception 异常对象
+     *
+     * @param \Throwable $exception 异常对象 (包括Exception和Error)
      * @param bool $shouldDisplay 是否显示详细错误
      * @param string $userMessage 用户友好的错误消息
      * @return void
      */
     public static function handleException(
-        \Exception $exception, 
+        \Throwable $exception,
         bool $shouldDisplay = false,
         string $userMessage = '系统内部错误，请稍后重试'
     ): void {
-        // 记录异常日志
+        // 记录异常日志 (包含异常类型信息)
+        $exceptionType = get_class($exception);
         error_log(sprintf(
-            "[%s] Exception: %s in %s:%d",
+            "[%s] %s: %s in %s:%d",
             date('Y-m-d H:i:s'),
+            $exceptionType,  // 记录具体异常类型 (Exception/Error)
             $exception->getMessage(),
             $exception->getFile(),
             $exception->getLine()
         ));
+
+        // 记录堆栈跟踪 (仅在开发环境或Error类型时)
+        if ($exception instanceof \Error || (defined('APP_DEBUG') && APP_DEBUG)) {
+            error_log("Stack trace:\n" . $exception->getTraceAsString());
+        }
         
         $httpCode = self::getHttpStatusCode($exception->getCode());
-        $message = $shouldDisplay ? $exception->getMessage() : $userMessage;
+
+        // 区分Error和Exception的处理
+        // 对于Error类型，默认不显示详细信息给用户 (安全考虑)
+        if ($exception instanceof \Error && !$shouldDisplay) {
+            $message = $userMessage;
+            $displayDetails = false;
+        } else {
+            $message = $shouldDisplay ? $exception->getMessage() : $userMessage;
+            $displayDetails = $shouldDisplay;
+        }
         
         if (self::isAjaxRequest()) {
             self::sendErrorResponse($message, $exception->getCode(), 'error', $httpCode);
         } else {
             // 对于非AJAX请求，设置HTTP状态码并显示错误页面
             http_response_code($httpCode);
-            
-            // 这里可以渲染错误页面，暂时输出简单的HTML
+
+            // 渲染用户友好的错误页面
             echo "<!DOCTYPE html>\n";
-            echo "<html><head><title>错误</title></head><body>\n";
-            echo "<h1>系统错误</h1>\n";
+            echo "<html><head>\n";
+            echo "<title>系统错误</title>\n";
+            echo "<meta charset='UTF-8'>\n";
+            echo "<meta name='viewport' content='width=device-width, initial-scale=1.0'>\n";
+            echo "<style>body{font-family:Arial,sans-serif;margin:40px;color:#333;} .error{background:#f8f9fa;border:1px solid #dee2e6;border-radius:8px;padding:20px;} .error-title{color:#dc3545;margin-bottom:10px;}</style>\n";
+            echo "</head><body>\n";
+            echo "<div class='error'>\n";
+            echo "<h1 class='error-title'>系统错误</h1>\n";
             echo "<p>" . htmlspecialchars($message) . "</p>\n";
-            echo "<p>错误代码: " . $exception->getCode() . "</p>\n";
+
+            // 根据异常类型和显示设置决定是否显示详细信息
+            if ($displayDetails) {
+                $exceptionType = get_class($exception);
+                echo "<hr>\n";
+                echo "<p><strong>错误类型:</strong> " . htmlspecialchars($exceptionType) . "</p>\n";
+                if ($exception->getCode()) {
+                    echo "<p><strong>错误代码:</strong> " . $exception->getCode() . "</p>\n";
+                }
+                echo "<p><strong>文件位置:</strong> " . htmlspecialchars($exception->getFile()) . ":" . $exception->getLine() . "</p>\n";
+            }
+
+            echo "</div>\n";
             echo "</body></html>\n";
         }
     }
