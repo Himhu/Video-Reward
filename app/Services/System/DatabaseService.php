@@ -323,22 +323,146 @@ class DatabaseService
             // 解析并执行SQL
             $sqlStatements = self::parseSqlStatementsStatic($sqlContent);
 
+            // 检查MySQL环境
+            self::checkMySQLEnvironmentStatic($pdo);
+
             $pdo->beginTransaction();
 
-            foreach ($sqlStatements as $sql) {
-                if (trim($sql)) {
-                    $pdo->exec($sql);
-                }
-            }
+            // 临时禁用外键检查以避免表创建顺序问题
+            $pdo->exec("SET foreign_key_checks = 0");
 
-            $pdo->commit();
-            return true;
+            try {
+                foreach ($sqlStatements as $index => $sql) {
+                    $sql = trim($sql);
+                    if (empty($sql) || strpos($sql, '--') === 0) {
+                        continue;
+                    }
+
+                    try {
+                        $pdo->exec($sql);
+                    } catch (\PDOException $e) {
+                        // 提供更详细的错误信息
+                        $errorInfo = self::analyzeSQLErrorStatic($e, $sql, $config['prefix']);
+                        throw new \RuntimeException("SQL执行失败 (语句 #" . ($index + 1) . "): {$errorInfo}");
+                    }
+                }
+
+                // 重新启用外键检查
+                $pdo->exec("SET foreign_key_checks = 1");
+
+                // 验证外键约束
+                self::validateForeignKeysStatic($pdo, $config['prefix']);
+
+                $pdo->commit();
+                return true;
+
+            } catch (\Exception $e) {
+                $pdo->exec("SET foreign_key_checks = 1"); // 确保重新启用
+                throw $e;
+            }
 
         } catch (\Throwable $e) {
             if (isset($pdo)) {
                 $pdo->rollback();
             }
             throw new \RuntimeException("导入数据库失败: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * 检查MySQL环境
+     */
+    private static function checkMySQLEnvironmentStatic(\PDO $pdo): void
+    {
+        // 检查MySQL版本
+        $version = $pdo->query("SELECT VERSION()")->fetchColumn();
+        if (version_compare($version, '5.6.0', '<')) {
+            throw new \RuntimeException("MySQL版本过低，当前版本: {$version}，要求: 5.6.0+");
+        }
+
+        // 检查InnoDB引擎支持
+        $engines = $pdo->query("SHOW ENGINES")->fetchAll(\PDO::FETCH_ASSOC);
+        $innodbSupported = false;
+        foreach ($engines as $engine) {
+            if (strtolower($engine['Engine']) === 'innodb' &&
+                in_array(strtolower($engine['Support']), ['yes', 'default'])) {
+                $innodbSupported = true;
+                break;
+            }
+        }
+
+        if (!$innodbSupported) {
+            throw new \RuntimeException('MySQL不支持InnoDB存储引擎，无法创建外键约束');
+        }
+    }
+
+    /**
+     * 分析SQL错误并提供解决建议
+     */
+    private static function analyzeSQLErrorStatic(\PDOException $e, string $statement, string $prefix): string
+    {
+        $errorCode = $e->getCode();
+        $errorMessage = $e->getMessage();
+
+        // 提取表名
+        preg_match('/CREATE TABLE\s+`?(\w+)`?/i', $statement, $matches);
+        $tableName = $matches[1] ?? 'unknown';
+
+        switch ($errorCode) {
+            case '23000':
+                if (strpos($errorMessage, '1215') !== false) {
+                    return "外键约束错误 (表: {$tableName}): 数据类型不匹配或被引用表不存在。请检查外键字段类型是否与主键字段完全匹配。";
+                }
+                break;
+
+            case '42S01':
+                return "表已存在 (表: {$tableName}): 请检查是否需要删除现有表。";
+
+            case '42000':
+                if (strpos($errorMessage, 'syntax error') !== false) {
+                    return "SQL语法错误 (表: {$tableName}): 请检查SQL语句语法。";
+                }
+                break;
+        }
+
+        return "数据库错误 (表: {$tableName}): {$errorMessage}";
+    }
+
+    /**
+     * 验证外键约束
+     */
+    private static function validateForeignKeysStatic(\PDO $pdo, string $prefix): void
+    {
+        try {
+            // 获取所有外键约束
+            $sql = "
+                SELECT
+                    TABLE_NAME,
+                    COLUMN_NAME,
+                    CONSTRAINT_NAME,
+                    REFERENCED_TABLE_NAME,
+                    REFERENCED_COLUMN_NAME
+                FROM information_schema.KEY_COLUMN_USAGE
+                WHERE REFERENCED_TABLE_SCHEMA = DATABASE()
+                AND TABLE_NAME LIKE '{$prefix}%'
+                AND REFERENCED_TABLE_NAME IS NOT NULL
+            ";
+
+            $foreignKeys = $pdo->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+
+            foreach ($foreignKeys as $fk) {
+                // 检查被引用的表是否存在
+                $checkTable = $pdo->prepare("SHOW TABLES LIKE ?");
+                $checkTable->execute([$fk['REFERENCED_TABLE_NAME']]);
+
+                if (!$checkTable->fetch()) {
+                    throw new \RuntimeException("外键验证失败: 被引用的表 {$fk['REFERENCED_TABLE_NAME']} 不存在");
+                }
+            }
+
+        } catch (\Exception $e) {
+            // 外键验证失败时提供详细信息
+            throw new \RuntimeException("外键约束验证失败: " . $e->getMessage());
         }
     }
 

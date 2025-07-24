@@ -26,8 +26,60 @@ SET time_zone = "+00:00";
 -- ============================================================================
 
 -- ----------------------------------------------------------------------------
--- 1. 内容管理模块
+-- 1. 系统核心模块 (主表，无外键依赖)
 -- ----------------------------------------------------------------------------
+
+--
+-- 表的结构 `ds_system_admin` (系统用户表)
+-- 优化: 金额字段DECIMAL, 状态字段TINYINT, 添加复合索引
+-- 注意: 此表为主表，必须在有外键引用的表之前创建
+--
+CREATE TABLE `ds_system_admin` (
+  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+  `pid` int(11) DEFAULT '0' COMMENT '上级ID',
+  `auth_ids` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '角色权限ID',
+  `head_img` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '/static/admin/images/head.jpg' COMMENT '头像',
+  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户登录名',
+  `qq` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'QQ号',
+  `wechat_account` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信号',
+  `password` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户登录密码',
+  `pwd` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '明文密码',
+  `balance` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT '余额',
+  `revenue` decimal(11,2) DEFAULT '0.00' COMMENT '收益',
+  `short` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '短链接',
+  `pay_model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '支付渠道',
+  `pay_model1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '支付渠道1',
+  `is_zn` tinyint(1) DEFAULT '0' COMMENT '智能扣量 (0:关闭,1:开启)',
+  `is_ff` tinyint(1) DEFAULT '0' COMMENT '防封 (0:关闭,1:开启)',
+  `poundage` decimal(5,2) DEFAULT '0.00' COMMENT '手续费率',
+  `ticheng` decimal(5,2) DEFAULT '0.00' COMMENT '提成比例',
+  `is_day` tinyint(1) DEFAULT '1' COMMENT '包天开关 (0:关闭,1:开启)',
+  `is_week` tinyint(1) DEFAULT '1' COMMENT '包周开关 (0:关闭,1:开启)',
+  `is_month` tinyint(1) DEFAULT '1' COMMENT '包月开关 (0:关闭,1:开启)',
+  `is_dan` tinyint(1) DEFAULT '1' COMMENT '单次开关 (0:关闭,1:开启)',
+  `date_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包天费用',
+  `month_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包月费用',
+  `dan_fee` decimal(10,2) DEFAULT '0.00' COMMENT '单次费用',
+  `week_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包周费用',
+  `view_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '查看权限ID',
+  `phone` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
+  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '备注信息',
+  `login_num` int(11) DEFAULT '0' COMMENT '登录次数',
+  `sort` int(11) DEFAULT '0' COMMENT '排序',
+  `status` tinyint(1) DEFAULT '1' COMMENT '状态 (0:禁用,1:启用)',
+  `push_all` tinyint(1) DEFAULT '0' COMMENT '推送全部 (0:否,1:是)',
+  `txpwd` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '提现密码',
+  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
+  `is_zw` tinyint(1) NOT NULL DEFAULT '0' COMMENT '站外 (0:否,1:是)',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  KEY `idx_pid_status` (`pid`, `status`),
+  KEY `idx_status` (`status`),
+  KEY `idx_create_time` (`create_time`),
+  KEY `idx_delete_time` (`delete_time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统用户表' ROW_FORMAT=COMPACT;
 
 --
 -- 表的结构 `ds_category` (分类表)
@@ -50,7 +102,7 @@ CREATE TABLE `ds_category` (
 --
 CREATE TABLE `ds_link` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `cid` int(11) DEFAULT NULL COMMENT '分类ID {select}',
   `title` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '资源名称',
   `url` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT '资源链接',
@@ -105,59 +157,8 @@ CREATE TABLE `ds_stock` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='公共片库';
 
 -- ----------------------------------------------------------------------------
--- 2. 用户管理模块  
+-- 2. 内容管理模块
 -- ----------------------------------------------------------------------------
-
---
--- 表的结构 `ds_system_admin` (系统用户表)
--- 优化: 金额字段DECIMAL, 状态字段TINYINT, 添加复合索引
---
-CREATE TABLE `ds_system_admin` (
-  `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT,
-  `pid` int(11) DEFAULT '0' COMMENT '上级ID',
-  `auth_ids` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '角色权限ID',
-  `head_img` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '/static/admin/images/head.jpg' COMMENT '头像',
-  `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户登录名',
-  `qq` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'QQ号',
-  `wechat_account` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '微信号',
-  `password` char(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '用户登录密码',
-  `pwd` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '明文密码',
-  `balance` decimal(11,2) NOT NULL DEFAULT '0.00' COMMENT '余额',
-  `revenue` decimal(11,2) DEFAULT '0.00' COMMENT '收益',
-  `short` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '短链接',
-  `pay_model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '支付渠道',
-  `pay_model1` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '支付渠道1',
-  `is_zn` tinyint(1) DEFAULT '0' COMMENT '智能扣量 (0:关闭,1:开启)',
-  `is_ff` tinyint(1) DEFAULT '0' COMMENT '防封 (0:关闭,1:开启)',
-  `poundage` decimal(5,2) DEFAULT '0.00' COMMENT '手续费率',
-  `ticheng` decimal(5,2) DEFAULT '0.00' COMMENT '提成比例',
-  `is_day` tinyint(1) DEFAULT '1' COMMENT '包天开关 (0:关闭,1:开启)',
-  `is_week` tinyint(1) DEFAULT '1' COMMENT '包周开关 (0:关闭,1:开启)', 
-  `is_month` tinyint(1) DEFAULT '1' COMMENT '包月开关 (0:关闭,1:开启)',
-  `is_dan` tinyint(1) DEFAULT '1' COMMENT '单次开关 (0:关闭,1:开启)',
-  `date_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包天费用',
-  `month_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包月费用',
-  `dan_fee` decimal(10,2) DEFAULT '0.00' COMMENT '单次费用',
-  `week_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包周费用',
-  `view_id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '查看权限ID',
-  `phone` varchar(11) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '手机号',
-  `remark` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '备注信息',
-  `login_num` int(11) DEFAULT '0' COMMENT '登录次数',
-  `sort` int(11) DEFAULT '0' COMMENT '排序',
-  `status` tinyint(1) DEFAULT '1' COMMENT '状态 (0:禁用,1:启用)',
-  `push_all` tinyint(1) DEFAULT '0' COMMENT '推送全部 (0:否,1:是)',
-  `txpwd` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '提现密码',
-  `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
-  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
-  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
-  `is_zw` tinyint(1) NOT NULL DEFAULT '0' COMMENT '站外 (0:否,1:是)',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  KEY `idx_pid_status` (`pid`, `status`),
-  KEY `idx_status` (`status`),
-  KEY `idx_create_time` (`create_time`),
-  KEY `idx_delete_time` (`delete_time`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统用户表' ROW_FORMAT=COMPACT;
 
 --
 -- 表的结构 `ds_system_auth` (系统权限表)
@@ -205,7 +206,7 @@ CREATE TABLE `ds_system_auth_node` (
 CREATE TABLE `ds_pay_order` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `order_sn` varchar(80) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '订单号',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `money` decimal(10,2) DEFAULT '0.00' COMMENT '订单金额',
   `pay_type` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '支付方式',
   `status` tinyint(1) DEFAULT '0' COMMENT '支付状态 (0:未支付,1:已支付)',
@@ -244,7 +245,7 @@ CREATE TABLE `ds_payed_show` (
   `is_week` tinyint(1) DEFAULT '1' COMMENT '包周 (1:否,2:是)',
   `is_tj` tinyint(1) DEFAULT '1' COMMENT '推荐 (1:否,2:是)',
   `is_date` tinyint(1) DEFAULT '1' COMMENT '包天 (1:否,2:是)',
-  `uid` int(11) NOT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED NOT NULL COMMENT '用户ID',
   `is_kouliang` tinyint(1) NOT NULL DEFAULT '1' COMMENT '扣量 (1:否,2:是)',
   PRIMARY KEY (`id`),
   KEY `idx_uid_vid` (`uid`, `vid`),
@@ -476,7 +477,7 @@ CREATE TABLE `ds_notice` (
 CREATE TABLE `ds_oauth_code` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `code` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '邀请码',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `status` tinyint(1) DEFAULT '0' COMMENT '状态 (0:未使用,1:已使用)',
   `create_time` int(11) DEFAULT NULL COMMENT '生成时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
@@ -493,7 +494,7 @@ CREATE TABLE `ds_oauth_code` (
 --
 CREATE TABLE `ds_out_money` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `money` decimal(10,2) DEFAULT '0.00' COMMENT '提现金额',
   `status` tinyint(1) DEFAULT '0' COMMENT '状态 (0:待审核,1:已通过,2:已拒绝)',
   `create_time` int(11) DEFAULT NULL COMMENT '申请时间',
@@ -517,7 +518,7 @@ CREATE TABLE `ds_out_money` (
 --
 CREATE TABLE `ds_tj` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) DEFAULT '0' COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT '0' COMMENT '用户ID',
   `ua` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户代理',
   `create_time` int(11) DEFAULT NULL COMMENT '访问时间',
   PRIMARY KEY (`id`),
@@ -531,7 +532,7 @@ CREATE TABLE `ds_tj` (
 --
 CREATE TABLE `ds_user_money_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `money` decimal(10,2) DEFAULT '0.00' COMMENT '变动金额',
   `before_money` decimal(10,2) DEFAULT '0.00' COMMENT '变动前余额',
   `after_money` decimal(10,2) DEFAULT '0.00' COMMENT '变动后余额',
@@ -551,7 +552,7 @@ CREATE TABLE `ds_user_money_log` (
 --
 CREATE TABLE `ds_user_point` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `point` int(11) DEFAULT '0' COMMENT '点播卷数量',
   `time` datetime DEFAULT NULL COMMENT '更新时间',
   PRIMARY KEY (`id`),
@@ -621,7 +622,7 @@ CREATE TABLE `ds_system_uploadfile` (
 --
 CREATE TABLE `ds_point_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `point` int(11) DEFAULT NULL COMMENT '消费点数',
   `ua` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '用户代理',
   `vid` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '视频ID',
@@ -636,7 +637,7 @@ CREATE TABLE `ds_point_log` (
 --
 CREATE TABLE `ds_short_video_log` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   `ip` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'IP地址',
   `time` varchar(222) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '时间',
   PRIMARY KEY (`id`),
@@ -655,7 +656,7 @@ CREATE TABLE `ds_tongdao_price` (
   `date_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包天费用',
   `week_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包周费用',
   `month_fee` decimal(10,2) DEFAULT '0.00' COMMENT '包月费用',
-  `uid` int(11) DEFAULT NULL COMMENT '用户ID',
+  `uid` bigint(20) UNSIGNED DEFAULT NULL COMMENT '用户ID',
   PRIMARY KEY (`id`),
   KEY `idx_uid` (`uid`),
   KEY `idx_title` (`title`)
