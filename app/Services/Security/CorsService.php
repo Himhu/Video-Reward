@@ -6,7 +6,7 @@ namespace app\Services\Security;
 
 use think\Request;
 use Psr\Log\LoggerInterface;
-use app\Bootstrap\Config;
+use app\Services\System\ConfigManager;
 
 /**
  * CORS (跨域资源共享) 服务
@@ -20,18 +20,17 @@ use app\Bootstrap\Config;
  */
 class CorsService
 {
-    private Config $config;
+    private ConfigManager $configManager;
     private LoggerInterface $logger;
 
     /**
      * 构造函数
      *
-     * @param Config $config 配置实例
      * @param LoggerInterface $logger 日志实例
      */
-    public function __construct(Config $config, LoggerInterface $logger)
+    public function __construct(LoggerInterface $logger)
     {
-        $this->config = $config;
+        $this->configManager = ConfigManager::getInstance();
         $this->logger = $logger;
     }
 
@@ -93,7 +92,8 @@ class CorsService
             return false;
         }
 
-        $allowedOrigins = $this->config->get('cors.allowed_origins', '*');
+        $corsConfig = $this->configManager->getCorsConfig();
+        $allowedOrigins = $corsConfig['allowed_origins'];
 
         // 如果配置为 * 则允许所有域名
         if ($allowedOrigins === '*') {
@@ -122,8 +122,9 @@ class CorsService
      */
     private function setAllowOriginHeader(string $origin): void
     {
-        $allowedOrigins = $this->config->get('cors.allowed_origins', '*');
-        
+        $corsConfig = $this->configManager->getCorsConfig();
+        $allowedOrigins = $corsConfig['allowed_origins'];
+
         if ($allowedOrigins === '*') {
             header('Access-Control-Allow-Origin: *');
         } else {
@@ -138,7 +139,8 @@ class CorsService
      */
     private function setAllowMethodsHeader(): void
     {
-        $allowedMethods = $this->config->get('cors.allowed_methods', 'GET,POST,PUT,DELETE,OPTIONS');
+        $corsConfig = $this->configManager->getCorsConfig();
+        $allowedMethods = $corsConfig['allowed_methods'];
         header("Access-Control-Allow-Methods: {$allowedMethods}");
     }
 
@@ -149,7 +151,8 @@ class CorsService
      */
     private function setAllowHeadersHeader(): void
     {
-        $allowedHeaders = $this->config->get('cors.allowed_headers', 'Content-Type,Authorization,X-Requested-With');
+        $corsConfig = $this->configManager->getCorsConfig();
+        $allowedHeaders = $corsConfig['allowed_headers'];
         header("Access-Control-Allow-Headers: {$allowedHeaders}");
     }
 
@@ -160,7 +163,8 @@ class CorsService
      */
     private function setAllowCredentialsHeader(): void
     {
-        $allowCredentials = $this->config->get('cors.allow_credentials', 'true');
+        $corsConfig = $this->configManager->getCorsConfig();
+        $allowCredentials = $corsConfig['allow_credentials'] ? 'true' : 'false';
         header("Access-Control-Allow-Credentials: {$allowCredentials}");
     }
 
@@ -171,7 +175,8 @@ class CorsService
      */
     private function setMaxAgeHeader(): void
     {
-        $maxAge = $this->config->get('cors.max_age', '86400'); // 默认24小时
+        $corsConfig = $this->configManager->getCorsConfig();
+        $maxAge = $corsConfig['max_age']; // 从配置管理器获取
         header("Access-Control-Max-Age: {$maxAge}");
     }
 

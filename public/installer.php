@@ -12,6 +12,13 @@ declare(strict_types=1);
  * @since 2025-01-23
  */
 
+// 初始化系统常量
+require_once __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . 'Common' . DIRECTORY_SEPARATOR . 'Constants.php';
+use app\Common\Constants;
+
+// 初始化路径常量
+Constants::initializePaths(__DIR__);
+
 // 设置错误处理，防止HTML错误输出污染JSON响应
 ini_set('display_errors', '0');
 ini_set('log_errors', '1');
@@ -30,15 +37,13 @@ set_error_handler(function($severity, $message, $file, $line) {
     return false; // 让PHP处理其他情况
 });
 
-// 定义应用常量
-define('APP_PATH', __DIR__ . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR);
-define('ROOT_PATH', APP_PATH);
+// 环境检查（使用统一的环境检查服务）
+require_once Constants::getComposerAutoloadPath();
+use app\Services\System\EnvironmentChecker;
+use app\Helpers\ResponseHelper;
 
-// 检查PHP版本
-if (version_compare(PHP_VERSION, '7.1.0', '<')) {
-    http_response_code(500);
-    exit('PHP版本过低，要求PHP 7.1.0或更高版本，当前版本：' . PHP_VERSION);
-}
+// 执行环境检查
+EnvironmentChecker::checkAll();
 
 // 检查是否已安装
 $lockFile = APP_PATH . 'config' . DIRECTORY_SEPARATOR . 'install' . DIRECTORY_SEPARATOR . 'lock' . DIRECTORY_SEPARATOR . 'install.lock';
@@ -68,7 +73,7 @@ try {
     }
     
     // 处理请求
-    if (isAjaxRequest()) {
+    if (ResponseHelper::isAjaxRequest()) {
         handleAjaxRequest();
     } else {
         displayInstallPage();
@@ -78,74 +83,41 @@ try {
     handleError($e);
 }
 
-/**
- * 检查是否为AJAX请求
- */
-function isAjaxRequest(): bool
-{
-    return isset($_SERVER['HTTP_X_REQUESTED_WITH']) 
-        && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest';
-}
+// 重构说明：isAjaxRequest() 函数已移至 app\Helpers\ResponseHelper 类中
 
 /**
  * 处理AJAX请求
  */
 function handleAjaxRequest(): void
 {
-    // 启用输出缓冲区，捕获任何意外输出
-    ob_start();
-
-    // 设置错误处理，确保错误不会直接输出
-    $originalErrorReporting = error_reporting(E_ALL);
-    $originalDisplayErrors = ini_get('display_errors');
-    ini_set('display_errors', '0');
+    // 使用统一的输出缓冲和错误处理
+    ResponseHelper::startOutputBuffering();
+    $originalSettings = ResponseHelper::setupSafeErrorHandling();
 
     try {
-        // 清理任何之前的输出
-        if (ob_get_level()) {
-            ob_clean();
-        }
-
-        header('Content-Type: application/json; charset=utf-8');
-
         $params = validateParams();
         $result = performInstall($params);
 
-        // 确保没有意外输出
-        $unexpectedOutput = ob_get_clean();
-        if (!empty($unexpectedOutput)) {
-            error_log("安装程序意外输出: " . $unexpectedOutput);
-        }
+        // 清理意外输出
+        ResponseHelper::cleanOutputBuffer('安装程序');
 
-        echo json_encode([
-            'code' => $result['success'] ? 1 : 0,
-            'msg' => $result['message'],
-            'data' => $result['success'] ? ['redirect_url' => $params['admin_url']] : []
-        ], JSON_UNESCAPED_UNICODE);
+        // 发送响应
+        if ($result['success']) {
+            ResponseHelper::sendSuccessResponse($result['message'], ['redirect_url' => $params['admin_url']]);
+        } else {
+            ResponseHelper::sendErrorResponse($result['message']);
+        }
 
     } catch (\Throwable $e) {
         // 清理输出缓冲区
-        if (ob_get_level()) {
-            $unexpectedOutput = ob_get_clean();
-            if (!empty($unexpectedOutput)) {
-                error_log("安装程序异常时的意外输出: " . $unexpectedOutput);
-            }
-        }
+        ResponseHelper::cleanOutputBuffer('安装程序异常');
 
-        // 确保头部正确设置
-        if (!headers_sent()) {
-            header('Content-Type: application/json; charset=utf-8');
-        }
-
-        echo json_encode([
-            'code' => 0,
-            'msg' => '安装失败: ' . $e->getMessage()
-        ], JSON_UNESCAPED_UNICODE);
+        // 发送错误响应
+        ResponseHelper::sendErrorResponse('安装失败: ' . $e->getMessage());
 
     } finally {
         // 恢复原始错误设置
-        error_reporting($originalErrorReporting);
-        ini_set('display_errors', $originalDisplayErrors);
+        ResponseHelper::restoreErrorHandling($originalSettings);
     }
 }
 
@@ -255,9 +227,10 @@ function performInstall(array $params): array
         // 4. 创建管理员账户 (使用统一的DatabaseService)
         DatabaseService::createAdminUserStatic($params);
 
-        // 5. 生成配置文件 (使用统一的ConfigService)
-        ConfigService::generateAppConfigStatic($params['admin_url'], APP_PATH);
-        ConfigService::generateDatabaseConfigStatic($params, APP_PATH);
+        // 5. 生成配置文件 (使用统一的ConfigService，职责分离)
+        ConfigService::generateAppConfigStatic($params['admin_url'], APP_PATH);           // 生成 config/app.php
+        ConfigService::generateDatabaseConfigStatic($params, APP_PATH);                   // 生成 config/database.php
+        ConfigService::generateEnvFileStatic($params['admin_url'], $params, APP_PATH);    // 生成 .env 文件
 
         // 6. 创建安装锁文件
         ConfigService::createInstallLockStatic(APP_PATH);

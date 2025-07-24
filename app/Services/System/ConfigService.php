@@ -144,7 +144,7 @@ return [
     'connections'     => [
         'mysql' => [
             // 数据库类型
-            'type'              => Env::get('database.type', 'mysql'),
+            'type'              => Env::get('database.type', '{$dbConfig['type']}'),
             // 服务器地址
             'hostname'          => Env::get('database.hostname', '{$dbConfig['hostname']}'),
             // 数据库名
@@ -213,9 +213,6 @@ EOT;
         $instance = new self();
         $config = $instance->getAppConfigTemplate($adminUrl);
 
-        // 同时生成.env文件来存储后台地址
-        self::generateEnvFileStatic($adminUrl, $appPath);
-
         return file_put_contents($configPath, $config) !== false;
     }
 
@@ -223,10 +220,11 @@ EOT;
      * 生成.env文件
      *
      * @param string $adminUrl 后台URL
+     * @param array|null $dbConfig 数据库配置
      * @param string|null $appPath 应用路径
      * @return bool
      */
-    public static function generateEnvFileStatic(string $adminUrl, ?string $appPath = null): bool
+    public static function generateEnvFileStatic(string $adminUrl, ?array $dbConfig = null, ?string $appPath = null): bool
     {
         $appPath = $appPath ?: self::getAppPath();
         $envPath = $appPath . '/.env';
@@ -248,8 +246,8 @@ EOT;
 
             return file_put_contents($envPath, $envContent) !== false;
         } else {
-            // 创建新的.env文件
-            $envContent = self::getEnvTemplate($adminUrl);
+            // 创建新的.env文件，包含数据库配置
+            $envContent = self::getEnvTemplate($adminUrl, $dbConfig);
             return file_put_contents($envPath, $envContent) !== false;
         }
     }
@@ -258,11 +256,12 @@ EOT;
      * 获取.env文件模板
      *
      * @param string $adminUrl 后台URL
+     * @param array|null $dbConfig 数据库配置
      * @return string
      */
-    private static function getEnvTemplate(string $adminUrl): string
+    private static function getEnvTemplate(string $adminUrl, ?array $dbConfig = null): string
     {
-        return <<<EOT
+        $envContent = <<<EOT
 # Video-Reward 环境配置文件
 # 由安装程序自动生成
 
@@ -274,6 +273,25 @@ ADMIN_URL = {$adminUrl}
 VERSION = 2.0.0
 
 EOT;
+
+        // 如果提供了数据库配置，添加到.env文件中
+        if ($dbConfig !== null) {
+            $envContent .= <<<EOT
+
+[DATABASE]
+TYPE = {$dbConfig['type']}
+HOSTNAME = {$dbConfig['hostname']}
+DATABASE = {$dbConfig['database']}
+USERNAME = {$dbConfig['db_username']}
+PASSWORD = {$dbConfig['db_password']}
+HOSTPORT = {$dbConfig['hostport']}
+PREFIX = {$dbConfig['prefix']}
+CHARSET = utf8mb4
+
+EOT;
+        }
+
+        return $envContent;
     }
 
     /**

@@ -29,7 +29,8 @@ class ApplicationBootstrap
     private CorsService $corsService;
     private EnvironmentService $environmentService;
     private InstallationService $installationService;
-    private SecurityService $securityService;
+    // 重构说明：移除未使用的 SecurityService 属性
+    // private SecurityService $securityService;
     private Request $request;
     private Config $config;
     private LoggerInterface $logger;
@@ -118,31 +119,9 @@ class ApplicationBootstrap
         $this->logger->info('安全检查通过');
     }
 
-    /**
-     * 验证安装完整性
-     *
-     * 注意：基础安装状态检查已在入口文件完成
-     * 这里只进行深度的安装完整性验证
-     *
-     * @throws ApplicationException 安装验证失败
-     */
-    private function validateInstallationIntegrity(): void
-    {
-        if (!$this->installationService->validateInstallation()) {
-            $this->logger->warning('安装完整性验证失败');
-
-            throw new ApplicationException(
-                '系统安装不完整，请重新运行安装程序',
-                500,
-                null,
-                'warning',
-                true,
-                '系统配置不完整，请联系管理员'
-            );
-        }
-
-        $this->logger->info('安装完整性验证通过');
-    }
+    // 重构说明：validateInstallationIntegrity() 方法已被移除
+    // 原因：该方法从未被调用，属于沉淀代码
+    // 安装完整性验证已在入口文件的 InstallationGuard::checkAndRedirect() 中完成
 
     /**
      * 启动ThinkPHP应用
