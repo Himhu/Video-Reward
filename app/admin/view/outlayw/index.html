@@ -1,0 +1,34 @@
+<div class="layuimini-container">
+
+    <div class="layuimini-main">
+
+
+        <fieldset id="" class="table-search-fieldset " style="margin-bottom: 1%">
+            <legend>数据统计</legend>
+            <table class="table layui-table " >
+                <thead>
+                <tr>
+                    <th style="text-align: center;">待支付笔数</th>
+                    <th style="text-align: center;">待支付金额</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="text-center">
+                    <td><?php echo $dpayCount;?></td>
+                    <td><?php echo $dpayMonet;?></td>
+
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
+
+        <table id="currentTable" class="layui-table layui-hide"
+               data-auth-add="{:auth('outlay/add')}"
+               data-auth-edit="{:auth('outlay/edit')}"
+               data-auth-delete="{:auth('outlay/delete')}"
+               lay-filter="currentTable">
+        </table>
+    </div>
+</div>

@@ -1,0 +1,154 @@
+<div class="layuimini-container">
+    <form id="app-form" class="layui-form layuimini-form">
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label">代理ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="uid" class="layui-input" lay-verify="required" placeholder="请输入代理ID" value="{$row.uid|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">nickname</label>
+            <div class="layui-input-block">
+                <input type="text" name="nickname" class="layui-input"  placeholder="请输入nickname" value="{$row.nickname|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客户端唯一标识</label>
+            <div class="layui-input-block">
+                <input type="text" name="ua" class="layui-input"  placeholder="请输入客户端唯一标识" value="{$row.ua|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述记录</label>
+            <div class="layui-input-block">
+                <input type="text" name="des" class="layui-input"  placeholder="请输入描述记录" value="{$row.des|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">视频id</label>
+            <div class="layui-input-block">
+                <input type="text" name="vid" class="layui-input" lay-verify="required" placeholder="请输入视频id" value="{$row.vid|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付渠道</label>
+            <div class="layui-input-block">
+                <input type="text" name="pay_channel" class="layui-input"  placeholder="请输入支付渠道" value="{$row.pay_channel|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">ip</label>
+            <div class="layui-input-block">
+                <input type="text" name="ip" class="layui-input" lay-verify="required" placeholder="请输入ip" value="{$row.ip|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="price" class="layui-input" lay-verify="required" placeholder="请输入支付金额" value="{$row.price|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">提现金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="tc_money" class="layui-input" lay-verify="required" placeholder="请输入提现金额" value="{$row.tc_money|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">下单时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="createtime" class="layui-input" lay-verify="required" placeholder="请输入下单时间" value="{$row.createtime|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">修改时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="updatetime" class="layui-input" lay-verify="required" placeholder="请输入修改时间" value="{$row.updatetime|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="paytime" class="layui-input"  placeholder="请输入支付时间" value="{$row.paytime|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付状态:1=已支付,2=未支付</label>
+            <div class="layui-input-block">
+                <input type="text" name="status" class="layui-input" lay-verify="required" placeholder="请输入支付状态:1=已支付,2=未支付" value="{$row.status|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">pid</label>
+            <div class="layui-input-block">
+                <input type="text" name="pid" class="layui-input" lay-verify="required" placeholder="请输入pid" value="{$row.pid|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">总代理id</label>
+            <div class="layui-input-block">
+                <input type="text" name="pid_top" class="layui-input" lay-verify="required" placeholder="请输入总代理id" value="{$row.pid_top|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否扣量:1=不扣量,2=扣量</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_kouliang" class="layui-input" lay-verify="required" placeholder="请输入是否扣量:1=不扣量,2=扣量" value="{$row.is_kouliang|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">订单号</label>
+            <div class="layui-input-block">
+                <input type="text" name="transact" class="layui-input" lay-verify="required" placeholder="请输入订单号" value="{$row.transact|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否包月:1=否,2=是</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_month" class="layui-input"  placeholder="请输入是否包月:1=否,2=是" value="{$row.is_month|default=''}">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否包日:1=否,2=是</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_date" class="layui-input"  placeholder="请输入是否包日:1=否,2=是" value="{$row.is_date|default=''}">
+            </div>
+        </div>
+        <div class="hr-line"></div>
+        <div class="layui-form-item text-center">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+        </div>
+<!--该源码版权所有；老表-只要你健康by表哥by小虎by老胡/扣扣：老表祝您身体健康 表哥团队祝您2021财源广进
+/使用源码协议提醒：
+
+（1）购买前请务必与客服联系确认后再购买。不承诺代安装时效，代安装时间长短视具体情况而定
+
+（2）需要安装的客户请自行购买服务器，购买源码可不送服务器，如需安装可联系店长免费安装
+
+（3）一分价钱一分货，喜欢幻想的直接去买福彩，几十块都计较的什么格局？路子走的够窄 这样的别烦我 我们不是那种批量卖源码的！
+
+（4）所谓教程是给有点基础能力的看的，别指着一个教程能让你超过月薪几万的程序员，这样心态的人慎拍！
+
+（5） 源码来自网络，仅供参考学习，请勿商业用途，否则后果自负！
+
+（6） 购买本店所有提供的源码仅供贵方内部分析研究且应在国家法律条款范围内使用。
+
+（7）. 本店所有提供的源码以及所有数据只可用于源码技术学习和交流,不可用于炒股等商业用途。
+
+（8） 客户在使用源码以及数据后产生的后果由客户自行承担，我方概不负责。
+
+不同意以上条款的。请不要下单，不要下单，不要下单,下单默认同意以上条款。
+
+特此声明：源码来自网络分享，本店所售程序只供娱乐模拟测试研究，不得使用于非法用途，不得违反国家法律，否则后果自负！购买以后用作他用附带的一切法律责任后果都由购买者承担于本店无任何关系！
+
+ 源码以演示站为主，买前请好好测试演示站 所发货版本为演示站一致版本 否则产生所有纠纷由买方自己承担 。
+
+（拍下即同意此页面表达条款，且为申诉投诉依据！）
+
+3000年前商州在祭祀神明，300年前嬛嬛在宫中向往，30年前人们坐在炕头吃着大辣片，30年后中国全面小康，300年后世界科技蓬勃，3000年后还有人记得长安吗-->
+<!-- 来自长安开发团队的留言。据今1697年前晋元帝第一次问明帝“长安和太阳哪个更远” ，明帝回答：“太阳远，因为从来没有人从太阳来。”当元帝第二次当着臣子们的面问的时候，晋明帝改口说：“长安远。”元帝问为什么，明帝回答：“抬头就可以看见太阳，却看不到长安。“举目见日，不见长安”！山河破碎，苍生流离。王公大臣拿着国家的俸禄，却碌碌无为胆小如鼠，只知逃避战乱，割城弃地。长安明明就在那里，可是却不能回去，如同相隔千里。相比起来，太阳倒是就在头顶，岂不是更近？/为何这套系统要命名长安？长安二字取自晋元帝的一段话：“举目见日，不见长安。”上面是这段话的来源历史，也许这段历史会是关于这套源码的最好回答吧！。
+不见长安不见日，举目四望无相识。与太阳间隔的是距离，与“长安”间隔的是时间，距离可长可短，光阴一逝难回。珍重吧诸位 -->
+    </form>
+</div>

@@ -1,0 +1,54 @@
+
+<style>
+
+
+    .layui-table-cell {
+        overflow: visible !important;
+    }
+    .layui-table-fixed tr td{
+        height: 48.4px;
+    }
+
+</style>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset id="" class="table-search-fieldset " style="margin-bottom: 1%">
+            <legend>数据统计</legend>
+            <table class="table layui-table " >
+                <thead>
+                <tr>
+                    <th style="text-align: center;">今日总余额</th>
+                    <th style="text-align: center;">今日总提现</th>
+
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="text-center">
+                    <td>{$total_balance}</td>
+                    <td>{$total_tx}</td>
+
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
+
+        <table id="currentTable" class="layui-table layui-hide"
+               data-auth-add="{:auth('system.admin/add')}"
+               data-auth-edit="{:auth('system.admin/edit')}"
+               data-auth-delete="{:auth('system.admin/delete')}"
+               data-auth-password="{:auth('system.admin/password')}"
+               lay-filter="currentTable">
+        </table>
+    </div>
+</div>
+
+<script>
+    
+    var authlist = '<?php echo json_encode($auth_list, 256);?>';
+    
+</script>
+
+<input type="hidden" id="short" value='<?php echo json_encode($short , 1)?>'>
+<input type="hidden" id="pay_lists" value='<?php echo json_encode($pay_lists , 1)?>'>
