@@ -1,0 +1,125 @@
+<div class="layuimini-container">
+    <form id="app-form" class="layui-form layuimini-form">
+        
+        <div class="layui-form-item">
+            <label class="layui-form-label">代理ID</label>
+            <div class="layui-input-block">
+                <input type="text" name="uid" class="layui-input" lay-verify="required" placeholder="请输入代理ID" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">nickname</label>
+            <div class="layui-input-block">
+                <input type="text" name="nickname" class="layui-input"  placeholder="请输入nickname" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">客户端唯一标识</label>
+            <div class="layui-input-block">
+                <input type="text" name="ua" class="layui-input"  placeholder="请输入客户端唯一标识" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">描述记录</label>
+            <div class="layui-input-block">
+                <input type="text" name="des" class="layui-input"  placeholder="请输入描述记录" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">视频id</label>
+            <div class="layui-input-block">
+                <input type="text" name="vid" class="layui-input" lay-verify="required" placeholder="请输入视频id" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付渠道</label>
+            <div class="layui-input-block">
+                <input type="text" name="pay_channel" class="layui-input"  placeholder="请输入支付渠道" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">ip</label>
+            <div class="layui-input-block">
+                <input type="text" name="ip" class="layui-input" lay-verify="required" placeholder="请输入ip" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="price" class="layui-input" lay-verify="required" placeholder="请输入支付金额" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">提现金额</label>
+            <div class="layui-input-block">
+                <input type="text" name="tc_money" class="layui-input" lay-verify="required" placeholder="请输入提现金额" value="0.00">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">下单时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="createtime" class="layui-input" lay-verify="required" placeholder="请输入下单时间" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">修改时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="updatetime" class="layui-input" lay-verify="required" placeholder="请输入修改时间" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付时间</label>
+            <div class="layui-input-block">
+                <input type="text" name="paytime" class="layui-input"  placeholder="请输入支付时间" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支付状态:1=已支付,2=未支付</label>
+            <div class="layui-input-block">
+                <input type="text" name="status" class="layui-input" lay-verify="required" placeholder="请输入支付状态:1=已支付,2=未支付" value="2">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">pid</label>
+            <div class="layui-input-block">
+                <input type="text" name="pid" class="layui-input" lay-verify="required" placeholder="请输入pid" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">总代理id</label>
+            <div class="layui-input-block">
+                <input type="text" name="pid_top" class="layui-input" lay-verify="required" placeholder="请输入总代理id" value="0">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否扣量:1=不扣量,2=扣量</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_kouliang" class="layui-input" lay-verify="required" placeholder="请输入是否扣量:1=不扣量,2=扣量" value="2">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">订单号</label>
+            <div class="layui-input-block">
+                <input type="text" name="transact" class="layui-input" lay-verify="required" placeholder="请输入订单号" value="">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否包月:1=否,2=是</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_month" class="layui-input"  placeholder="请输入是否包月:1=否,2=是" value="1">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">是否包日:1=否,2=是</label>
+            <div class="layui-input-block">
+                <input type="text" name="is_date" class="layui-input"  placeholder="请输入是否包日:1=否,2=是" value="1">
+            </div>
+        </div>
+        <div class="hr-line"></div>
+        <div class="layui-form-item text-center">
+            <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit>确认</button>
+            <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+        </div>
+
+    </form>
+</div>

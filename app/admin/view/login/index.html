@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+   
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no;"
+          name="viewport">
+    <link rel="stylesheet" href="/css/normalize.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+
+    <style>
+
+body {
+    height: 100vh;
+    width: 100vw;
+    background: url("{:sysconfig('site','site_bg')}") center/cover fixed;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media screen and (max-width: 500px) {
+    
+    .formLeft{
+        display: none;
+    }
+    .formRight form.otherForm{
+        left: -1px;
+    }
+}
+
+    </style>
+</head>
+
+<body class="bodys">
+    <canvas class="cavs" width="100%" height="100%"></canvas>
+
+    <div id="formContainer" style="position: absolute;" class="dwo">
+        <div class="formLeft">
+            <img src="{:sysconfig('site','logo_image')}">
+        </div>
+        <div class="formRight">
+            <!-- Forgot password form -->
+            <form id="forgot" class="otherForm">
+                <header>
+                    <h1>联系客服找回密码</h1>
+                    
+                </header>
+                <section>
+                    <label>
+                        <p>客服微信</p>
+                        <input type="email" placeholder=" " value="{:sysconfig('site','site_wechat')}">
+                        <div class="border"></div>
+                    </label>
+                    
+                    <label>
+                        <p>客服QQ</p>
+                        <input type="email" placeholder=" " value="{:sysconfig('site','site_qq')}">
+                        <div class="border"></div>
+                    </label>
+                    
+                    
+                    <!--<button type="submit">发送邮件</button>-->
+                </section>
+                <footer>
+                    <button type="button" class="forgotBtn">返回</button>
+                </footer>
+            </form>
+
+            <!-- Login form -->
+            <form id="login" method="post" id = 'databox' class="layui-form">
+                <header>
+                    <h1>{:sysconfig('site','site_title')}</h1>
+                    <p>{:sysconfig('site','site_slogan')}</p>
+                </header>
+                <section>
+                    <label>
+                        <p>账户</p>
+                        <input type="text" autocomplete="off" placeholder=" " lay-verify="required|account" name="username">
+                        <div class="border"></div>
+                    </label>
+                    <label>
+                        <p>密码</p>
+                        <input type="password" autocomplete="off" placeholder=" " lay-verify="required|password"  name="password">
+                        <div class="border"></div>
+                    </label>
+
+                    {if $captcha == 1}
+                    <label>
+                        <p>验证码</p>
+                        <input type="text" autocomplete="off" name="captcha"  placeholder=" " style="width: 70%;display: inline-block;">
+                        <div class="border" style="width: 70%;"></div>
+                        <img src="{:url('login/captcha')}"   onclick="this.src='{:url(\'login/captcha\')}?seed='+Math.random()" style="position: relative;
+                        height: 29.4px;
+                        width: 25%;
+                        top: 13px;
+                        margin-left: 3%;
+                        opacity: 0.7;">
+                    </label>
+                    {/if}
+
+                    <button type="button" lay-submit>登 录</button>
+                </section>
+                <footer>
+                    <button type="button" class="forgotBtn">联系客服</button>
+                    <button type="button" class="registerBtn">新用户？</button>
+                </footer>
+            </form>
+
+            <!-- Register form -->
+            <form id="register" class="otherForm layui-form" action="/admin/login/reg">
+                <header>
+                    <h1>{:sysconfig('site','site_name')}-注册</h1>
+                    <p>注册后享受更多服务</p>
+                </header>
+                <section>
+                    <label>
+                        <p>邀请码</p>
+                        <input type="text" name="ypm"  lay-verify="required" placeholder=" " autocomplete="off" >
+                        <div class="border"></div>
+                    </label>
+                    <label>
+                        <p>账户</p>
+                        <input type="text" name="username"  lay-verify="required|account" placeholder=" " autocomplete="off">
+                        <div class="border"></div>
+                    </label>
+                    <label>
+                        <p>密码</p>
+                        <input type="password"  name="password"  lay-verify="required|password" placeholder=" " autocomplete="off">
+                        <div class="border"></div>
+                    </label>
+                    
+                    {if $captcha == 1}
+                    <label>
+                        <p>验证码</p>
+                        <input type="text" name="captcha"  lay-verify="required|captcha" placeholder=" " autocomplete="off" style="width: 70%;display: inline-block;">
+                        <img src="{:url('login/captcha')}"   onclick="this.src='{:url(\'login/captcha\')}?seed='+Math.random()" style="position: relative;
+                        height: 29.4px;
+                        width: 25%;
+                        top: 0px;
+                        margin-left: 3%;
+                        opacity: 1;">
+                    </label>
+                    {/if}
+                    
+                    <button type="button" lay-submit>注 册</button>
+                </section>
+                <footer>
+                    <button type="button" class="registerBtn">返回</button>
+                </footer>
+            </form>
+        
+        </div>
+        
+    </div>
+    <div style="color:#fff;position:absolute;bottom:0;opacity: 0.5">
+            {:sysconfig('site','site_content')}
+        </div>
+    <script src="/static/plugs/jquery-3.4.1/jquery-3.4.1.min.js?v=1.0.0"></script>
+     <script src="/static/admin/js/jquery.particleground.min.js"></script>
+     <script src="/css/ban.js"></script>
+    <script>
+
+
+            // 粒子线条背景7ec7fd
+            $("body").ready(function(){
+                
+            // $('body').particleground({
+            //     dotColor:'#46A3FF',
+            //     lineColor:'#46A3FF'
+            // });
+        });
+
+        $(function () {
+
+
+
+            $('.forgotBtn').click(function () {
+                $('#forgot').toggleClass('toggle')
+            })
+
+            $('.registerBtn').click(function () {
+                $('#register, #formContainer').toggleClass('toggle')
+            })
+        })
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,83 @@
+<form id="app-form" class="layui-form layuimini-form">
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">订单前缀</label>
+        <div class="layui-input-block">
+            <input type="text" name="pay_order_prefix" class="layui-input" placeholder="请输入订单前缀，不建议填写" value="{:sysconfig('pay','pay_order_prefix')}">
+            <div class="layui-form-mid layui-word-aux">填写订单前缀，用于订单号标识。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付域名</label>
+        <div class="layui-input-block">
+            <input type="text" name="pay_domain" class="layui-input" placeholder="请输入支付页面专用域名" value="{:sysconfig('pay','pay_domain')}">
+            <div class="layui-form-mid layui-word-aux">填写支付页面专用域名，用于支付页面访问。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付回调域名</label>
+        <div class="layui-input-block">
+            <input type="text" name="pay_callback" class="layui-input" placeholder="请输入支付回调域名" value="{:sysconfig('pay','pay_callback')}">
+            <div class="layui-form-mid layui-word-aux">填写支付回调域名，用于接收支付结果通知。</div>
+        </div>
+    </div>
+
+    <div class="hr-line"></div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">微信通道1</label>
+        <div class="layui-input-block">
+            <select name="pay_zhifu" lay-filter="aihao">
+                <option value="0" >请选择</option>
+
+                {foreach $pay_lists as $k=>$v}
+                <option value="{$v.pay_model}"  <?php if($v['pay_model'] == sysconfig('pay','pay_zhifu')  ){ echo 'selected';}?>  >{$v.title}</option>
+                {/foreach}
+
+
+            </select>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">支付宝通道2</label>
+        <div class="layui-input-block">
+            <select name="pay_zhifu1" lay-filter="aihao">
+                <option value="" >通道关闭（关闭后将不使用双通道模式直接使用微信通道1选择的通道拉起支付）</option>
+
+                {foreach $pay_lists as $k=>$v}
+                <option value="{$v.pay_model}"  <?php if($v['pay_model'] == sysconfig('pay','pay_zhifu1')  ){ echo 'selected';}?>  >{$v.title}</option>
+                {/foreach}
+
+
+            </select>
+        </div>
+    </div>
+    
+    
+    
+     <!-- <div class="layui-form-item">
+        <label class="layui-form-label required">模式</label>
+        <div class="layui-input-block">
+            {foreach ['local'=>'选择模式','zhiguan'=>'直观模式'] as $key=>$val}
+            <input type="radio"  name="pay_type" lay-filter="pay_type" value="{$key}" title="{$val}" {if $key==sysconfig('pay','pay_type')}checked=""{/if}>
+            {/foreach}
+        </div>
+    </div>
+    -->
+    
+    
+    
+
+
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="system.config/save" data-refresh="false">确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>

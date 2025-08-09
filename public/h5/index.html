@@ -1,0 +1,129 @@
+<!DOCTYPE html><script>function getRequest() {
+        var url = window.location.hash; //获取url中"?"符后的字串
+        var theRequest = new Object();
+        if (url.indexOf("?") != -1) {
+            var str = url.substr(url.indexOf("?")+1);
+            strs = str.split("&");
+            for(var i = 0; i < strs.length; i ++) {
+                theRequest[strs[i].split("=")[0]]=decodeURI(strs[i].split("=")[1]);
+            }
+        }
+        return theRequest;
+    }
+    var param= getRequest()
+    var f =param.f;
+    var h_url = param.h_url;
+    var view_id = param.view_id;
+    var fingerprint = param.fingerprint;
+    var hash = location.hash
+    var hid = param.h
+
+    if(f != undefined && f != '')
+    {
+        localStorage.setItem("f",f);
+    }
+    if(view_id != '' && view_id != undefined)
+    {
+        localStorage.setItem("view_id",view_id);
+
+    }
+
+    if( (hash != '#/cat' && hash != '#/buy' && h_url != undefined) && view_id != '')
+    {
+        localStorage.setItem("h_url",h_url);
+    }
+    if ( (hash != '#/cat' && hash != '#/buy' && (h_url == undefined || h_url == '' )) && view_id != '')
+    {
+        localStorage.setItem("h_url",'');
+    }
+    if(fingerprint != undefined && fingerprint != '')
+    {
+        localStorage.setItem("fingerprint",fingerprint);
+    }
+    else {
+        fingerprint = localStorage.getItem('fingerprint')
+    }
+    if(hid != '' && hid !=  undefined)
+    {
+        localStorage.setItem('h',hid)
+    }
+
+
+    function loadScripts(array,callback){
+        var loader = function(src,handler){
+            var script = document.createElement("script");
+            script.src = src;
+            script.onload = script.onreadystatechange = function(){
+                script.onreadystatechange = script.onload = null;
+                handler();
+            }
+            var head = document.getElementsByTagName("head")[0];
+            (head || document.body).appendChild( script );
+        };
+        (function run(){
+            if(array.length!=0){
+                loader(array.shift(), run);
+            }else{
+                callback && callback();
+            }
+        })();
+    }
+
+    function loadCss(arr)
+    {
+        arr.map(function (obj) {
+            var link = document.createElement("link");
+            // link.type = "text/css";
+            link.rel = "stylesheet";
+            link.href = obj;
+            document.getElementsByTagName("head")[0].appendChild(link);
+        })
+    }
+
+
+
+    if(fingerprint)
+    {
+        loadCss([
+            'css/chunk-vendors.af0f3e3f.css',
+            'css/app.3b3bb1ef.css'
+
+        ])
+
+        loadScripts([
+            'https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js',
+            'js/chunk-vendors.20dd1eb9.js',
+            'js/app.009d8ec4.js'
+        ])
+   }else
+    {
+        location.href = "/baidu.com";
+        
+    }
+        
+    </script>
+<html lang="">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no;"
+          name="viewport">
+    <link rel="icon" href="favicon.ico">
+    <title>
+    </title>
+
+</head>
+<body id="content">
+<noscript>
+    <strong>
+        We're sorry but ds doesn't work properly without JavaScript enabled.Please
+        enable it to continue.
+    </strong>
+</noscript>
+<div id="app">
+</div>
+
+</script>
+</body>
+
+</html>

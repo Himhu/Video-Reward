@@ -1,0 +1,113 @@
+<form id="app-form" class="layui-form layuimini-form">
+
+    <?php foreach($config['short_video'] as $items):?>
+
+        <?php if($items['types'] == "input"):?>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><?php echo $items['remark']?></label>
+                <div class="layui-input-block">
+                    <input type="text" name="<?php echo $items['name']?>" class="layui-input" placeholder="<?php echo $items['remark']?>" value="<?php echo $items['value'] ?>" >
+                </div>
+            </div>
+        <?php endif;?>
+
+        <?php if($items['types'] == "textarea"):?>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><?php echo $items['remark']?></label>
+            <div class="layui-input-block">
+                <textarea type="text" style="height: 150px;" name="<?php echo $items['name']?>" class="layui-input" placeholder="<?php echo $items['remark']?>" >
+
+                    <?php echo $items['value'] ?>
+                </textarea>
+            </div>
+        </div>
+        <?php endif;?>
+
+        <?php if($items['types'] == "file"):?>
+            <div class="layui-form-item">
+                <label class="layui-form-label"><?php echo $items['remark']?></label>
+                <div class="layui-input-block layuimini-upload">
+                    <input name="<?php echo $items['name']?>" class="layui-input layui-col-xs6" placeholder="请上传<?php echo $items['remark']?>" value="<?php echo $items['value']?>">
+                    <div class="layuimini-upload-btn">
+                        <span><a class="layui-btn" data-upload="<?php echo $items['name']?>" data-upload-number="one" data-upload-exts="ico|png|jpg|jpeg"><i class="fa fa-upload"></i> 上传</a></span>
+                    </div>
+                </div>
+            </div>
+        <?php endif;?>
+
+
+    <?php if($items['types'] == "radio"):?>
+        <div class="layui-form-item">
+            <label class="layui-form-label"><?php echo $items['remark']?></label>
+            <div class="layui-input-block">
+                <input type="checkbox" lay-filter="<?php echo $items['name']?>" name="" <?php echo $items['value'] == 1 ? 'checked':  ''?> value="<?php echo $items['value']?>" lay-skin="switch" lay-text="ON|OFF">
+            </div>
+        </div>
+    <input type="hidden" id="<?php echo $items['name']?>" name="<?php echo $items['name']?>" value="<?php echo $items['value']?>">
+    <script>
+        layui.use(['form', 'layedit', 'laydate'], function(){
+
+            var form = layui.form,layer = layui.layer
+            form.on("switch(<?php echo $items['name']?>)", function(data){
+                document.getElementById("<?php echo $items['name']?>").value = this.checked ? '1' : '0';
+            });
+        })
+    </script>
+
+    <?php endif;?>
+
+    <?php endforeach;?>
+
+
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">二维码位置</label>
+        <div class="layui-input-block">
+            上: <input type="text" name="q_t"  value="{:sysconfig('short_video','q_t')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            右: <input type="text" name="q_r" value="{:sysconfig('short_video','q_r')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            下: <input type="text" name="q_x" value="{:sysconfig('short_video','q_x')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            左: <input type="text" name="q_l" value="{:sysconfig('short_video','q_l')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">二维码logo位置</label>
+        <div class="layui-input-block">
+            上: <input type="text" name="l_t" value="{:sysconfig('short_video','l_t')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            右: <input type="text" name="l_r" value="{:sysconfig('short_video','l_r')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            下: <input type="text" name="l_x" value="{:sysconfig('short_video','l_x')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+            左: <input type="text" name="l_l" value="{:sysconfig('short_video','l_l')}" autocomplete="off" class="layui-input" style="display: inline;width: 50px;">
+        </div>
+    </div>
+
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">二维码测试地址</label>
+        <div class="layui-input-block">
+            {$d}/q?f={$f}&q=123
+        </div>
+    </div>
+<p>开启短视频试看，需短视频导入ppvod云转码系统视频外链，如果不是请不要开启试看功能。</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <div class="hr-line"></div>
+    <div class="layui-form-item text-center">
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="system.config/save" data-refresh="false">确认</button>
+        <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+    </div>
+
+</form>
