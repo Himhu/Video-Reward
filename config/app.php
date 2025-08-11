@@ -6,8 +6,6 @@
 use think\facade\Env;
 
 return [
-    // 应用密钥
-    'app_key'          => Env::get('app.key', 'shorturl_encrypt_key_2024'),
     // 应用地址
     'app_host'         => Env::get('app.host', ''),
     // 应用的命名空间
@@ -24,10 +22,10 @@ return [
     'default_timezone' => 'Asia/Shanghai',
     // 应用映射（自动多应用模式有效）
     'app_map'          => [
-        Env::get('easyadmin.admin', 'admin1') => 'admin',
+        Env::get('easyadmin.admin', 'admin11') => 'admin',
     ],
     // 后台别名
-    'admin_alias_name' => Env::get('easyadmin.admin', 'admin1'),
+    'admin_alias_name' => Env::get('easyadmin.admin', 'admin11'),
     // 域名绑定（自动多应用模式有效）
     'domain_bind'      => [],
     // 禁止URL访问的应用列表（自动多应用模式有效）

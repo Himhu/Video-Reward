@@ -50,3 +50,5 @@ config/*.bak
 
 # 安装锁
 *install.lock
+
+docs/

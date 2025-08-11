@@ -139,20 +139,11 @@ if (!function_exists('password')) {
      * @param string $type 加密类型，默认为md5
      * @return string
      */
-    function password($value, $type = 'md5'): string
+    function password($value, $type = 'default'): string
     {
-        switch ($type) {
-            case 'md5':
-                return md5($value);
-            case 'sha1':
-                return sha1($value);
-            case 'md5_sha1':
-                return sha1(md5($value));
-            case 'sha1_md5':
-                return md5(sha1($value));
-            default:
-                return md5($value);
-        }
+        // 使用系统统一的复杂加密算法（与安装时保持一致）
+        $value = sha1('blog_') . md5($value) . md5('_encrypt') . sha1($value);
+        return sha1($value);
     }
 }
 
@@ -893,19 +884,29 @@ if (!function_exists('getDomain')) {
                 ->value('domain');
         }
 
-        // 如果仍然没有找到有效域名，使用可靠的默认域名
+        // 如果仍然没有找到有效域名，检查PC端检测配置
         if (empty($domain)) {
-            // 根据类型提供不同的默认域名
-            switch ($type) {
-                case 1:
-                    $domain = 'm.baidu.com'; // 正式域名默认
-                    break;
-                case 2:
-                    $domain = 'm.baidu.com'; // 炮灰域名默认
-                    break;
-                default:
-                    $domain = 'm.baidu.com'; // 通用默认
-                    break;
+            // 检查是否启用了PC端检测
+            $ff_pc = sysconfig('ff', 'ff_pc');
+
+            if ($ff_pc == '1') {
+                // PC端检测开启时，使用百度作为默认域名
+                switch ($type) {
+                    case 1:
+                        $domain = 'm.baidu.com'; // 正式域名默认
+                        break;
+                    case 2:
+                        $domain = 'm.baidu.com'; // 炮灰域名默认
+                        break;
+                    default:
+                        $domain = 'm.baidu.com'; // 通用默认
+                        break;
+                }
+            } else {
+                // PC端检测关闭时，使用当前域名
+                $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $currentHost = $_SERVER['HTTP_HOST'] ?? 'localhost';
+                $domain = $currentHost;
             }
         }
 

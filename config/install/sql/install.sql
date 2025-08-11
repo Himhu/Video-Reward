@@ -592,6 +592,8 @@ INSERT INTO `ds_system_config` (`id`, `name`, `group`, `value`, `remark`, `sort`
 (148, 'zbkg', 'short_video', '0', '直播开关', 1, 'radio', NULL, NULL),
 (149, 'zb_t_img', 'short_video', '/upload/tp/zbtc.png', '未开启直播弹出图片', 2, 'file', NULL, NULL),
 (151, 'ff_pc', 'ff', '0', '禁止pc端打开', 0, 'input', NULL, NULL),
+(300, 'ff_redirect_url', 'ff', 'https://www.baidu.com', 'PC端重定向地址', 1, 'input', NULL, 'PC端被禁止时跳转的地址'),
+(301, 'ff_enable', 'ff', '1', '启用防洪功能', 2, 'radio', '0|关闭\r\n1|开启', '是否启用防洪功能'),
 (152, 'm_token', 'short', 'lb1111wxjc ', '猫咪微信检测token', 0, 'input', NULL, NULL),
 (153, 'zbwl', 'short_video', 'https://v2.sohu.com/v/url/323122026_100114195.MP4', '直播外链', 0, 'input', NULL, NULL),
 (154, 'zbyfmt', 'short_video', 'https://s1.ax1x.com/2022/05/08/O3MrsP.png', '直播页封面图', 0, 'file', NULL, NULL),
@@ -658,11 +660,12 @@ INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `t
 (254, 0, '系统管理', 'fa fa-bullseye', '', '', '_self', 10, 1, '', 1604913833, 1607844033, NULL),
 (255, 254, '通知公告', 'fa fa-bell', 'notify/index', '', '_self', 0, 1, '', 1604914018, 1607843833, NULL),
 (256, 278, '推广链接', 'fa fa-puzzle-piece', '', '', '_self', 0, 1, '', 1604919261, 1607844707, NULL),
-(257, 254, '主域名', 'fa fa-random', 'domainlib/index', '', '_self', 0, 0, '', 1605005862, 1607843848, NULL),
+(257, 254, '主域名', 'fa fa-random', 'domainlib/index', '', '_self', 0, 1, '', 1605005862, 1607843848, NULL),
 (258, 254, '域名库', 'fa fa-chain', 'domainrule/index', '', '_self', 0, 1, '', 1605027169, 1607843890, NULL),
 (259, 0, '后台设置', 'fa fa-cogs', '', '', '_self', 0, 1, '', 1605073766, 1607844343, NULL),
 (260, 254, '投诉列表', 'fa fa-check-square', 'complain/index', '', '_self', 0, 1, '', 1605089501, 1607843906, NULL),
 (261, 254, '支付管理', 'fa fa-cc-paypal', 'paysetting/index', '', '_self', 0, 1, '', 1605109417, 1607843917, NULL),
+(300, 254, '短地址配置', 'fa fa-link', 'system.shorturl/index', '', '_self', 0, 1, '短地址服务配置管理', 1641888000, 1641888000, NULL),
 (262, 0, '代理管理', 'fa fa-address-book', '', '', '_self', 8, 1, '', 1605336885, 1607844050, NULL),
 (263, 0, '片库管理', 'fa fa-connectdevelop', '', '', '_self', 5, 1, '', 1605336901, 1607844244, NULL),
 (264, 0, '订单管理', 'fa fa-buysellads', '', '', '_self', 6, 1, '', 1605336913, 1607844130, NULL),
@@ -758,6 +761,40 @@ CREATE TABLE `ds_system_uploadfile` (
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `upload_time` int(11) DEFAULT NULL COMMENT '上传时间'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='上传文件表' ROW_FORMAT=COMPACT;
+
+--
+-- 表的结构 `ds_short_service`
+--
+
+CREATE TABLE `ds_short_service` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `service_code` varchar(50) NOT NULL DEFAULT '' COMMENT '服务代码',
+  `service_name` varchar(100) NOT NULL DEFAULT '' COMMENT '服务名称',
+  `api_url` varchar(255) NOT NULL DEFAULT '' COMMENT 'API接口地址',
+  `api_key` varchar(255) NOT NULL DEFAULT '' COMMENT 'API密钥',
+  `api_secret` varchar(255) NOT NULL DEFAULT '' COMMENT 'API密钥2',
+  `is_enabled` tinyint(1) NOT NULL DEFAULT '1' COMMENT '是否启用：0=禁用，1=启用',
+  `is_default` tinyint(1) NOT NULL DEFAULT '0' COMMENT '是否默认：0=否，1=是',
+  `sort_order` int(11) NOT NULL DEFAULT '0' COMMENT '排序',
+  `remark` text COMMENT '备注说明',
+  `create_time` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `update_time` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `service_code` (`service_code`),
+  KEY `is_enabled` (`is_enabled`),
+  KEY `is_default` (`is_default`),
+  KEY `sort_order` (`sort_order`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短地址服务配置表';
+
+--
+-- 转存表中的数据 `ds_short_service`
+--
+
+INSERT INTO `ds_short_service` (`id`, `service_code`, `service_name`, `api_url`, `api_key`, `api_secret`, `is_enabled`, `is_default`, `sort_order`, `remark`, `create_time`, `update_time`) VALUES
+(1, '0', '不使用短链接', '', '', '', 1, 1, 0, '直接返回原始URL，不进行短链接转换', 1641888000, 1641888000),
+(2, 'self', '自建短链接', '', '', '', 1, 0, 1, '使用系统自建的短链接服务', 1641888000, 1641888000),
+(3, 'sina', '新浪短链接', 'https://api.weibo.com/2/short_url/shorten.json', '', '', 0, 0, 2, '新浪微博短链接服务（需要API密钥）', 1641888000, 1641888000),
+(4, 'baidu', '百度短链接', 'https://dwz.cn/admin/create', '', '', 0, 0, 3, '百度短链接服务', 1641888000, 1641888000);
 
 --
 --

