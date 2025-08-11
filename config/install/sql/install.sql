@@ -126,6 +126,21 @@ CREATE TABLE `ds_hezi` (
 -- --------------------------------------------------------
 
 --
+-- 表的结构 `ds_kouliang`
+--
+
+CREATE TABLE `ds_kouliang` (
+  `id` int(11) NOT NULL COMMENT '主键ID',
+  `uid` int(11) NOT NULL COMMENT '用户ID',
+  `create_time` int(11) NOT NULL COMMENT '创建时间',
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `status` tinyint(1) DEFAULT '1' COMMENT '状态 {radio} (0:禁用,1:正常)',
+  `remark` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '备注'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='扣量记录表';
+
+-- --------------------------------------------------------
+
+--
 -- 表的结构 `ds_link`
 --
 
@@ -839,6 +854,14 @@ ALTER TABLE `ds_hezi`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
+-- 表的索引 `ds_kouliang`
+--
+ALTER TABLE `ds_kouliang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_uid` (`uid`),
+  ADD KEY `idx_create_time` (`create_time`);
+
+--
 -- 表的索引 `ds_link`
 --
 ALTER TABLE `ds_link`
@@ -1051,6 +1074,12 @@ ALTER TABLE `ds_domain_rule`
 --
 ALTER TABLE `ds_hezi`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id', AUTO_INCREMENT=1336;
+
+--
+-- 使用表AUTO_INCREMENT `ds_kouliang`
+--
+ALTER TABLE `ds_kouliang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID';
 
 --
 -- 使用表AUTO_INCREMENT `ds_link`

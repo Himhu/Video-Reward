@@ -37,6 +37,7 @@ Thumbs.db
 *.backup
 *~
 *Mysql.sql
+backup/
 
 # 临时文件
 /tmp/*
