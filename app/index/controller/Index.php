@@ -185,11 +185,17 @@ class Index extends IndexBaseController
                 $point->save(['point' => $val]);
             }
             //$hezi = (new Hezi())->where(['type' => 2, 'uid' => $this->id])->find();
-            $hezi = (new Hezi())->find(id_decode($this->request->param('f')));
-            if ($hezi)
-            {
-                return json(['code' => 99, 'data' => ['url' => $hezi->short_url]]);
-                exit();
+            $f_param = $this->request->param('f');
+            if (!empty($f_param)) {
+                $decoded_f = id_decode($f_param);
+                if ($decoded_f) {
+                    $hezi = (new Hezi())->find($decoded_f);
+                    if ($hezi)
+                    {
+                        return json(['code' => 99, 'data' => ['url' => $hezi->short_url]]);
+                        exit();
+                    }
+                }
             }
             // exit('未找到盒子链接error!');
         }
@@ -207,13 +213,20 @@ class Index extends IndexBaseController
 
         $f            = $this->request->param('f');
         $data['h_id'] = $f;
-        $hezi         = id_decode($f);
+
+        // 安全地解码f参数
+        $hezi = null;
+        if (!empty($f)) {
+            $hezi = id_decode($f);
+        }
+
         $this->assign('hezi', '');
-        $this->assign('f', $this->request->param('f'));
+        $this->assign('f', $f ?: 'default'); // 确保f参数有默认值
         $heziUrl = '';
         $view_id = 0;
         $type    = 1;
-        //$this->assign('view_id', $view_id);
+
+        // 如果成功解码并找到盒子信息
         if ($hezi)
         {
             $h = (new Hezi())->find($hezi);
@@ -243,11 +256,20 @@ class Index extends IndexBaseController
         $d = $this->getDomain(2, $this->id);
         if (empty($d))
         {
-            // 如果没有配置炮灰域名，使用当前域名作为默认域名
-            $d = $this->request->domain();
-            if (empty($d)) {
-                // 如果还是空，使用localhost作为默认
-                $d = 'http://localhost';
+            // 如果没有配置炮灰域名，使用当前访问的域名
+            $currentDomain = $this->request->domain();
+            if (!empty($currentDomain)) {
+                $d = $currentDomain;
+            } else {
+                // 如果当前域名也获取不到，使用本地域名
+                $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $d = $protocol . '://' . $_SERVER['HTTP_HOST'];
+            }
+        } else {
+            // 确保域名格式正确，使用与当前请求相同的协议
+            if (!preg_match('/^https?:\/\//', $d)) {
+                $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
+                $d = $protocol . '://' . $d;
             }
         }
 
@@ -276,10 +298,19 @@ class Index extends IndexBaseController
             $f_param = 'default'; // 设置默认f参数
         }
 
+        // 确保hezi参数有默认值
+        $hezi_param = $data['hezi'] ?? $this->request->param('hezi', '');
+
+        // 验证和清理参数
+        $view_id = is_numeric($view_id) ? intval($view_id) : 1;
+        $f_param = htmlspecialchars($f_param, ENT_QUOTES, 'UTF-8');
+        $hezi_param = htmlspecialchars($hezi_param, ENT_QUOTES, 'UTF-8');
+
         $this->assign('view_id', $view_id); // 传递view_id变量
         $this->assign('f', $f_param); // 传递f参数
-        $this->assign('hezi', $this->request->param('hezi', '')); // 传递hezi参数
+        $this->assign('hezi', $hezi_param); // 传递hezi参数
         $this->assign('pc', $data['ff_pc']); // 传递PC端配置
+        $this->assign('url', $domain); // 传递完整的跳转URL
         return $this->fetch("list/jump");
     }
 

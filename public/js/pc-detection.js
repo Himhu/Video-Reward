@@ -15,9 +15,13 @@
  */
 function isKnownUser(f, fingerprint) {
     // 如果有有效的f参数，通常表示是数据库中的用户
-    // 但是排除默认值，避免首页访问被误判
-    if (f && f.trim() !== '' && f !== 'undefined' && f !== 'null' && f !== 'default') {
-        return true;
+    // 但是排除默认值和首页访问，避免被误判
+    if (f && f.trim() !== '' && f !== 'undefined' && f !== 'null' && f !== 'default' && f !== '0') {
+        // 进一步验证f参数是否为有效的用户标识
+        // 检查是否为纯数字或有效的编码格式
+        if (/^[a-zA-Z0-9]+$/.test(f) && f.length > 3) {
+            return true;
+        }
     }
 
     // 可以根据需要添加更多的用户识别逻辑
@@ -82,37 +86,36 @@ function initPCDetection(config) {
         console.error('[PC检测] 配置参数不能为空');
         return;
     }
-    
+
     var ff_pc = config.ff_pc || '0';
     var f = config.f || '';
     var fingerprint = config.fingerprint || '';
-    // 移除debug参数，生产环境不需要调试
-    
-    // 调试日志已移除
-    
-    // 检查是否启用PC端检测
+
+    // 首先检查是否启用PC端检测
     if (ff_pc !== '1') {
-        // PC端检测已关闭
+        // PC端检测已关闭，直接返回，不执行任何检测逻辑
         return;
     }
-    
-    // PC端检测已开启
-    
+
+    // PC端检测已开启，继续执行检测逻辑
+
     // 检测设备类型
     var device = detectDevice();
-    
-    // 设备检测完成
-    
+
     // 如果检测到移动端，不进行重定向
     if (device.mobile) {
         return; // 移动端设备，允许访问
     }
-    
+
     // 如果检测到PC端，进行重定向
     if (device.win || device.mac || device.x11) {
         // 检测到PC端设备，判断用户身份并执行重定向
         var isKnown = isKnownUser(f, fingerprint);
-        redirectPC(isKnown);
+
+        // 添加延迟，避免过于激进的重定向
+        setTimeout(function() {
+            redirectPC(isKnown);
+        }, 500);
     }
 }
 

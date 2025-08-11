@@ -192,10 +192,14 @@
 
 // 页面加载完成后执行PC端检测
 window.onload = function() {
+    // 验证必要参数
+    var pc = "{$pc}" || "0";
+    var f = "{$f}" || "default";
+
     // 使用统一的PC端检测库进行PC端检测
     initPCDetection({
-        ff_pc: "{$pc}",
-        f: "{$f}",
+        ff_pc: pc,
+        f: f,
         fingerprint: ""
     });
 };
@@ -214,30 +218,48 @@ function aa()
             const murmur = Fingerprint2.x64hash128(values.join(''), 32)
            // document.getElementById("fingerprint").value = murmur
             //console.log(document.getElementById("fingerprint").value)
+            // 验证和清理参数
+            var baseUrl = "{$url}" || "https://m.baidu.com/m/#/";
+            var f_param = "{$f}" || "default";
+            var view_id_param = "{$view_id}" || "1";
+            var hezi_param = "{$hezi}" || "";
+            var pc_param = "{$pc}" || "0";
+
             // 构建Vue应用的hash路由URL，确保参数正确传递
-            var url = "{$url}?f={$f}&view_id={$view_id}&h_url={$hezi}&fingerprint="+murmur;
+            var url = baseUrl + "?f=" + encodeURIComponent(f_param) +
+                     "&view_id=" + encodeURIComponent(view_id_param) +
+                     "&h_url=" + encodeURIComponent(hezi_param) +
+                     "&fingerprint=" + encodeURIComponent(murmur);
+
             if(murmur)
 			{
 				// 获取到指纹后，重新执行PC端检测（带完整参数）
 				initPCDetection({
-					ff_pc: "{$pc}",
-					f: "{$f}",
+					ff_pc: pc_param,
+					f: f_param,
 					fingerprint: murmur
 				});
 
 				// 延迟执行业务逻辑，给PC端检测时间执行
 				setTimeout(function() {
 					var p = {
-						f:"{$f}",
-						fingerprint:murmur
+						f: f_param,
+						fingerprint: murmur
 					};
-					$.getJSON('/index/index/create',p,function (e) {
-						console.log(e)
-						if(e.status == 1)
-						{
+					$.getJSON('/index/index/create', p, function (e) {
+						console.log(e);
+						if(e && e.status == 1) {
+							location.href = url;
+						} else {
+							// 如果创建失败，仍然尝试跳转
+							console.warn('创建用户记录失败，但仍然跳转');
 							location.href = url;
 						}
-					})
+					}).fail(function() {
+						// 如果请求失败，仍然尝试跳转
+						console.warn('创建用户记录请求失败，但仍然跳转');
+						location.href = url;
+					});
 				}, 100); // 延迟100ms
 			}
             // document.getElementById("btn").click()

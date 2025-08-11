@@ -871,7 +871,7 @@ if (!function_exists('getDomain')) {
             $domain = \think\facade\Db::name('domain_rule')
                 ->where(['id' => $did, 'status' => 1])
                 ->value('domain');
-            if ($domain) {
+            if ($domain && $domain !== 'api.example.com') {
                 // 应用随机前缀功能
                 return getRandomDomainPrefix($domain);
             }
@@ -880,6 +880,7 @@ if (!function_exists('getDomain')) {
         // 查询用户的域名
         $domain = \think\facade\Db::name('domain_rule')
             ->where(['uid' => $uid, 'status' => 1, 'type' => $type])
+            ->where('domain', '<>', 'api.example.com') // 排除示例域名
             ->orderRaw('rand()')
             ->value('domain');
 
@@ -887,12 +888,29 @@ if (!function_exists('getDomain')) {
         if (empty($domain)) {
             $domain = \think\facade\Db::name('domain_rule')
                 ->where(['status' => 1, 'type' => $type])
+                ->where('domain', '<>', 'api.example.com') // 排除示例域名
                 ->orderRaw('rand()')
                 ->value('domain');
         }
 
+        // 如果仍然没有找到有效域名，使用可靠的默认域名
+        if (empty($domain)) {
+            // 根据类型提供不同的默认域名
+            switch ($type) {
+                case 1:
+                    $domain = 'm.baidu.com'; // 正式域名默认
+                    break;
+                case 2:
+                    $domain = 'm.baidu.com'; // 炮灰域名默认
+                    break;
+                default:
+                    $domain = 'm.baidu.com'; // 通用默认
+                    break;
+            }
+        }
+
         // 应用随机前缀功能
-        return $domain ? getRandomDomainPrefix($domain) : '';
+        return $domain ? getRandomDomainPrefix($domain) : 'm.baidu.com';
     }
 }
 

@@ -96,6 +96,12 @@ class IndexBaseController extends  BaseController
             return true;
         }
 
+        // 首页访问特殊处理
+        if ($this->isHomePage() && empty($f)) {
+            $this->setDefaultUser();
+            return true;
+        }
+
         $flgArr = id_decode($f);
 
         if (empty($f) || empty($flgArr)) {
@@ -150,7 +156,10 @@ class IndexBaseController extends  BaseController
             return true;
         }
 
-        $this->redirectToDefault();
+        // 对于其他情况，也设置默认用户而不是重定向
+        // 这样可以避免首页访问被错误重定向
+        $this->setDefaultUser();
+        return true;
     }
 
     /**
