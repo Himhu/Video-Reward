@@ -364,7 +364,6 @@ class Hezi extends AdminController
 
         // 输入验证 - 防止无效URL
         if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
-            \think\facade\Log::warning('URL编码失败：无效URL', ['url' => $url]);
             return $url; // 无效URL直接返回
         }
 
@@ -390,12 +389,7 @@ class Hezi extends AdminController
             return $ff_url . $final_encoded;
 
         } catch (\Exception $e) {
-            // 编码失败时记录日志并返回原URL
-            \think\facade\Log::error('URL编码异常', [
-                'url' => $url,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+            // 编码失败时返回原URL
             return $url;
         }
     }

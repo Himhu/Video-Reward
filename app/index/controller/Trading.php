@@ -28,7 +28,7 @@ class Trading extends IndexBaseController
 
     public function initialize()
     {
-        $this->checkFlg();
+        parent::initialize();
     }
 
     public function index()
@@ -754,8 +754,6 @@ if ($err) {
         $sign = md5($str);
         $data['sign'] = $sign;
 
-        //print_r($data);die;
-
         $url = $payGateWayUrl . '?' . http_build_query($data);
 
         $json = file_get_contents($url);
@@ -766,8 +764,6 @@ if ($err) {
             die;
 
         }
-
-        print_r($json);
 
         die;
 
@@ -1024,9 +1020,6 @@ if ($err) {
 
 
         $jsonObj = json_decode($response, true);
-        echo "<div 22222 style='display:none'>";
-        print_r($jsonObj);
-        echo "</div>";
         die;
 
 
@@ -1181,8 +1174,6 @@ if ($err) {
             'noticeUrl' => $payNotifyUrl,
             'returnUrl' => $payCallBackUrl
         ];
-
-        //print_r($bodyJson);die;
 
         $signStr = '';
         foreach ($bodyJson as $key => $value) {
@@ -1521,7 +1512,6 @@ if ($err) {
 
         if ($packge['code'] == 1) {
         }
-        dump($packge);
         die;
     }
 
@@ -2064,7 +2054,6 @@ if ($err) {
         //发起请求
         $data = $this->http_post($url, $header, $arr_data);
         $data = json_decode($data, true);
-        //echo "<pre>";print_r($data); exit;
         if ($data['code'] == 1) {
             //网易
             if ($tongdao_id == 801) {
@@ -2090,7 +2079,6 @@ if ($err) {
                 );
                 $jm_json = json_encode($jm);
                 $jm_string = $this->encrypt($jm_json, "E"); //加密
-                //echo "<pre>";print_r($fdata); exit;
                 // 微信内付
                 if (strpos($_SERVER['HTTP_USER_AGENT'], 'MicroMessenger') !== false) { //判断是否在微信里打开
                     $tjurl = "/html/802/wxpay.php?code=" . $jm_string; //付款页面文件的路径  请注意路径
@@ -2314,7 +2302,6 @@ if ($err) {
         $this->assign('transact', $_GET['transact']);
 
         // echo "已支付,缺少前台轮询调用检测";
-        //dump($orderInfo);
         $this->assign('order', $orderInfo);
         return view('callback');
     }

@@ -668,6 +668,57 @@ if (!function_exists('generateClckRuUrl')) {
 }
 
 /**
+ * URL解密函数
+ * @param string $encoded 加密的URL数据
+ * @return string|false 解密后的URL或false
+ */
+if (!function_exists('decodeUrl')) {
+    function decodeUrl($encoded)
+    {
+        try {
+            // 1. URL安全的base64解码
+            $encoded = str_replace(['-', '_'], ['+', '/'], $encoded);
+            $encoded = base64_decode($encoded);
+
+            if ($encoded === false) {
+                return false;
+            }
+
+            // 2. JSON解码
+            $data = json_decode($encoded, true);
+            if (!$data || !isset($data['url']) || !isset($data['timestamp']) || !isset($data['hash'])) {
+                return false;
+            }
+
+            // 3. 解码URL
+            $url = base64_decode($data['url']);
+            if ($url === false) {
+                return false;
+            }
+
+            // 4. 验证哈希
+            $key = config('app.app_key') ?: 'default_key_' . md5(__FILE__);
+            $expectedHash = md5($url . $key . $data['timestamp']);
+
+            if ($expectedHash !== $data['hash']) {
+                return false;
+            }
+
+            // 5. 检查时间戳（可选：防止过期链接）
+            // $maxAge = 86400 * 30; // 30天
+            // if (time() - $data['timestamp'] > $maxAge) {
+            //     return false;
+            // }
+
+            return $url;
+
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+
+/**
  * 权限检查函数
  * @param string $node 需要检测的节点
  * @return bool
@@ -794,25 +845,12 @@ if (!function_exists('getRandomDomainPrefix')) {
                 $domain = $randomPrefix . '.' . $domain;
             }
 
-            // 记录日志（调试用）- 仅在框架环境中记录
-            if (class_exists('\think\facade\Log')) {
-                \think\facade\Log::info('域名随机前缀生成', [
-                    'original_domain' => func_get_arg(0),
-                    'prefixed_domain' => $domain,
-                    'prefix' => $randomPrefix
-                ]);
-            }
+
 
             return $domain;
 
         } catch (\Exception $e) {
             // 如果出现异常，返回原始域名
-            if (class_exists('\think\facade\Log')) {
-                \think\facade\Log::error('域名随机前缀生成失败', [
-                    'domain' => $domain,
-                    'error' => $e->getMessage()
-                ]);
-            }
             return func_get_arg(0);
         }
     }

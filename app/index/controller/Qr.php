@@ -15,7 +15,7 @@ class Qr extends IndexBaseController
 {
     public function initialize()
     {
-        $this->checkFlg();
+        parent::initialize();
     }
 
     public function index()

@@ -25,7 +25,8 @@ class Pay extends IndexBaseController
 
     public function initialize()
     {
-        //$this->checkFlg();
+        parent::initialize();
+        // Pay控制器已在父类中配置为免检，无需额外处理
     }
 
 

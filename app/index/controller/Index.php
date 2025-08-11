@@ -41,8 +41,7 @@ class Index extends IndexBaseController
     public $px = '15px';
     public function initialize()
     {
-        $this->checkFlg();
-        $this->tongji();
+        parent::initialize();
     }
 
     //判断微信

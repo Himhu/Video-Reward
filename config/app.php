@@ -6,6 +6,8 @@
 use think\facade\Env;
 
 return [
+    // 应用密钥
+    'app_key'          => Env::get('app.key', 'shorturl_encrypt_key_2024'),
     // 应用地址
     'app_host'         => Env::get('app.host', ''),
     // 应用的命名空间

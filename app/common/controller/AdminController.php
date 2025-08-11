@@ -176,37 +176,7 @@ class AdminController extends BaseController
      */
     public function validate(array $data, $validate, array $message = [], bool $batch = false)
     {
-        try {
-            // 记录验证过程到日志
-            $log_dir = runtime_path() . 'log/';
-            if (!is_dir($log_dir)) {
-                mkdir($log_dir, 0755, true);
-            }
-            $log_file = $log_dir . 'validate_debug_' . date('Ymd') . '.log';
-            
-            // 记录验证数据和规则
-            file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证数据: ' . json_encode($data, JSON_UNESCAPED_UNICODE) . PHP_EOL, FILE_APPEND);
-            file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证规则: ' . (is_array($validate) ? json_encode($validate, JSON_UNESCAPED_UNICODE) : $validate) . PHP_EOL, FILE_APPEND);
-            
-            // 执行验证
-            $result = parent::validate($data, $validate, $message, $batch);
-            
-            // 记录验证结果
-            file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证成功' . PHP_EOL, FILE_APPEND);
-            
-            return $result;
-        } catch (\Exception $e) {
-            // 记录验证异常
-            $log_dir = runtime_path() . 'log/';
-            if (!is_dir($log_dir)) {
-                mkdir($log_dir, 0755, true);
-            }
-            $log_file = $log_dir . 'validate_error_' . date('Ymd') . '.log';
-            file_put_contents($log_file, date('Y-m-d H:i:s') . ' - 验证异常: ' . $e->getMessage() . PHP_EOL . $e->getTraceAsString() . PHP_EOL, FILE_APPEND);
-            
-            // 抛出异常，让调用方处理
-            throw $e;
-        }
+        return parent::validate($data, $validate, $message, $batch);
     }
 
     /**

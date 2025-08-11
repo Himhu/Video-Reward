@@ -161,8 +161,8 @@ class Config extends AdminController
                             throw new \Exception("保存配置项 {$name} 失败");
                         }
                     } else {
-                        // 如果配置项不存在，记录警告但不中断流程
-                        \think\facade\Log::warning("配置项 {$name} 不存在，跳过保存");
+                        // 如果配置项不存在，跳过保存
+                        continue;
                     }
                 }
 
