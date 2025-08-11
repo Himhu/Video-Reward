@@ -1,0 +1,121 @@
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset id="" class="table-search-fieldset " style="margin-bottom: 1%">
+            <legend>待审核提现统计</legend>
+            <table class="table layui-table " >
+                <thead>
+                <tr>
+                    <th style="text-align: center;">待审核笔数</th>
+                    <th style="text-align: center;">待审核金额</th>
+                    <th style="text-align: center;">今日申请</th>
+                    <th style="text-align: center;">今日金额</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="text-center">
+                    <td><?php echo isset($statistics['total_count']) ? $statistics['total_count'] : 0;?></td>
+                    <td>￥<?php echo isset($statistics['total_amount']) ? $statistics['total_amount'] : '0.00';?></td>
+                    <td><?php echo isset($statistics['today_count']) ? $statistics['today_count'] : 0;?></td>
+                    <td>￥<?php echo isset($statistics['today_amount']) ? $statistics['today_amount'] : '0.00';?></td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
+        <table id="currentTable" class="layui-table layui-hide"
+               data-auth-add="{:auth('outlay/add')}"
+               data-auth-edit="{:auth('outlay/edit')}"
+               data-auth-delete="{:auth('outlay/delete')}"
+               data-auth-approve="{:auth('outlay/approve')}"
+               data-auth-reject="{:auth('outlay/reject')}"
+               lay-filter="currentTable">
+        </table>
+    </div>
+</div>
+
+<script>
+layui.use(['table', 'form', 'layer'], function () {
+    var $ = layui.jquery,
+        table = layui.table,
+        form = layui.form,
+        layer = layui.layer;
+
+    table.render({
+        elem: '#currentTable',
+        url: '{:url("outlay/getList")}',
+        where: {status: 'pending'},
+        toolbar: '#toolbarDemo',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {type: "checkbox", width: 50},
+            {field: 'id', width: 80, title: 'ID', sort: true},
+            {field: 'uid', width: 100, title: '用户ID'},
+            {field: 'money', width: 120, title: '提现金额', templet: function(d){
+                return '￥' + parseFloat(d.money).toFixed(2);
+            }},
+            {field: 'bank_name', width: 150, title: '银行名称'},
+            {field: 'bank_account', width: 180, title: '银行账号'},
+            {field: 'create_time', width: 160, title: '申请时间', templet: function(d){
+                return new Date(d.create_time * 1000).toLocaleString();
+            }},
+            {field: 'status', width: 100, title: '状态', templet: function(d){
+                return '<span class="layui-badge layui-bg-orange">待审核</span>';
+            }},
+            {title: '操作', width: 200, templet: '#currentTableBar', fixed: "right", align: "center"}
+        ]],
+        limits: [10, 15, 20, 25, 50, 100],
+        limit: 15,
+        page: true
+    });
+
+    // 监听工具条
+    table.on('tool(currentTable)', function (obj) {
+        var data = obj.data;
+        if (obj.event === 'approve') {
+            layer.confirm('确定批准这笔提现吗？', function (index) {
+                $.post('{:url("outlay/approve")}', {id: data.id}, function (result) {
+                    if (result.code === 1) {
+                        layer.msg(result.msg, {icon: 1});
+                        obj.del();
+                    } else {
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        } else if (obj.event === 'reject') {
+            layer.prompt({
+                title: '请输入拒绝原因',
+                formType: 2
+            }, function(reason, index){
+                if (!reason) {
+                    layer.msg('请输入拒绝原因', {icon: 2});
+                    return;
+                }
+                $.post('{:url("outlay/reject")}', {id: data.id, reason: reason}, function (result) {
+                    if (result.code === 1) {
+                        layer.msg(result.msg, {icon: 1});
+                        obj.del();
+                    } else {
+                        layer.msg(result.msg, {icon: 2});
+                    }
+                });
+                layer.close(index);
+            });
+        }
+    });
+});
+</script>
+
+<script type="text/html" id="currentTableBar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="approve">批准</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="reject">拒绝</a>
+</script>
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="batchApprove">批量批准</button>
+        <button class="layui-btn layui-btn-sm layui-btn-danger" lay-event="batchReject">批量拒绝</button>
+    </div>
+</script>

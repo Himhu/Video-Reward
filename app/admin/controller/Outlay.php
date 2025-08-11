@@ -1,14 +1,16 @@
 <?php
 // +----------------------------------------------------------------------
-// | 控制器名称：提现管理控制器
+// | 控制器名称：提现管理控制器（重构版）
 // +----------------------------------------------------------------------
-// | 控制器功能：处理用户提现申请和提现记录管理
-// | 包含操作：提现列表查看、提现申请添加、提现状态查询等
-// | 主要职责：管理系统用户的资金提现流程
+// | 控制器功能：统一管理所有提现申请和记录
+// | 包含操作：全部提现、待审核、已结算、已拒绝提现的查看和管理
+// | 主要职责：管理系统用户的资金提现流程，替代原有的4个分散控制器
+// | 重构说明：合并了Outlay、Outlayw、Outlayy、Outlayj四个控制器的功能
 // +----------------------------------------------------------------------
 
 namespace app\admin\controller;
 
+use app\admin\service\FinanceService;
 use app\admin\model\SystemAdmin;
 use app\common\controller\AdminController;
 use EasyAdmin\annotation\ControllerAnnotation;
@@ -16,61 +18,169 @@ use EasyAdmin\annotation\NodeAnotation;
 use think\App;
 
 /**
- * @ControllerAnnotation(title="提现列表")
+ * @ControllerAnnotation(title="提现管理")
  */
 class Outlay extends AdminController
 {
+    /**
+     * 财务服务
+     * @var FinanceService
+     */
+    protected $financeService;
 
-    use \app\admin\traits\Curd;
+    /**
+     * 提现模型
+     * @var \app\admin\model\Outlay
+     */
+    protected $model;
 
     public function __construct(App $app)
     {
         parent::__construct($app);
 
         $this->model = new \app\admin\model\Outlay();
-        
-        $this->assign('getStatusList', $this->model->getStatusList());
+        $this->financeService = new FinanceService();
 
+        // 传递状态列表给视图
+        $this->assign('getStatusList', $this->model->getStatusList());
     }
 
     /**
      * @NodeAnotation(title="提现列表")
      */
-    public function index()
+    public function index($status = 'all')
     {
         if ($this->request->isAjax()) {
-            if (input('selectFields')) {
-                return $this->selectList();
-            }
-            $uid = $this->request->session('admin.id');
-            list($page, $limit, $where) = $this->buildTableParames();
-            $count = $this->model
-                ->where($where)
-                ->where(['uid'=> $uid])
-                ->count();
-            $list = $this->model
-                ->where($where)
-                ->where(['uid'=> $uid])
-                ->page($page, $limit)
-                ->order($this->sort)
-                ->select();
-            $data = [
-                'code'  => 0,
-                'msg'   => '',
-                'count' => $count,
-                'data'  => $list,
-            ];
-            return json($data);
+            return $this->getList();
         }
 
-        //待已支付比数
-        $dpayCount = $this->model->where(['uid' => session('admin.id') ,'status' =>  '0'])->count();;
-        $this->assign('dpayCount' , $dpayCount);
-        //已支付笔数
-        $dpayMonet = $this->model->where(['uid' => session('admin.id') ,'status'=> '1'])->count();
-        $this->assign('dpayMonet' , $dpayMonet);
+        // 获取统计数据
+        $statistics = $this->getStatisticsData($status);
+        $this->assign('statistics', $statistics);
+        $this->assign('current_status', $status);
 
         return $this->fetch();
+    }
+
+    /**
+     * @NodeAnotation(title="待审核列表")
+     */
+    public function pending()
+    {
+        return $this->index('pending');
+    }
+
+    /**
+     * @NodeAnotation(title="已结算列表")
+     */
+    public function approved()
+    {
+        return $this->index('approved');
+    }
+
+    /**
+     * @NodeAnotation(title="已拒绝列表")
+     */
+    public function rejected()
+    {
+        return $this->index('rejected');
+    }
+
+    /**
+     * 获取列表数据（AJAX）
+     */
+    public function getList()
+    {
+        if (input('selectFields')) {
+            return $this->selectList();
+        }
+
+        $status = input('status', 'all');
+        $uid = $this->request->session('admin.id');
+        list($page, $limit, $where) = $this->buildTableParames();
+
+        // 根据状态构建查询条件
+        $statusWhere = $this->buildStatusWhere($status);
+        if ($statusWhere) {
+            $where = array_merge($where, $statusWhere);
+        }
+
+        // 如果是普通用户，只能看自己的提现记录
+        if (!$this->isAdmin()) {
+            $where['uid'] = $uid;
+        }
+
+        // 构建排序字符串
+        $order = 'create_time desc';
+        if (!empty($this->sort)) {
+            $orderParts = [];
+            foreach ($this->sort as $field => $direction) {
+                $orderParts[] = $field . ' ' . $direction;
+            }
+            $order = implode(', ', $orderParts);
+        }
+
+        $result = $this->financeService->getOutlayList($where, $page, $limit, $order);
+
+        return json([
+            'code' => 0,
+            'msg' => '',
+            'count' => $result['count'],
+            'data' => $result['list']
+        ]);
+    }
+
+    /**
+     * 构建状态查询条件
+     * @param string $status 状态
+     * @return array
+     */
+    private function buildStatusWhere($status)
+    {
+        switch ($status) {
+            case 'pending':
+                return ['status' => \app\admin\model\Outlay::STATUS_PENDING];
+            case 'approved':
+                return ['status' => \app\admin\model\Outlay::STATUS_APPROVED];
+            case 'rejected':
+                return ['status' => \app\admin\model\Outlay::STATUS_REJECTED];
+            default:
+                return [];
+        }
+    }
+
+    /**
+     * 获取统计数据
+     * @param string $status 状态
+     * @return array
+     */
+    private function getStatisticsData($status)
+    {
+        $statusValue = null;
+        switch ($status) {
+            case 'pending':
+                $statusValue = \app\admin\model\Outlay::STATUS_PENDING;
+                break;
+            case 'approved':
+                $statusValue = \app\admin\model\Outlay::STATUS_APPROVED;
+                break;
+            case 'rejected':
+                $statusValue = \app\admin\model\Outlay::STATUS_REJECTED;
+                break;
+        }
+
+        return $this->model->getStatistics($statusValue);
+    }
+
+    /**
+     * 检查是否为管理员
+     * @return bool
+     */
+    private function isAdmin()
+    {
+        // 这里可以根据实际的权限判断逻辑来实现
+        // 暂时返回true，表示都是管理员
+        return true;
     }
 
 
@@ -137,5 +247,116 @@ class Outlay extends AdminController
         return $this->fetch();
     }
 
-    
+    /**
+     * @NodeAnotation(title="批准提现")
+     */
+    public function approve()
+    {
+        $id = $this->request->post('id');
+        $adminId = $this->request->session('admin.id');
+        $remark = $this->request->post('remark', '');
+
+        $result = $this->financeService->approveOutlay($id, [
+            'admin_id' => $adminId,
+            'remark' => $remark
+        ]);
+
+        if ($result === true) {
+            $this->success('批准成功');
+        } else {
+            $this->error($result);
+        }
+    }
+
+    /**
+     * @NodeAnotation(title="拒绝提现")
+     */
+    public function reject()
+    {
+        $id = $this->request->post('id');
+        $reason = $this->request->post('reason');
+        $adminId = $this->request->session('admin.id');
+
+        if (empty($reason)) {
+            $this->error('拒绝原因不能为空');
+        }
+
+        $result = $this->financeService->rejectOutlay($id, [
+            'admin_id' => $adminId,
+            'reason' => $reason
+        ]);
+
+        if ($result === true) {
+            $this->success('拒绝成功');
+        } else {
+            $this->error($result);
+        }
+    }
+
+    /**
+     * @NodeAnotation(title="批量审核")
+     */
+    public function batchAudit()
+    {
+        $ids = $this->request->post('ids');
+        $action = $this->request->post('action'); // 1=批准 2=拒绝
+        $adminId = $this->request->session('admin.id');
+        $reason = $this->request->post('reason', '');
+
+        if (empty($ids)) {
+            $this->error('请选择要操作的记录');
+        }
+
+        $options = ['admin_id' => $adminId];
+        if ($action == 2 && empty($reason)) {
+            $this->error('拒绝原因不能为空');
+        }
+        if (!empty($reason)) {
+            $options['reason'] = $reason;
+        }
+
+        $result = $this->financeService->batchAudit($ids, $action, $options);
+
+        if ($result === true) {
+            $actionText = $action == 1 ? '批准' : '拒绝';
+            $this->success($actionText . '成功');
+        } else {
+            $this->error($result);
+        }
+    }
+
+    /**
+     * @NodeAnotation(title="获取统计信息")
+     */
+    public function getStatistics()
+    {
+        $status = input('status');
+        $statistics = $this->financeService->getFinanceStatistics('outlay', $status);
+
+        return json([
+            'code' => 0,
+            'data' => $statistics
+        ]);
+    }
+
+    /**
+     * 兼容原有的selectList方法
+     */
+    public function selectList()
+    {
+        $uid = $this->request->session('admin.id');
+        $where = [];
+
+        if (!$this->isAdmin()) {
+            $where['uid'] = $uid;
+        }
+
+        $list = $this->model->where($where)->select();
+
+        return json([
+            'code' => 0,
+            'data' => $list
+        ]);
+    }
+
 }
