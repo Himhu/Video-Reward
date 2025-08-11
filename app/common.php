@@ -556,6 +556,118 @@ if (!function_exists('getShort')) {
 }
 
 /**
+ * 生成短链接
+ * @param string $url 原始URL
+ * @param string $service 服务代码
+ * @return string
+ */
+if (!function_exists('generateShortUrl')) {
+    function generateShortUrl($url, $service = '')
+    {
+        if (empty($service)) {
+            $service = sysconfig('', 'ff_short');
+        }
+
+        // 获取服务配置
+        $serviceConfig = \think\facade\Db::name('short_service')
+            ->where('service_code', $service)
+            ->where('is_enabled', 1)
+            ->find();
+
+        if (!$serviceConfig) {
+            return $url; // 服务不存在或已禁用，返回原URL
+        }
+
+        try {
+            switch ($service) {
+                case 'tinyurl_free':
+                    return generateTinyUrl($url);
+                case 'isgd':
+                    return generateIsGdUrl($url);
+                case 'vgd':
+                    return generateVGdUrl($url);
+                case 'dagd':
+                    return generateDaGdUrl($url);
+                case 'clckru':
+                    return generateClckRuUrl($url);
+                default:
+                    return $url; // 未知服务，返回原URL
+            }
+        } catch (\Exception $e) {
+            // API调用失败，返回原URL
+            return $url;
+        }
+    }
+}
+
+/**
+ * TinyURL.com 短链接生成
+ */
+if (!function_exists('generateTinyUrl')) {
+    function generateTinyUrl($url)
+    {
+        $api = 'https://tinyurl.com/api-create.php?url=' . urlencode($url);
+        $result = file_get_contents($api);
+        return $result && strpos($result, 'http') === 0 ? $result : $url;
+    }
+}
+
+/**
+ * is.gd 短链接生成
+ */
+if (!function_exists('generateIsGdUrl')) {
+    function generateIsGdUrl($url)
+    {
+        $api = 'https://is.gd/create.php?format=simple&url=' . urlencode($url);
+        $result = file_get_contents($api);
+        return $result && strpos($result, 'http') === 0 ? $result : $url;
+    }
+}
+
+/**
+ * v.gd 短链接生成
+ */
+if (!function_exists('generateVGdUrl')) {
+    function generateVGdUrl($url)
+    {
+        $api = 'https://v.gd/create.php?format=simple&url=' . urlencode($url);
+        $result = file_get_contents($api);
+        return $result && strpos($result, 'http') === 0 ? $result : $url;
+    }
+}
+
+/**
+ * da.gd 短链接生成
+ */
+if (!function_exists('generateDaGdUrl')) {
+    function generateDaGdUrl($url)
+    {
+        $api = 'https://da.gd/s?url=' . urlencode($url);
+        $result = file_get_contents($api);
+        return $result && strpos($result, 'http') === 0 ? $result : $url;
+    }
+}
+
+/**
+ * clck.ru 短链接生成
+ */
+if (!function_exists('generateClckRuUrl')) {
+    function generateClckRuUrl($url)
+    {
+        $postData = http_build_query(['url' => $url]);
+        $context = stream_context_create([
+            'http' => [
+                'method' => 'POST',
+                'header' => 'Content-type: application/x-www-form-urlencoded',
+                'content' => $postData
+            ]
+        ]);
+        $result = file_get_contents('https://clck.ru/--', false, $context);
+        return $result && strpos($result, 'http') === 0 ? $result : $url;
+    }
+}
+
+/**
  * 权限检查函数
  * @param string $node 需要检测的节点
  * @return bool
@@ -651,6 +763,62 @@ if (!function_exists('daytxmoney1')) {
 }
 
 /**
+ * 生成随机域名前缀
+ * @param string $domain 原始域名
+ * @return string 带随机前缀的域名
+ */
+if (!function_exists('getRandomDomainPrefix')) {
+    function getRandomDomainPrefix($domain) {
+        // 检查是否启用域名随机前缀功能
+        if (sysconfig('ff', 'ff_fix') != 1 || empty($domain)) {
+            return $domain;
+        }
+
+        try {
+            // 预定义的前缀池 - 常见的子域名前缀
+            $prefixes = [
+                'm', 'www', 'app', 'api', 'cdn', 'static', 'img', 'js', 'css',
+                'admin', 'user', 'mobile', 'wap', 'h5', 'web', 'service',
+                'data', 'file', 'upload', 'download', 'media', 'assets'
+            ];
+
+            // 随机选择一个前缀
+            $randomPrefix = $prefixes[array_rand($prefixes)];
+
+            // 检查域名是否已经有子域名前缀
+            if (preg_match('/^[a-z0-9\-]+\./', $domain)) {
+                // 如果已有前缀，替换为随机前缀
+                $domain = preg_replace('/^[a-z0-9\-]+\./', $randomPrefix . '.', $domain);
+            } else {
+                // 如果没有前缀，添加随机前缀
+                $domain = $randomPrefix . '.' . $domain;
+            }
+
+            // 记录日志（调试用）- 仅在框架环境中记录
+            if (class_exists('\think\facade\Log')) {
+                \think\facade\Log::info('域名随机前缀生成', [
+                    'original_domain' => func_get_arg(0),
+                    'prefixed_domain' => $domain,
+                    'prefix' => $randomPrefix
+                ]);
+            }
+
+            return $domain;
+
+        } catch (\Exception $e) {
+            // 如果出现异常，返回原始域名
+            if (class_exists('\think\facade\Log')) {
+                \think\facade\Log::error('域名随机前缀生成失败', [
+                    'domain' => $domain,
+                    'error' => $e->getMessage()
+                ]);
+            }
+            return func_get_arg(0);
+        }
+    }
+}
+
+/**
  * 获取域名
  * @param int $type 域名类型
  * @param string|int $uid 用户ID
@@ -666,16 +834,17 @@ if (!function_exists('getDomain')) {
                 ->where(['id' => $did, 'status' => 1])
                 ->value('domain');
             if ($domain) {
-                return $domain;
+                // 应用随机前缀功能
+                return getRandomDomainPrefix($domain);
             }
         }
-        
+
         // 查询用户的域名
         $domain = \think\facade\Db::name('domain_rule')
             ->where(['uid' => $uid, 'status' => 1, 'type' => $type])
             ->orderRaw('rand()')
             ->value('domain');
-        
+
         // 如果用户没有域名，使用系统默认域名
         if (empty($domain)) {
             $domain = \think\facade\Db::name('domain_rule')
@@ -683,8 +852,9 @@ if (!function_exists('getDomain')) {
                 ->orderRaw('rand()')
                 ->value('domain');
         }
-        
-        return $domain ?: '';
+
+        // 应用随机前缀功能
+        return $domain ? getRandomDomainPrefix($domain) : '';
     }
 }
 

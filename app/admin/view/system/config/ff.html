@@ -3,9 +3,12 @@
     <div class="layui-form-item">
         <label class="layui-form-label">URL加密</label>
         <div class="layui-input-block">
-            <input type="checkbox" lay-filter="switchTest" name="" {php} if(sysconfig('ff','ff_close') == 1){ echo "checked";} {/php} value="{:sysconfig('ff','ff_close')}" lay-skin="switch" lay-text="ON|OFF">
+            <input type="checkbox" lay-filter="ff_close" name="" {if sysconfig('ff','ff_close') == 1}checked{/if} value="{:sysconfig('ff','ff_close')}" lay-skin="switch" lay-text="ON|OFF">
+            <div class="layui-word-aux" style="color: #666; margin-top: 8px; display: block;">
+                启用后对生成的链接进行加密处理，增加识别难度
+            </div>
         </div>
-       
+
     </div>
 
     <input type="hidden" id="ff_close" name="ff_close" value="{:sysconfig('ff','ff_close')}">
@@ -14,7 +17,10 @@
     <div class="layui-form-item">
         <label class="layui-form-label">域名随机前缀</label>
         <div class="layui-input-block">
-            <input type="checkbox" lay-filter="ff_fix" name="" {php} if(sysconfig('ff','ff_fix') == 1){ echo "checked";} {/php} value="{:sysconfig('ff','ff_fix')}" lay-skin="switch" lay-text="ON|OFF">
+            <input type="checkbox" lay-filter="ff_fix" name="" {if sysconfig('ff','ff_fix') == 1}checked{/if} value="{:sysconfig('ff','ff_fix')}" lay-skin="switch" lay-text="ON|OFF">
+            <div class="layui-word-aux" style="color: #666; margin-top: 8px; display: block;">
+                启用后系统将为域名自动添加随机前缀，提升防护效果
+            </div>
         </div>
     </div>
 
@@ -25,7 +31,10 @@
     <div class="layui-form-item">
         <label class="layui-form-label">禁止pc端打开</label>
         <div class="layui-input-block">
-            <input type="checkbox" lay-filter="ff_pc" name="" {php} if(sysconfig('ff','ff_pc') == 1){ echo "checked";} {/php} value="{:sysconfig('ff','ff_pc')}" lay-skin="switch" lay-text="ON|OFF">
+            <input type="checkbox" lay-filter="ff_pc" name="" {if sysconfig('ff','ff_pc') == 1}checked{/if} value="{:sysconfig('ff','ff_pc')}" lay-skin="switch" lay-text="ON|OFF">
+            <div class="layui-word-aux" style="color: #666; margin-top: 8px; display: block;">
+                启用后限制PC端设备访问，仅允许移动端用户访问
+            </div>
         </div>
     </div>
 
@@ -36,7 +45,7 @@
     <div class="layui-form-item">
         <label class="layui-form-label">默认中转域名</label>
         <div class="layui-input-block">
-            <input type="text" name="ff_domain" class="layui-input" placeholder="请输入默认中转域名" value="{:sysconfig('ff','ff_domain')}">
+            <input type="text" name="ff_domain" class="layui-input" placeholder="请输入默认中转域名" value="{:htmlspecialchars(sysconfig('ff','ff_domain'), ENT_QUOTES, 'UTF-8')}">
             <div class="layui-form-mid layui-word-aux">填写默认中转域名，用于防洪和内容分发。</div>
         </div>
     </div>
@@ -44,40 +53,27 @@
     <div class="layui-form-item">
         <label class="layui-form-label">URL加密地址</label>
         <div class="layui-input-block">
-            <input type="text" name="ff_url" class="layui-input"  placeholder="请输入url加密入口地址" value="{:sysconfig('ff','ff_url')}">
+            <input type="text" name="ff_url" class="layui-input"  placeholder="请输入url加密入口地址" value="{:htmlspecialchars(sysconfig('ff','ff_url'), ENT_QUOTES, 'UTF-8')}">
+            <div class="layui-form-mid layui-word-aux">用于URL加密的前缀域名，建议使用可信的短链接服务域名</div>
         </div>
     </div>
 
 
 
-    <div class="layui-form-item">
-        <label class="layui-form-label">CDN加速域名</label>
-        <div class="layui-input-block">
-            <input type="text" name="ff_cdn" class="layui-input" placeholder="请输入CDN加速域名" value="{:sysconfig('ff','ff_cdn')}">
-            <div class="layui-form-mid layui-word-aux">填写CDN加速域名，用于内容分发和加速。</div>
-        </div>
-    </div>
 
-    <div class="layui-form-item">
-        <label class="layui-form-label">短地址</label>
-        <div class="layui-input-block">
-            <select name="ff_short" lay-filter="aihao">
 
-                <?php foreach($short as $k => $v):?>
-                <option value="<?php echo $k?>" <?php if($k == sysconfig('ff','ff_short')  ){ echo 'selected';}?> ><?php echo $v?></option>
-                <?php endforeach;?>
-
-            </select>
-        </div>
-    </div>
+    <!-- 短地址配置已移至独立的配置页面 -->
 
 
 
 
     <div class="hr-line"></div>
     <div class="layui-form-item text-center">
-        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-filter="demo1"  lay-submit="system.config/save" data-refresh="false">确认</button>
+        <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-filter="demo1"  lay-submit="system.config/save" data-refresh="false">批量保存</button>
         <button type="reset" class="layui-btn layui-btn-primary layui-btn-sm">重置</button>
+        <div class="layui-form-mid layui-word-aux" style="color: #009688; margin-top: 10px;">
+            💡 提示：开关类配置会自动保存，文本类配置需要点击"批量保存"按钮
+        </div>
     </div>
 
 </form>
@@ -85,17 +81,88 @@
 <script>
     layui.use(['form', 'layedit', 'laydate'], function(){
 
-        var form = layui.form,layer = layui.layer
-        form.on('switch(switchTest)', function(data){
-            document.getElementById("ff_close").value = this.checked ? '1' : '0';
-        });
+        var form = layui.form, layer = layui.layer;
 
-        form.on('switch(ff_pc)', function(data){
-            document.getElementById("ff_pc").value = this.checked ? '1' : '0';
-        });
+        // 自动保存配置项
+        function autoSaveConfig(name, value) {
+            return new Promise(function(resolve, reject) {
+                $.ajax({
+                    url: 'autoSave',
+                    method: 'POST',
+                    data: {
+                        name: name,
+                        value: value
+                    },
+                    success: function(result) {
+                        if (result.code === 1) {
+                            resolve(result);
+                        } else {
+                            reject(result.msg || '保存失败');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        reject('网络错误: ' + error);
+                    }
+                });
+            });
+        }
 
-        form.on('switch(ff_fix)', function(data){
-            document.getElementById("ff_fix").value = this.checked ? '1' : '0';
-        });
+        // 通用开关处理函数 - 支持自动保存
+        function handleSwitchChange(switchName, targetId) {
+            form.on('switch(' + switchName + ')', function(data) {
+                try {
+                    var hiddenInput = document.getElementById(targetId);
+                    var newValue = this.checked ? '1' : '0';
+                    var switchElement = this;
+
+                    console.log('开关变化:', switchName, '新值:', newValue);
+
+                    if (hiddenInput) {
+                        hiddenInput.value = newValue;
+                        console.log('隐藏字段已更新:', targetId, '=', newValue);
+
+                        // 显示保存中提示
+                        var loadingIndex = layer.load(2, {shade: [0.1,'#fff']});
+
+                        // 自动保存配置
+                        autoSaveConfig(targetId, newValue)
+                            .then(function(result) {
+                                layer.close(loadingIndex);
+                                layer.msg('配置已自动保存', {
+                                    icon: 1,
+                                    time: 2000
+                                });
+                            })
+                            .catch(function(error) {
+                                layer.close(loadingIndex);
+                                console.error('自动保存失败:', error);
+
+                                // 保存失败时恢复开关状态
+                                switchElement.checked = !switchElement.checked;
+                                hiddenInput.value = switchElement.checked ? '1' : '0';
+                                form.render('checkbox');
+
+                                layer.msg('保存失败: ' + error, {
+                                    icon: 2,
+                                    time: 3000
+                                });
+                            });
+                    } else {
+                        console.error('Hidden input ' + targetId + ' not found');
+                        layer.msg('配置更新失败，请刷新页面重试');
+                    }
+                } catch (error) {
+                    console.error('Switch handler error:', error);
+                    layer.msg('开关状态更新失败');
+                }
+            });
+        }
+
+        // 使用通用函数处理所有开关
+        handleSwitchChange('ff_close', 'ff_close');
+        handleSwitchChange('ff_pc', 'ff_pc');
+        handleSwitchChange('ff_fix', 'ff_fix');
     })
+
+
 </script>

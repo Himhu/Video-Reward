@@ -187,21 +187,18 @@
 
 
 <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="/js/pc-detection.js"></script>
 <script type="text/javascript">
 
-var ff = "{$pc}";
-if(ff == 1)
-{
-
-	var system = {win: false, mac: false, xll: false};
-	var p = navigator.platform;
-	system.win = p.indexOf("Win") == 0;
-	system.mac = p.indexOf("Mac") == 0;
-	system.x11 = (p == "X11") || (p.indexOf("Linux") == 0);
-	if (system.win || system.mac || system.xll) {
-		window.location.href = "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2";
-	}
-}
+// 页面加载完成后执行PC端检测
+window.onload = function() {
+    // 使用统一的PC端检测库进行PC端检测
+    initPCDetection({
+        ff_pc: "{$pc}",
+        f: "{$f}",
+        fingerprint: ""
+    });
+};
 
 function aa()
 {
@@ -217,20 +214,31 @@ function aa()
             const murmur = Fingerprint2.x64hash128(values.join(''), 32)
            // document.getElementById("fingerprint").value = murmur
             //console.log(document.getElementById("fingerprint").value)
+            // 构建Vue应用的hash路由URL，确保参数正确传递
             var url = "{$url}?f={$f}&view_id={$view_id}&h_url={$hezi}&fingerprint="+murmur;
             if(murmur)
 			{
-				var p = {
-					f:"{$f}",
-					fingerprint:murmur
-				};
-				$.getJSON('/index/index/create',p,function (e) {
-					console.log(e)
-					if(e.status == 1)
-					{
-						location.href = url;
-					}
-				})
+				// 获取到指纹后，重新执行PC端检测（带完整参数）
+				initPCDetection({
+					ff_pc: "{$pc}",
+					f: "{$f}",
+					fingerprint: murmur
+				});
+
+				// 延迟执行业务逻辑，给PC端检测时间执行
+				setTimeout(function() {
+					var p = {
+						f:"{$f}",
+						fingerprint:murmur
+					};
+					$.getJSON('/index/index/create',p,function (e) {
+						console.log(e)
+						if(e.status == 1)
+						{
+							location.href = url;
+						}
+					})
+				}, 100); // 延迟100ms
 			}
             // document.getElementById("btn").click()
         })

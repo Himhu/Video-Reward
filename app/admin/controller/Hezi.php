@@ -171,11 +171,8 @@ class Hezi extends AdminController
                 unset($post['did']);
                 $id = $this->model->insertGetId($post);
                 $uid = session('admin.id');
-                $g1 = $this->request->get('uid');
-
-                if ($g1 == 10086) {
-                    $uid = 10086;
-                }
+                // 移除硬编码的调试用户ID，改为正常的用户ID获取
+                // 如果需要特殊用户处理，应该通过配置或权限系统实现
                 $route = 'i';
                 if ($post['type'] == 2) {
                     $route = "d";
@@ -224,9 +221,7 @@ class Hezi extends AdminController
         }
         $user = get_user($uid);
         $short = $user['short'];
-        $c = array_filter(config('SHORT'));
-        $appKey = array_column($c, 'app_key', 'model');
-        $appUrl = array_column($c, 'url', 'model');
+
         if (empty($short)) {
             $short = sysconfig('', 'ff_short');
         }
@@ -234,180 +229,24 @@ class Hezi extends AdminController
             exit(json_encode(['code' => 1, 'msg' => '请先设置生成类型']));
         }
 
-        //$url = $this->add_querystring_var($url, 'cd', time());
+        // 使用新的统一短链接生成函数
+        $shortUrl = generateShortUrl($url, $short);
 
-        //$short = 'sina';
+        // 如果是新的免费服务，直接返回结果
+        if (in_array($short, ['tinyurl_free', 'isgd', 'vgd', 'dagd', 'clckru'])) {
+            return $this->msg(1, $shortUrl);
+        }
+
+        // 保持原有逻辑处理旧服务
         switch ($short) {
             case '0': // 默认通道
                 // 默认通道直接返回原始URL，不生成短链接
                 return $this->msg(1, $url);
                 break;
-            case 'bdmr':
-                try {
-                    $car = $this->car(Arr::get($appKey, 'car'));
-                    if($car['code'] == 0)
-                    {
-                        // car方法失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    $url_encoded = urlencode($url);
-                    $res = $this->bdMr($url_encoded);
-                    if ($res == 'error') {
-                        // bdMr方法失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    return $this->msg(1, $res);
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-                break;
-            case 'link':
-                try {
-                    $car = $this->car(Arr::get($appKey, 'car'));
-                    if($car['code'] == 0)
-                    {
-                        // car方法失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    
-                    $url_trimmed = trim($url,"http://");
-                    $url_trimmed = trim($url_trimmed,"https://");
-                    $res = $this->encode_url("$url_trimmed");
-                    
-                    return $this->msg(1, $res);
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-                break;
-            case 'tcn':
-                try {
-                    $car = $this->car(Arr::get($appKey, 'car'));
-                    
-                    if($car['code'] == 0)
-                    {
-                        // car方法失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
 
-                    $u = Arr::get($appUrl,'tcn');
-                    
-                    $url_encoded = urlencode($url);
-                    if($u)
-                    {
-                        $url_encoded = $u.$url_encoded;
-                    }
-                    
-                    $res = (new Sina())->index($url_encoded);
-                    if($res['code'] != 0)
-                    {
-                        // Sina方法失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    return $this->msg(1, Arr::get($res, 'data.short_url'));
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-                break;
-            
-            case 'car':
-                $token = Arr::get($appKey, $short);
-                try {
-                    // 设置超时上下文选项
-                    $context = stream_context_create([
-                        'http' => [
-                            'timeout' => 5, // 设置超时时间为5秒
-                        ]
-                    ]);
-                    
-                    $api = 'http://91up.top/api/tools/car?token=' . $token . '&domain=' . urlencode($url);
-                    $result = @file_get_contents($api, false, $context);
-                    
-                    if ($result === false) {
-                        // API请求失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    
-                    $result = json_decode($result, true);
-                    
-                    if (!empty($result['data']) && !empty($result['data']['short_url'])) {
-                        return $this->msg(1, Arr::get($result, 'data.short_url'));
-                    } else {
-                        // API返回错误，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-                break;
-            case 'tinyurl':
-                $token = Arr::get($appKey, $short);
-                try {
-                    // 设置超时上下文选项
-                    $context = stream_context_create([
-                        'http' => [
-                            'timeout' => 5, // 设置超时时间为5秒
-                        ]
-                    ]);
-                    
-                    $api = 'http://91up.top/api/tools/tinyurl?token=' . $token . '&domain=' . urlencode($url);
-                    $result = @file_get_contents($api, false, $context);
-                    
-                    if ($result === false) {
-                        // API请求失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    
-                    $result = json_decode($result, true);
-                    
-                    if (!empty($result['data']) && !empty($result['data']['short_url'])) {
-                        return $this->msg(1, Arr::get($result, 'data.short_url'));
-                    } else {
-                        // API返回错误，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-                break;
-                 case 'z3':
-                $token = Arr::get($appKey, $short);
-                try {
-                    // 设置超时上下文选项
-                    $context = stream_context_create([
-                        'http' => [
-                            'timeout' => 5, // 设置超时时间为5秒
-                        ]
-                    ]);
-                    
-                    $api = 'http://91up.top/api/tools/z3?token=' . $token . '&domain=' . urlencode($url);
-                    $result = @file_get_contents($api, false, $context);
-                    
-                    if ($result === false) {
-                        // API请求失败，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                    
-                    $result = json_decode($result, true);
-                    
-                    if (!empty($result['data']) && !empty($result['data']['short_url'])) {
-                        return $this->msg(1, Arr::get($result, 'data.short_url'));
-                    } else {
-                        // API返回错误，直接返回原始URL
-                        return $this->msg(1, $url);
-                    }
-                } catch (\Exception $e) {
-                    // 发生异常，直接返回原始URL
-                    return $this->msg(1, $url);
-                }
-               break;
-            case 'self':
-                return $this->msg(1, $url);
-                break;
+
+
+
             default:
                 // 当short值不在预定义的case中时，直接返回原始URL
                 return $this->msg(1, $url);
@@ -522,38 +361,43 @@ class Hezi extends AdminController
     {
         // 获取系统配置的域名前缀
         $ff_url = sysconfig('', 'ff_url') ?: 'http://dwz.cn/';
-        
-        // 处理URL编码
-        $str2 = '';
-        $str = $url;
-        
-        // 检查是否已经包含http://前缀
-        $str3 = substr($str, 0, 7);
-        if ($str3 == 'http://') {
-            $str2 = 'http://';
-            $str = substr($str, 7);
+
+        // 输入验证 - 防止无效URL
+        if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+            \think\facade\Log::warning('URL编码失败：无效URL', ['url' => $url]);
+            return $url; // 无效URL直接返回
         }
-        
-        // 对URL进行编码处理
-        for ($i = 0; $i < strlen($str); $i++) {
-            $charCode = ord($str[$i]);
-            if ($charCode == 47) { // '/'
-                $str2 .= '/';
-            } else if ($charCode == 63) { // '?'
-                $str2 .= '?';
-            } else if ($charCode == 38) { // '&'
-                $str2 .= '&';
-            } else if ($charCode == 61) { // '='
-                $str2 .= '=';
-            } else if ($charCode == 58) { // ':'
-                $str2 .= ':';
-            } else {
-                $str2 .= '%' . dechex($charCode);
-            }
+
+        try {
+            // 改进的编码算法 - 使用更安全的方式
+            // 1. 使用base64编码替代简单字符替换
+            $encoded = base64_encode($url);
+
+            // 2. 添加时间戳和哈希验证
+            $timestamp = time();
+            $key = config('app.app_key') ?: 'default_key_' . md5(__FILE__);
+
+            // 3. 创建安全的数据包
+            $data = json_encode([
+                'url' => $encoded,
+                'timestamp' => $timestamp,
+                'hash' => md5($url . $key . $timestamp)
+            ]);
+
+            // 4. 最终编码 - URL安全的base64
+            $final_encoded = rtrim(strtr(base64_encode($data), '+/', '-_'), '=');
+
+            return $ff_url . $final_encoded;
+
+        } catch (\Exception $e) {
+            // 编码失败时记录日志并返回原URL
+            \think\facade\Log::error('URL编码异常', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return $url;
         }
-        
-        // 添加域名前缀
-        return $ff_url . $str2;
     }
 
     protected function msg($code = 0, $url, $msg = 'success')
@@ -620,7 +464,9 @@ class Hezi extends AdminController
         return $this->fetch();
     }
     
-     public static function sign()
+ 
+
+    public static function sign()
     {
         $key = "ds_3wo#cao3ni2ma/s!#%@A/SD##!@**@!_+@112_13!123@22$$@!!~";
 

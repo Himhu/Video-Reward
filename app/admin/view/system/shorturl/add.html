@@ -1,0 +1,111 @@
+
+<div class="layui-card">
+    <div class="layui-card-header">添加短地址服务</div>
+    <div class="layui-card-body">
+        <form class="layui-form layui-form-pane" action="" lay-filter="example">
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">服务代码</label>
+                <div class="layui-input-block">
+                    <input type="text" name="service_code" lay-verify="required" placeholder="请输入服务代码" 
+                           autocomplete="off" class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">唯一标识，如：sina、baidu等</div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">服务名称</label>
+                <div class="layui-input-block">
+                    <input type="text" name="service_name" lay-verify="required" placeholder="请输入服务名称" 
+                           autocomplete="off" class="layui-input">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">API密钥</label>
+                <div class="layui-input-block">
+                    <input type="text" name="api_key" placeholder="请输入API密钥" 
+                           autocomplete="off" class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">第三方服务的API密钥或Token</div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">API地址</label>
+                <div class="layui-input-block">
+                    <input type="text" name="api_url" placeholder="请输入API地址" 
+                           autocomplete="off" class="layui-input">
+                    <div class="layui-form-mid layui-word-aux">第三方服务的API接口地址</div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">排序</label>
+                <div class="layui-input-block">
+                    <input type="number" name="sort_order" placeholder="请输入排序值" 
+                           autocomplete="off" class="layui-input" value="0">
+                    <div class="layui-form-mid layui-word-aux">数值越小越靠前</div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">状态</label>
+                <div class="layui-input-block">
+                    <input type="radio" name="is_enabled" value="1" title="启用" checked>
+                    <input type="radio" name="is_enabled" value="0" title="禁用">
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">设为默认</label>
+                <div class="layui-input-block">
+                    <input type="checkbox" name="is_default" value="1" title="默认服务">
+                    <div class="layui-form-mid layui-word-aux">设为默认后，其他服务的默认状态将被取消</div>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <label class="layui-form-label">备注说明</label>
+                <div class="layui-input-block">
+                    <textarea name="remark" placeholder="请输入备注说明" class="layui-textarea"></textarea>
+                </div>
+            </div>
+            
+            <div class="layui-form-item">
+                <div class="layui-input-block">
+                    <button class="layui-btn" lay-submit lay-filter="*">立即提交</button>
+                    <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+                </div>
+            </div>
+            
+        </form>
+    </div>
+</div>
+
+<script>
+layui.use(['form'], function () {
+    var form = layui.form,
+        layer = layui.layer,
+        $ = layui.$;
+
+    // 监听提交
+    form.on('submit(*)', function (data) {
+        $.post('', data.field, function (result) {
+            if (result.code === 1) {
+                layer.msg(result.msg, {
+                    offset: '15px',
+                    icon: 1,
+                    time: 1000
+                }, function () {
+                    parent.layer.closeAll();
+                    parent.layui.table.reload('currentTableId');
+                });
+            } else {
+                layer.msg(result.msg, {offset: '15px', icon: 2});
+            }
+        });
+        return false;
+    });
+});
+</script>
+

@@ -185,6 +185,67 @@ class Config extends AdminController
     }
 
     /**
+     * @NodeAnotation(title="单个配置项自动保存")
+     */
+    public function autoSave()
+    {
+        // 获取参数
+        $name = $this->request->param('name', '');
+        $value = $this->request->param('value', '');
+
+        if (empty($name)) {
+            return $this->error('配置项名称不能为空');
+        }
+
+        try {
+            // 直接使用数据库操作，避免模型复杂逻辑
+            $result = \think\facade\Db::name('system_config')
+                ->where('name', $name)
+                ->update(['value' => $value]);
+
+            if ($result === false) {
+                return $this->error('保存失败');
+            }
+
+            if ($result === 0) {
+                // 检查配置项是否存在
+                $exists = \think\facade\Db::name('system_config')
+                    ->where('name', $name)
+                    ->find();
+
+                if (!$exists) {
+                    return $this->error('配置项不存在: ' . $name);
+                }
+
+                // 如果存在但没有更新，可能是值相同
+                return $this->success('配置已是最新值', [
+                    'name' => $name,
+                    'value' => $value
+                ]);
+            }
+
+            // 简单的缓存清理
+            try {
+                \think\facade\Cache::clear();
+            } catch (\Exception $e) {
+                // 忽略缓存清理错误
+            }
+
+            return $this->success('保存成功', [
+                'name' => $name,
+                'value' => $value,
+                'updated_rows' => $result
+            ]);
+
+        } catch (\think\exception\HttpResponseException $e) {
+            // 这是正常的响应异常，重新抛出
+            throw $e;
+        } catch (\Exception $e) {
+            return $this->error('保存失败：' . $e->getMessage());
+        }
+    }
+
+    /**
      * @NodeAnotation(title="维护页面")
      */
     public function weihu()
@@ -214,7 +275,8 @@ class Config extends AdminController
             // 更新stock表的image字段
             $stockCount = Db::name('stock')->where('image', 'like', "%{$searchStr}%")->count();
             if ($stockCount > 0) {
-                Db::execute("UPDATE d3s_stock SET image = REPLACE(image, ?, ?) WHERE image LIKE ?",
+                $stockTable = config('database.connections.mysql.prefix') . 'stock';
+                Db::execute("UPDATE {$stockTable} SET image = REPLACE(image, ?, ?) WHERE image LIKE ?",
                     [$searchStr, $replaceStr, "%{$searchStr}%"]);
             }
         }
@@ -223,7 +285,8 @@ class Config extends AdminController
             // 更新stock表的url字段
             $stockCount = Db::name('stock')->where('url', 'like', "%{$searchStr}%")->count();
             if ($stockCount > 0) {
-                Db::execute("UPDATE d3s_stock SET url = REPLACE(url, ?, ?) WHERE url LIKE ?",
+                $stockTable = config('database.connections.mysql.prefix') . 'stock';
+                Db::execute("UPDATE {$stockTable} SET url = REPLACE(url, ?, ?) WHERE url LIKE ?",
                     [$searchStr, $replaceStr, "%{$searchStr}%"]);
             }
         }
@@ -232,7 +295,8 @@ class Config extends AdminController
         $linkField = $filed == 'img' ? 'img' : 'video_url';
         $linkCount = Db::name('link')->where($linkField, 'like', "%{$searchStr}%")->count();
         if ($linkCount > 0) {
-            Db::execute("UPDATE d3s_link SET {$linkField} = REPLACE({$linkField}, ?, ?) WHERE {$linkField} LIKE ?",
+            $linkTable = config('database.connections.mysql.prefix') . 'link';
+            Db::execute("UPDATE {$linkTable} SET {$linkField} = REPLACE({$linkField}, ?, ?) WHERE {$linkField} LIKE ?",
                 [$searchStr, $replaceStr, "%{$searchStr}%"]);
         }
 

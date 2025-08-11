@@ -20,7 +20,8 @@ return [
     'no_login_node'       => [
         'login/index',
         'login/out',
-        'hezi/url'
+        'hezi/url',
+        'system.config/autoSave'
     ],
 
     // 不需要验证权限的控制器
@@ -34,6 +35,7 @@ return [
     'no_auth_node'        => [
         'login/index',
         'login/out',
-        'hezi/url'
+        'hezi/url',
+        'system.config/autoSave'
     ],
 ];

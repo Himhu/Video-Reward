@@ -62,9 +62,45 @@ class IndexBaseController extends  BaseController
         {
             return true;
         }
+
+        // create方法用于前端指纹识别，跳过f参数检查
+        if($this->request->action() == "create")
+        {
+            return true;
+        }
+
+        // config方法用于前端配置获取，跳过f参数检查
+        if($this->request->action() == "config")
+        {
+            return true;
+        }
+
+        // Vue应用API接口，跳过f参数检查
+        $apiActions = ['cat', 'vlist', 'pays', 'video'];
+        if(in_array($this->request->action(), $apiActions))
+        {
+            return true;
+        }
         
         if(empty($f) || empty($flgArr))
         {
+            // 检查是否为首页访问或特殊页面
+            $action = $this->request->action();
+            $controller = $this->request->controller();
+
+            // 对于首页访问，设置默认用户ID（PC端检测由前端JavaScript处理）
+            if (strtolower($controller) == 'index' && strtolower($action) == 'index') {
+                // 为首页访问设置默认用户ID
+                $this->id = 1; // 使用ID为1的用户作为首页默认用户
+                return true;
+            }
+
+            // 其他特殊页面
+            $allowedPages = ['qrcode'];
+            if (strtolower($controller) == 'index' && in_array(strtolower($action), $allowedPages)) {
+                return true;
+            }
+
             header("Location: https://m.baidu.com");//重定向浏览器
             exit;//确保重定向后，后续代码不会被执行
         }

@@ -49,7 +49,7 @@ class SystemLog
                     'method'      => $method,
                     'ip'          => $ip,
                     'content'     => json_encode($params, JSON_UNESCAPED_UNICODE),
-                    'useragent'   => $_SERVER['HTTP_USER_AGENT'],
+                    'useragent'   => $_SERVER['HTTP_USER_AGENT'] ?? 'Unknown',
                     'create_time' => time(),
                 ];
                 SystemLogService::instance()->save($data);

@@ -1,0 +1,128 @@
+
+<div class="layuimini-container">
+    <div class="layuimini-main">
+        <table id="currentTable" class="layui-table layui-hide"
+               data-auth-add="1"
+               data-auth-edit="1"
+               data-auth-delete="1"
+               lay-filter="currentTable">
+        </table>
+    </div>
+</div>
+
+<script type="text/html" id="toolbar">
+    <button class="layui-btn layui-btn-normal layui-btn-sm" data-open="{:url('add')}" data-title="添加服务" data-full="true">
+        <i class="fa fa-plus"></i> 添加服务
+    </button>
+</script>
+
+<script type="text/html" id="currentTableBar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    {{# if(d.is_default == 0) { }}
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="setDefault">设为默认</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+    {{# } }}
+    <a class="layui-btn layui-btn-xs layui-btn-warm" lay-event="test">测试</a>
+</script>
+
+<script type="text/html" id="statusTpl">
+    {{# if(d.is_enabled == 1) { }}
+    <span class="layui-badge layui-bg-green">启用</span>
+    {{# } else { }}
+    <span class="layui-badge">禁用</span>
+    {{# } }}
+</script>
+
+<script type="text/html" id="defaultTpl">
+    {{# if(d.is_default == 1) { }}
+    <span class="layui-badge layui-bg-blue">默认</span>
+    {{# } else { }}
+    <span class="layui-badge layui-bg-gray">否</span>
+    {{# } }}
+</script>
+
+<script>
+layui.use(['table', 'form'], function () {
+    var $ = layui.jquery,
+        form = layui.form,
+        table = layui.table;
+
+    table.render({
+        elem: '#currentTable',
+        url: '{:url("index")}',
+        toolbar: '#toolbar',
+        defaultToolbar: ['filter', 'exports', 'print'],
+        cols: [[
+            {field: 'id', width: 80, title: 'ID', sort: true},
+            {field: 'service_name', title: '服务名称', minWidth: 150},
+            {field: 'service_code', title: '服务代码', width: 120},
+            {field: 'api_key', title: 'API密钥', width: 200, templet: function(d){
+                if(d.api_key && d.api_key.length > 20) {
+                    return d.api_key.substring(0, 20) + '...';
+                }
+                return d.api_key || '无';
+            }},
+            {field: 'is_enabled', title: '状态', width: 80, templet: '#statusTpl'},
+            {field: 'is_default', title: '默认', width: 80, templet: '#defaultTpl'},
+            {field: 'sort_order', title: '排序', width: 80},
+            {field: 'remark', title: '备注', minWidth: 150},
+            {title: '操作', minWidth: 200, toolbar: '#currentTableBar', align: "center"}
+        ]],
+        limits: [10, 15, 20, 25, 50, 100],
+        limit: 15,
+        page: true
+    });
+
+    // 监听工具条
+    table.on('tool(currentTable)', function (obj) {
+        var data = obj.data;
+        if (obj.event === 'edit') {
+            layer.open({
+                title: '编辑服务',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['100%', '100%'],
+                content: '{:url("edit")}?id=' + data.id,
+            });
+        } else if (obj.event === 'delete') {
+            layer.confirm('真的删除这个服务吗？', function (index) {
+                $.post('{:url("delete")}', {id: data.id}, function (res) {
+                    if (res.code === 1) {
+                        obj.del();
+                        layer.close(index);
+                        layer.msg(res.msg);
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            });
+        } else if (obj.event === 'setDefault') {
+            layer.confirm('确定设置为默认服务吗？', function (index) {
+                $.post('{:url("setDefault")}', {id: data.id}, function (res) {
+                    if (res.code === 1) {
+                        table.reload('currentTable');
+                        layer.close(index);
+                        layer.msg(res.msg);
+                    } else {
+                        layer.msg(res.msg);
+                    }
+                });
+            });
+        } else if (obj.event === 'test') {
+            layer.prompt({title: '请输入测试URL', value: 'https://www.baidu.com'}, function(value, index){
+                $.post('{:url("test")}', {id: data.id, test_url: value}, function (res) {
+                    layer.close(index);
+                    if (res.code === 1) {
+                        layer.msg('测试成功：' + res.data.service);
+                    } else {
+                        layer.msg('测试失败：' + res.msg);
+                    }
+                });
+            });
+        }
+    });
+});
+</script>
+

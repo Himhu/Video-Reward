@@ -566,7 +566,7 @@ INSERT INTO `ds_system_config` (`id`, `name`, `group`, `value`, `remark`, `sort`
 (121, 'site_pay', 'site', 'www.pay.com', '支付域名', 0, 'input', NULL, NULL),
 (122, 'site_payback', 'site', 'www.payaa.com', '支付回调域名', 0, 'input', NULL, NULL),
 (123, 'site_urlapi', 'site', 'aaaadd', '短网址接口', 0, 'input', NULL, NULL),
-(124, 'site_cdn', 'site', 'bbbbass', 'CDN加速域名', 0, 'input', NULL, NULL),
+
 (125, 'site_qq', 'site', '管理员未设置QQ请联系上级', '客服QQ', 0, 'input', NULL, NULL),
 (126, 'site_wechat', 'site', '管理员未设置微信请联系上级', '客服微信', 0, 'input', NULL, NULL),
 (127, 'jg_ym', 'jg', '10', '域名价格', 0, 'input', NULL, NULL),

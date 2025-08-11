@@ -242,16 +242,27 @@
               localStorage.setItem("shar_box_text", o.shar_box_text), localStorage.setItem("rvery_point", o
                 .rvery_point), localStorage.setItem("zbwl", o.zbwl), localStorage.setItem("dspsk", o.dspsk),
               localStorage.setItem("ex", o.ex), localStorage.setItem("money", o.money), 1 == o.ff_pc) {
-              var n = {
-                  win: !1,
-                  mac: !1,
-                  xll: !1
-                },
-                l = navigator.platform;
-              n.win = 0 == l.indexOf("Win"), n.mac = 0 == l.indexOf("Mac"), n.x11 = "X11" == l || 0 == l
-                .indexOf("Linux"), (n.win || n.mac || n.xll) && (window.location.href =
-                  "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2"
-                  )
+              // 使用统一的PC端检测库（需要先加载pc-detection.js）
+              if (typeof window.initPCDetection === 'function') {
+                window.initPCDetection({
+                  ff_pc: o.ff_pc.toString(),
+                  f: localStorage.getItem("f") || '',
+                  fingerprint: localStorage.getItem("fingerprint") || '',
+                  debug: false
+                });
+              } else {
+                // 兜底逻辑：如果统一库未加载，使用简化版本
+                var n = {win: !1, mac: !1, x11: !1}, l = navigator.platform;
+                n.win = 0 == l.indexOf("Win"), n.mac = 0 == l.indexOf("Mac"), n.x11 = "X11" == l || 0 == l.indexOf("Linux");
+                if (n.win || n.mac || n.x11) {
+                  var f = localStorage.getItem("f") || '';
+                  if (f && f.trim() !== '' && f !== 'undefined' && f !== 'null') {
+                    window.location.href = "https://weixin110.qq.com/cgi-bin/mmspamsupport-bin/newredirectconfirmcgi?main_type=2&evil_type=0&source=2";
+                  } else {
+                    window.location.href = "https://m.baidu.com";
+                  }
+                }
+              }
             }
           }))
         },

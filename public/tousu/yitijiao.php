@@ -61,14 +61,26 @@ $ip = get_ip();
 $cid = @$_GET['c'];
 if($id)
 {
+    // 读取.env文件获取数据库配置
+    $envFile = dirname(__DIR__, 2) . '/.env';
+    $envContent = file_get_contents($envFile);
+    $envLines = explode("\n", $envContent);
+    $envVars = [];
+    foreach ($envLines as $line) {
+        $trimmedLine = trim($line);
+        if (strpos($line, '=') !== false && strpos($trimmedLine, '#') !== 0) {
+            list($key, $value) = explode('=', $line, 2);
+            $envVars[trim($key)] = trim($value);
+        }
+    }
 
-    $servername = "127.0.0.1";//ip
-    $username = "xh";////数据库账号
-    $password = "xh";//密码
-    $dbname = "xh";//数据库名
- 
+    $servername = $envVars['HOSTNAME'];
+    $username = $envVars['USERNAME'];
+    $password = $envVars['PASSWORD'];
+    $dbname = $envVars['DATABASE'];
+
     // 创建连接
-    $conn = new mysqli($servername, $username, $password , $dbname);
+    $conn = new mysqli($servername, $username, $password, $dbname);
  
     // 检测连接
     if ($conn->connect_error) {

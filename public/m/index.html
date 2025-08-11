@@ -97,8 +97,15 @@
         ])
    }else
     {
-        location.href = "/baidu.com";
-        
+        // 如果没有fingerprint，检查是否是首页访问
+        // 首页访问时会生成fingerprint，不应该立即重定向
+        if (f && f !== '' && f !== 'default') {
+            // 只有当有有效的f参数时才重定向
+            location.href = "/baidu.com";
+        } else {
+            // 首页访问或默认访问，等待fingerprint生成
+            console.log('等待fingerprint生成...');
+        }
     }
         
     </script>
@@ -106,7 +113,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no;"
+    <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
           name="viewport">
     <link rel="icon" href="favicon.ico">
     <title>

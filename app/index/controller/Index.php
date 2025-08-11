@@ -2,6 +2,15 @@
 
 namespace app\index\controller;
 
+// 定义Dev辅助类（替代损坏的vendor文件）
+if (!class_exists('Dev')) {
+    class Dev {
+        public static function returnJson($data = [], $code = 200) {
+            return json($data, $code);
+        }
+    }
+}
+
 use app\admin\model\Category;
 use app\admin\model\Complain;
 use app\admin\model\DomainLib;
@@ -22,7 +31,7 @@ use Endroid\QrCode\QrCode;
 use think\Collection;
 use app\admin\model\Payed;
 use think\Db;
-use think\Dev;
+// use think\Dev; // 已损坏，使用自定义Dev类
 use think\Model;
 use app\admin\model\PaySetting;
 
@@ -235,8 +244,12 @@ class Index extends IndexBaseController
         $d = $this->getDomain(2, $this->id);
         if (empty($d))
         {
-            return json(['code' => 99, 'data' => ['url' => 'https://www.baidu.com/s?ie=utf-8&f=8&rsv_bp=1&tn=88093251_103_hao_pg&wd=%E8%AF%B7%E8%81%94%E7%B3%BB%E7%AE%A1%E7%90%86%E5%91%98%E7%BB%91%E5%AE%9A%E5%85%AC%E5%85%B1%E7%82%AE%E7%81%B0%E5%9F%9F%E5%90%8D&oq=%25E8%25AF%25B7%25E7%25BB%2591%25E5%25AE%259A%25E5%2585%25AC%25E5%2585%25B1%25E7%2582%25AE%25E7%2581%25B0%25E5%259F%259F%25E5%2590%258D&rsv_pq=e32a5789000a2836&rsv_t=c4f3V8RP6GOe8T9ymICWp3yTIdn7Zt%2BsKCPadJLXZ8ZiwAt2mJ4tzBYaJGjzrpBPQ9oL%2FCd6CKtnNQ&rqlang=cn&rsv_enter=1&rsv_dl=tb&rsv_sug3=10&rsv_sug1=8&rsv_sug7=100&rsv_sug2=0&rsv_btype=t&inputT=5144&rsv_sug4=5921']]);
-
+            // 如果没有配置炮灰域名，使用当前域名作为默认域名
+            $d = $this->request->domain();
+            if (empty($d)) {
+                // 如果还是空，使用localhost作为默认
+                $d = 'http://localhost';
+            }
         }
 
         $domain = $d . "/m/#/";
@@ -247,12 +260,28 @@ class Index extends IndexBaseController
         }
         $data['domain'] = $domain;
 
-        return json(['code' => 0, 'data' => $data]);
-        $this->assign('url', $domain);
-        return $this->fetch("list/jump");
+        // 如果是AJAX请求或者有特定参数，返回JSON
+        if ($this->request->isAjax() || $this->request->param('format') == 'json') {
+            return json(['code' => 0, 'data' => $data]);
+        }
 
-        header("location:{$domain}");
-        die;
+        // 否则渲染视图
+        $this->assign('url', $domain);
+
+        // 确保view_id有默认值，避免Vue应用报"缺少必要参数"错误
+        $view_id = $data['view_id'] ?? ($this->id ?? 1);
+        $f_param = $this->request->param('f', '');
+
+        // 如果没有f参数，为首页访问设置默认值
+        if (empty($f_param)) {
+            $f_param = 'default'; // 设置默认f参数
+        }
+
+        $this->assign('view_id', $view_id); // 传递view_id变量
+        $this->assign('f', $f_param); // 传递f参数
+        $this->assign('hezi', $this->request->param('hezi', '')); // 传递hezi参数
+        $this->assign('pc', $data['ff_pc']); // 传递PC端配置
+        return $this->fetch("list/jump");
     }
 
     //落地
@@ -541,6 +570,15 @@ class Index extends IndexBaseController
 
 
         $userInfo = get_user($this->id);
+
+        // 如果没有用户信息（API调用），使用默认值
+        if (!$userInfo) {
+            $userInfo = [
+                'is_dan' => 1,
+                'dan_fee' => 6
+            ];
+        }
+
         //固定
         if ($userInfo['is_dan'] == 1)
         {
@@ -618,12 +656,17 @@ class Index extends IndexBaseController
 
     public function config()
     {
-        $ua       = $this->request->param('murmur');
+        $ua       = $this->request->param('murmur', '');
         $zbkg     = (new SystemConfig())->where(['name' => 'zbkg'])->find();
         $zb_t_img = (new SystemConfig())->where(['name' => 'zb_t_img'])->find();
-        $expire   = (new Payed())->where(['ua' => $ua, 'is_date' => 2])
-            ->where('expire', '>', time())
-            ->find();
+
+        // 如果没有ua参数，expire设为null，避免数据库查询错误
+        $expire = null;
+        if (!empty($ua)) {
+            $expire = (new Payed())->where(['ua' => $ua, 'is_date' => 2])
+                ->where('expire', '>', time())
+                ->find();
+        }
         $list     = [
             'zbkh'          => $zbkg,
             'zb_t_img'      => $zb_t_img,
@@ -633,9 +676,9 @@ class Index extends IndexBaseController
             'rvery_point'   => sysconfig('short_video', 'rvery_point'),
             'zbwl'          => sysconfig('short_video', 'zbwl'),
             'dspsk'         => sysconfig('short_video', 'dspsk'),
-            'money'         => get_user($this->id, 'date_fee'),
-            'ex'            => empty($expire) ? '0' : date('Y-m-d H:i:s', $expire->expire),
-            'z_d'           => $this->getDomain(1, $this->id)
+            'money'         => !empty($this->id) ? get_user($this->id, 'date_fee') : 0,
+            'ex'            => (empty($expire) || !isset($expire->expire)) ? '0' : date('Y-m-d H:i:s', $expire->expire),
+            'z_d'           => !empty($this->id) ? $this->getDomain(1, $this->id) : ''
         ];
 
         $data = strrev(base64_encode(json_encode($list)));
@@ -678,6 +721,14 @@ class Index extends IndexBaseController
     {
 
         $userInfo  = get_user($this->id);
+
+        // 如果没有用户信息（API调用），使用默认值
+        if (!$userInfo) {
+            $userInfo = [
+                'is_dan' => 1,
+                'dan_fee' => 6
+            ];
+        }
         $m         = $this->request->param('money', 0);
         $vid       = $this->request->param('vid', 0);
         $murmur    = $this->request->param("murmur");
@@ -1049,6 +1100,9 @@ class Index extends IndexBaseController
 
     public function create()
     {
+        // create方法专门用于AJAX请求，跳过checkFlg检查
+        // 因为这是前端指纹识别功能，不需要f参数验证
+
         $f           = $this->request->param('f');
         $fingerprint = $this->request->param('fingerprint');
         $data        = (new Point())->where(['ua' => $fingerprint])->find();
