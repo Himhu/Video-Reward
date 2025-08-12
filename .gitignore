@@ -51,6 +51,7 @@ config/*.bak
 # 安装锁
 *install.lock
 
-docs/
 
-backup_js_20250812_090746/
+*MySQL.sql
+
+docs/

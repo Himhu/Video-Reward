@@ -274,11 +274,11 @@ class Index extends IndexBaseController
         }
 
         $domain = $d . "/m/#/";
-        //跳转到短视频
-        if ($type == 2)
-        {
-            $domain .= "site";
-        }
+        //统一跳转到首页，不再区分短视频和普通视频路由
+        // if ($type == 2)
+        // {
+        //     $domain .= "site";
+        // }
         $data['domain'] = $domain;
 
         // 如果是AJAX请求或者有特定参数，返回JSON
@@ -532,6 +532,121 @@ class Index extends IndexBaseController
         return view('video');
     }
 
+    /**
+     * 获取混合视频列表（短视频+普通视频）
+     */
+    public function mixed_video_list()
+    {
+        $f     = $this->request->param('f');
+        $key   = $this->request->param('key');
+        $cid   = $this->request->param('cid');
+        $payed = $this->request->param('payed');
+        $page  = $this->request->param('page', 1);
+        $limit = $this->request->param('limit', 15);
+
+        $domain   = $this->getDomain(1, $this->id);
+        $payedVid = $this->getPayedVideoId();
+
+        // 不限制视频类型，获取所有视频
+        $where = [];
+
+        $link = (new Stock());
+        if ($key) {
+            $link = $link->whereLike('title', "%{$key}%");
+        }
+        if ($cid) {
+            $link = $link->where('cid', $cid);
+        }
+        if ($payed) {
+            $link = $link->whereIn('id', $payedVid['vid']);
+        }
+
+        $link = $link->where($where)
+            ->field(['id', 'cid', 'url', 'title', 'image', 'time', 'is_dsp'])
+            ->orderRaw('rand()')
+            ->paginate([
+                'list_rows' => $limit,
+                'page' => $page,
+            ]);
+
+        $userInfo = get_user($this->id);
+        if (!$userInfo) {
+            $userInfo = ['is_dan' => 1, 'dan_fee' => 6];
+        }
+
+        $m = $userInfo['is_dan'] == 1 ? $userInfo['dan_fee'] : rand(
+            (new SystemConfig())->where('name', 'fb_min_money')->value('value'),
+            (new SystemConfig())->where('name', 'fb_max_money')->value('value')
+        );
+
+        $dspsk = sysconfig('short_video', 'dspsk');
+        $ppvd_params = sysconfig('short_video', 'ppvd_params');
+
+        foreach ($link as &$item) {
+            // 短视频特殊处理
+            if ($item['is_dsp'] == 1) {
+                $item['id'] = $item['id'] . time() . rand(0, 9999);
+            }
+
+            if (in_array($item['id'], $payedVid['vid']) ||
+                ($payedVid['is_week'] == 2 || $payedVid['is_date'] == 2 || $payedVid['is_month'] == 2)) {
+                $item['pay'] = 1;
+                $item['video_url'] = $item['url'];
+                $item['pay_url'] = $item['url'];
+                $item['url'] = $domain . "/index/index/video?vid={$item['id']}&f={$f}";
+
+                // 只对短视频应用试看参数
+                if ($dspsk == 1 && $item['is_dsp'] == 1) {
+                    $item['video_url'] = $item['video_url'] . $ppvd_params;
+                }
+            } else {
+                $item['rand'] = rand(5000, 9999);
+                $item['read_num'] = rand(5000, 9999);
+                $item['video_url'] = $item['url'];
+
+                // 只对短视频应用试看参数
+                if ($dspsk == 1 && $item['is_dsp'] == 1) {
+                    $item['video_url'] = $item['video_url'] . $ppvd_params;
+                }
+
+                $item['pay_url'] = $item['url'];
+                $item['money'] = $m;
+                $item['read_num1'] = rand(91, 99);
+                $item['url'] = $domain . "/index/trading/index?vid={$item['id']}&f={$f}&m={$m}";
+            }
+
+            // 添加视频类型标识
+            $item['video_type'] = $item['is_dsp'] == 1 ? 'short' : 'normal';
+            $item['type_name'] = $item['is_dsp'] == 1 ? '短视频' : '普通视频';
+            $item['img'] = $item['image'];
+        }
+
+        $total = $link->total();
+        $list = $link->getCollection()->toArray();
+        shuffle($list);
+
+        // 返回配置信息
+        $config = [
+            'dsp_notify' => sysconfig('short_video', 'dsp_notify'),
+            'shar_box_text' => sysconfig('short_video', 'shar_box_text'),
+            'rvery_point' => sysconfig('short_video', 'rvery_point'),
+            'zbwl' => sysconfig('short_video', 'zbwl'),
+            'dspsk' => sysconfig('short_video', 'dspsk'),
+        ];
+
+        return json([
+            'status' => 1,
+            'msg' => '获取成功',
+            'data' => [
+                'list' => $list,
+                'total' => $total,
+                'page' => $page,
+                'limit' => $limit,
+                'config' => $config
+            ]
+        ]);
+    }
+
 
     public function payed_list()
     {
@@ -561,14 +676,19 @@ class Index extends IndexBaseController
         $key   = $this->request->param('key');
         $cid   = $this->request->param('cid');
         $payed = $this->request->param('payed');
-        $type  = $this->request->param('type', 0);
+        $type  = $this->request->param('type', 'mixed');
         // $userInfo = Admin::getUser($this->id);
         $domain   = $this->getDomain(1, $this->id);
         $payedVid = $this->getPayedVideoId();
         $where    = [
             //'uid' => ['=', $this->id]
-            'is_dsp' => $type
         ];
+
+        // 根据type参数决定获取哪种类型的视频
+        if ($type !== 'mixed' && in_array($type, [0, 1])) {
+            $where['is_dsp'] = $type;
+        }
+        // 当type='mixed'或未指定时，获取所有类型的视频
 
 
         $link = (new Stock());
@@ -590,12 +710,9 @@ class Index extends IndexBaseController
             // $link = $link->whereIn('id' ,  $payedVid['vid'])->where('uid',"=",$this->id);
             $link = $link->whereIn('id', $payedVid['vid']);
         }
-        $pageSize = $this->request->all('row', 10);
-        if ($type == 0)
-        {
-            $pageSize = 10;
-        }
-        $link = $link->where($where)->field(['id', 'cid', 'url', 'title', 'image', 'time'])->orderRaw('rand()')
+        $pageSize = $this->request->param('row', 15);
+        // 统一分页大小，混合显示时使用15个，兼顾两种类型的展示需求
+        $link = $link->where($where)->field(['id', 'cid', 'url', 'title', 'image', 'time', 'is_dsp'])->orderRaw('rand()')
             ->paginate($pageSize);
 
 
@@ -626,7 +743,8 @@ class Index extends IndexBaseController
         $ppvd_params = sysconfig('short_video', 'ppvd_params');
         foreach ($link as &$item)
         {
-            if ($type == 1)
+            // 根据每个视频的is_dsp字段判断是否为短视频
+            if ($item['is_dsp'] == 1)
             {
                 $item['id'] = $item['id'] . time() . rand(0, 9999);
             }
@@ -636,7 +754,8 @@ class Index extends IndexBaseController
                 $item['video_url'] = $item['url'];
                 $item['pay_url']   = $item['url'];
                 $item['url']       = $domain . "/index/index/video?vid={$item['id']}&f={$f}";
-                if ($dspsk == 1)
+                // 只对短视频应用试看参数
+                if ($dspsk == 1 && $item['is_dsp'] == 1)
                 {
                     $item['video_url'] = $item['video_url'] . $ppvd_params;
                 }
@@ -653,7 +772,8 @@ class Index extends IndexBaseController
                 $item['rand']      = rand(5000, 9999);
                 $item['read_num']  = rand(5000, 9999);
                 $item['video_url'] = $item['url'];
-                if ($dspsk == 1)
+                // 只对短视频应用试看参数
+                if ($dspsk == 1 && $item['is_dsp'] == 1)
                 {
                     $item['video_url'] = $item['video_url'] . $ppvd_params;
                 }
@@ -664,6 +784,10 @@ class Index extends IndexBaseController
                 $item['url']       = $domain . "/index/trading/index?vid={$item['id']}&f={$f}&m={$m}";
 
             }
+
+            // 添加视频类型标识，方便前端区分显示
+            $item['video_type'] = $item['is_dsp'] == 1 ? 'short' : 'normal';
+            $item['type_name'] = $item['is_dsp'] == 1 ? '短视频' : '普通视频';
 
             // $item['pay'] = 1;
 
