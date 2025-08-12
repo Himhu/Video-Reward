@@ -99,7 +99,7 @@ class CategoryService extends BaseService
     {
         // 数据验证
         $rules = [
-            'ctitle' => 'require|max:50',
+            'ctitle' => 'require|max:30',
             'pid' => 'integer|egt:0',
             'sort' => 'integer|egt:0',
             'status' => 'in:0,1'
@@ -132,7 +132,17 @@ class CategoryService extends BaseService
         $data['sort'] = $data['sort'] ?? 0;
         $data['status'] = $data['status'] ?? 1;
 
-        return $this->create($data) ? true : '创建失败';
+        try {
+            $result = $this->create($data);
+            if ($result === false) {
+                \think\facade\Log::error('Category create failed: ' . json_encode($data));
+                return '创建失败，请检查数据格式';
+            }
+            return true;
+        } catch (\Exception $e) {
+            \think\facade\Log::error('Category create exception: ' . $e->getMessage());
+            return '创建失败：' . $e->getMessage();
+        }
     }
 
     /**

@@ -30,7 +30,7 @@ SET time_zone = "+00:00";
 --
 
 CREATE TABLE `ds_category` (
-  `id` int(11) NOT NULL COMMENT 'ID',
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `pid` int(11) NOT NULL DEFAULT 0 COMMENT '父级分类ID',
   `ctitle` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '分类名称',
   `image` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '分类图片 {image}',
@@ -39,10 +39,12 @@ CREATE TABLE `ds_category` (
   `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
   `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
   `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
+  PRIMARY KEY (`id`),
+  KEY `weigh` (`id`),
   KEY `idx_pid` (`pid`),
   KEY `idx_status` (`status`),
   KEY `idx_sort` (`sort`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
+) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
 
 --
 -- 转存表中的数据 `ds_category`

@@ -81,9 +81,14 @@ abstract class BaseService
     public function create($data)
     {
         try {
-            $result = $this->model->save($data);
-            return $result ? $this->model->id : false;
+            // 创建新的模型实例进行保存
+            $modelClass = get_class($this->model);
+            $model = new $modelClass;
+            $result = $model->save($data);
+            return $result ? $model->id : false;
         } catch (\Exception $e) {
+            // 记录错误日志
+            \think\facade\Log::error('BaseService create error: ' . $e->getMessage());
             return false;
         }
     }
