@@ -52,3 +52,5 @@ config/*.bak
 *install.lock
 
 docs/
+
+backup_js_20250812_090746/

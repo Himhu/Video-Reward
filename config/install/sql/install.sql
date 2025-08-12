@@ -31,11 +31,28 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `ds_category` (
   `id` int(11) NOT NULL COMMENT 'ID',
+  `pid` int(11) NOT NULL DEFAULT 0 COMMENT '父级分类ID',
   `ctitle` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '分类名称',
   `image` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '分类图片 {image}',
+  `sort` int(11) NOT NULL DEFAULT 0 COMMENT '排序值',
+  `status` tinyint(1) NOT NULL DEFAULT 1 COMMENT '状态：0=禁用，1=启用',
   `create_time` int(11) DEFAULT NULL COMMENT '创建时间',
-  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间'
+  `update_time` int(11) DEFAULT NULL COMMENT '更新时间',
+  `delete_time` int(11) DEFAULT NULL COMMENT '删除时间',
+  KEY `idx_pid` (`pid`),
+  KEY `idx_status` (`status`),
+  KEY `idx_sort` (`sort`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
+
+--
+-- 转存表中的数据 `ds_category`
+--
+
+INSERT INTO `ds_category` (`id`, `pid`, `ctitle`, `image`, `sort`, `status`, `create_time`, `update_time`, `delete_time`) VALUES
+(1, 0, '默认分类', NULL, 0, 1, 1641888000, 1641888000, NULL),
+(2, 0, '图片资源', NULL, 1, 1, 1641888000, 1641888000, NULL),
+(3, 0, '视频资源', NULL, 2, 1, 1641888000, 1641888000, NULL),
+(4, 0, '文档资源', NULL, 3, 1, 1641888000, 1641888000, NULL);
 
 -- --------------------------------------------------------
 
