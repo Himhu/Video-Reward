@@ -1,0 +1,107 @@
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset id="" class="table-search-fieldset " style="margin-bottom: 1%">
+            <legend>已结算提现统计</legend>
+            <table class="table layui-table " >
+                <thead>
+                <tr>
+                    <th style="text-align: center;">已结算笔数</th>
+                    <th style="text-align: center;">已结算金额</th>
+                    <th style="text-align: center;">今日结算</th>
+                    <th style="text-align: center;">今日金额</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr class="text-center">
+                    <td>0</td>
+                    <td>￥0.00</td>
+                    <td>0</td>
+                    <td>￥0.00</td>
+                </tr>
+                </tbody>
+            </table>
+        </fieldset>
+
+        <table id="currentTable" class="layui-table layui-hide"
+               data-auth-view="{:auth('outlayy/index')}"
+               lay-filter="currentTable">
+        </table>
+
+    </div>
+</div>
+
+<script>
+    layui.use(['table', 'form', 'layer'], function () {
+        var $ = layui.jquery,
+            table = layui.table,
+            form = layui.form,
+            layer = layui.layer;
+
+        table.render({
+            elem: '#currentTable',
+            url: '{:url("index")}',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print'],
+            cols: [[
+                {type: "checkbox", width: 50},
+                {field: 'id', width: 80, title: 'ID', sort: true},
+                {field: 'admin_id', width: 100, title: '用户ID'},
+                {field: 'admins.username', width: 120, title: '用户名'},
+                {field: 'money', width: 120, title: '提现金额', templet: function(d){
+                    return '￥' + d.money;
+                }},
+                {field: 'account', width: 200, title: '收款账户'},
+                {field: 'remark', width: 200, title: '备注'},
+                {field: 'create_time', width: 150, title: '申请时间', templet: function(d){
+                    return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');
+                }},
+                {field: 'update_time', width: 150, title: '结算时间', templet: function(d){
+                    return d.update_time ? layui.util.toDateString(d.update_time * 1000, 'yyyy-MM-dd HH:mm:ss') : '-';
+                }},
+                {field: 'status', width: 100, title: '状态', templet: function(d){
+                    return '<span style="color: green">已结算</span>';
+                }},
+                {title: '操作', width: 150, templet: '#currentTableBar', fixed: "right", align: "center"}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line'
+        });
+
+        // 监听工具条
+        table.on('tool(currentTable)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'view') {
+                var index = layer.open({
+                    title: '查看已结算提现详情',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin:true,
+                    shadeClose: true,
+                    area: ['80%', '80%'],
+                    content: '{:url("view")}?id=' + data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            }
+        });
+
+    });
+</script>
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm" lay-event="refresh">
+            <i class="fa fa-refresh"></i> 刷新
+        </button>
+    </div>
+</script>
+
+<script type="text/html" id="currentTableBar">
+    <a class="layui-btn layui-btn-xs layui-btn-normal" lay-event="view">查看详情</a>
+</script>
