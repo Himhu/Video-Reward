@@ -1,0 +1,201 @@
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="layui-elem-field">
+            <legend>采集参数设置</legend>
+            <div class="layui-field-box">
+                <form class="layui-form" lay-filter="collectForm">
+                    <div class="layui-row">
+                        <div class="layui-col-md3">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">页码</label>
+                                <div class="layui-input-block">
+                                    <input type="number" name="page" value="1" min="1" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">数量</label>
+                                <div class="layui-input-block">
+                                    <input type="number" name="limit" value="10" min="1" max="100" class="layui-input">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">自动保存</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="auto_save" value="1" lay-skin="switch" lay-text="开启|关闭">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-col-md3">
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="button" class="layui-btn layui-btn-normal" onclick="startCollect()">
+                                        <i class="fa fa-play"></i> 开始采集
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </fieldset>
+
+        <fieldset class="layui-elem-field">
+            <legend>采集结果</legend>
+            <div class="layui-field-box">
+                <div id="collectResult" style="min-height: 400px;">
+                    <div class="layui-text" style="text-align: center; padding: 50px; color: #999;">
+                        <i class="fa fa-info-circle" style="font-size: 48px;"></i>
+                        <p style="margin-top: 20px;">点击"开始采集"按钮开始采集数据</p>
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+    </div>
+</div>
+
+<script>
+    layui.use(['form', 'layer', 'element'], function () {
+        var $ = layui.jquery,
+            form = layui.form,
+            layer = layui.layer,
+            element = layui.element;
+
+        // 开始采集
+        window.startCollect = function() {
+            var formData = form.val('collectForm');
+            
+            // 显示加载状态
+            $('#collectResult').html(`
+                <div style="text-align: center; padding: 50px;">
+                    <i class="fa fa-spinner fa-spin" style="font-size: 48px; color: #1E9FFF;"></i>
+                    <p style="margin-top: 20px; font-size: 16px;">正在采集数据，请稍候...</p>
+                </div>
+            `);
+            
+            $.post('{:url("execute")}', formData, function (result) {
+                if (result.code === 1) {
+                    displayResult(result.data);
+                    layer.msg('采集成功！', {icon: 1});
+                } else {
+                    $('#collectResult').html(`
+                        <div style="text-align: center; padding: 50px; color: #FF5722;">
+                            <i class="fa fa-exclamation-triangle" style="font-size: 48px;"></i>
+                            <p style="margin-top: 20px; font-size: 16px;">采集失败：${result.msg}</p>
+                        </div>
+                    `);
+                    layer.msg(result.msg, {icon: 2});
+                }
+            }).fail(function() {
+                $('#collectResult').html(`
+                    <div style="text-align: center; padding: 50px; color: #FF5722;">
+                        <i class="fa fa-exclamation-triangle" style="font-size: 48px;"></i>
+                        <p style="margin-top: 20px; font-size: 16px;">网络请求失败，请检查网络连接</p>
+                    </div>
+                `);
+                layer.msg('网络请求失败', {icon: 2});
+            });
+        };
+
+        // 显示采集结果
+        function displayResult(data) {
+            var html = `
+                <div class="layui-row" style="margin-bottom: 15px;">
+                    <div class="layui-col-md12">
+                        <div class="layui-card">
+                            <div class="layui-card-header">
+                                <strong>采集统计</strong>
+                            </div>
+                            <div class="layui-card-body">
+                                <div class="layui-row">
+                                    <div class="layui-col-md3">
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 24px; color: #1E9FFF;">${data.total}</div>
+                                            <div>采集总数</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md3">
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 24px; color: #5FB878;">${data.saved_count}</div>
+                                            <div>保存数量</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md3">
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 24px; color: #FFB800;">${data.page}</div>
+                                            <div>当前页码</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-col-md3">
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 24px; color: #FF5722;">${data.limit}</div>
+                                            <div>每页数量</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="layui-card">
+                    <div class="layui-card-header">
+                        <strong>采集数据预览</strong>
+                    </div>
+                    <div class="layui-card-body">
+                        <table class="layui-table">
+                            <thead>
+                                <tr>
+                                    <th>序号</th>
+                                    <th>标题</th>
+                                    <th>分类</th>
+                                    <th>封面</th>
+                                    <th>视频地址</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+            `;
+            
+            data.list.forEach(function(item, index) {
+                html += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${item.title}">${item.title}</td>
+                        <td>${item.category_name}</td>
+                        <td>
+                            ${item.img ? `<img src="${item.img}" style="width: 60px; height: 40px; cursor: pointer;" onclick="previewImage('${item.img}')">` : '无封面'}
+                        </td>
+                        <td>
+                            <a href="${item.video_url}" target="_blank" class="layui-btn layui-btn-xs">查看</a>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            html += `
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            
+            $('#collectResult').html(html);
+        }
+
+        // 预览图片
+        window.previewImage = function(src) {
+            layer.photos({
+                photos: {
+                    "data": [{"src": src}]
+                },
+                anim: 5
+            });
+        };
+
+    });
+</script>

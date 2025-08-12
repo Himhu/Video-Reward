@@ -1,0 +1,161 @@
+<div class="layuimini-container">
+    <div class="layuimini-main">
+
+        <fieldset class="table-search-fieldset">
+            <legend>采集管理</legend>
+            <div style="margin: 10px 10px 10px 10px">
+                <div class="layui-inline">
+                    <button class="layui-btn layui-btn-normal" onclick="executeCollect()">
+                        <i class="fa fa-download"></i> 执行采集
+                    </button>
+                    <button class="layui-btn layui-btn-warm" onclick="openConfig()">
+                        <i class="fa fa-cog"></i> 采集配置
+                    </button>
+                    <button class="layui-btn layui-btn-primary" onclick="refreshTable()">
+                        <i class="fa fa-refresh"></i> 刷新
+                    </button>
+                </div>
+            </div>
+        </fieldset>
+
+        <table id="currentTable" class="layui-table layui-hide" lay-filter="currentTable"></table>
+
+    </div>
+</div>
+
+<script>
+    layui.use(['table', 'form', 'layer'], function () {
+        var $ = layui.jquery,
+            table = layui.table,
+            form = layui.form,
+            layer = layui.layer;
+
+        table.render({
+            elem: '#currentTable',
+            url: '{:url("index")}',
+            toolbar: '#toolbarDemo',
+            defaultToolbar: ['filter', 'exports', 'print'],
+            cols: [[
+                {type: "checkbox", width: 50},
+                {field: 'id', width: 80, title: 'ID', sort: true},
+                {field: 'title', width: 300, title: '视频标题'},
+                {field: 'category.ctitle', width: 120, title: '分类'},
+                {field: 'url', width: 200, title: '视频地址', templet: function(d){
+                    return '<a href="' + d.url + '" target="_blank" class="layui-btn layui-btn-xs">查看</a>';
+                }},
+                {field: 'image', width: 100, title: '封面', templet: function(d){
+                    if (d.image) {
+                        return '<img src="' + d.image + '" style="width:60px;height:40px;" onclick="previewImage(\'' + d.image + '\')">';
+                    }
+                    return '无封面';
+                }},
+                {field: 'number', width: 100, title: '播放次数'},
+                {field: 'is_dsp', width: 100, title: '类型', templet: function(d){
+                    return d.is_dsp == 1 ? '<span class="layui-badge layui-bg-green">短视频</span>' : '<span class="layui-badge">普通视频</span>';
+                }},
+                {field: 'create_time', width: 160, title: '采集时间', templet: function(d){
+                    return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');
+                }},
+                {title: '操作', width: 150, templet: '#currentTableBar', fixed: "right", align: "center"}
+            ]],
+            limits: [10, 15, 20, 25, 50, 100],
+            limit: 15,
+            page: true,
+            skin: 'line'
+        });
+
+        // 监听工具条
+        table.on('tool(currentTable)', function (obj) {
+            var data = obj.data;
+            var layEvent = obj.event;
+
+            if (layEvent === 'edit') {
+                var index = layer.open({
+                    title: '编辑资源',
+                    type: 2,
+                    shade: 0.2,
+                    maxmin: true,
+                    shadeClose: true,
+                    area: ['90%', '90%'],
+                    content: '{:url("stock/edit")}?id=' + data.id,
+                });
+                $(window).on("resize", function () {
+                    layer.full(index);
+                });
+            } else if (layEvent === 'delete') {
+                layer.confirm('真的删除这条记录吗？', function (index) {
+                    $.post('{:url("stock/delete")}', {id: data.id}, function (result) {
+                        if (result.code === 1) {
+                            obj.del();
+                            layer.close(index);
+                            layer.msg(result.msg, {icon: 1});
+                        } else {
+                            layer.msg(result.msg, {icon: 2});
+                        }
+                    });
+                });
+            }
+        });
+
+        // 执行采集
+        window.executeCollect = function() {
+            var index = layer.open({
+                title: '执行采集',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['80%', '80%'],
+                content: '{:url("execute")}',
+                end: function() {
+                    refreshTable();
+                }
+            });
+        };
+
+        // 打开配置
+        window.openConfig = function() {
+            var index = layer.open({
+                title: '采集配置',
+                type: 2,
+                shade: 0.2,
+                maxmin: true,
+                shadeClose: true,
+                area: ['70%', '70%'],
+                content: '{:url("config")}',
+            });
+        };
+
+        // 刷新表格
+        window.refreshTable = function() {
+            table.reload('currentTable');
+        };
+
+        // 预览图片
+        window.previewImage = function(src) {
+            layer.photos({
+                photos: {
+                    "data": [{"src": src}]
+                },
+                anim: 5
+            });
+        };
+
+    });
+</script>
+
+<script type="text/html" id="toolbarDemo">
+    <div class="layui-btn-container">
+        <button class="layui-btn layui-btn-sm layui-btn-normal" onclick="executeCollect()">
+            <i class="fa fa-download"></i> 执行采集
+        </button>
+        <button class="layui-btn layui-btn-sm layui-btn-warm" onclick="openConfig()">
+            <i class="fa fa-cog"></i> 采集配置
+        </button>
+    </div>
+</script>
+
+<script type="text/html" id="currentTableBar">
+    <a class="layui-btn layui-btn-xs" lay-event="edit">编辑</a>
+    <a class="layui-btn layui-btn-xs layui-btn-danger" lay-event="delete">删除</a>
+</script>

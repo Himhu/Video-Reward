@@ -713,7 +713,8 @@ INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `t
 (288, 254, '抽单列表', 'fa fa-assistive-listening-systems', 'quantitylist/index', '', '_self', 0, 1, '', 1606922804, 1650975249, NULL),
 (289, 0, '下级管理', 'fa fa-american-sign-language-interpreting', '', '', '_self', 0, 1, '', 1607002225, 1607844847, NULL),
 (290, 289, '下级明细', 'fa fa-barcode', 'numberx/index', '', '_self', 0, 1, '', 1607002290, 1607844869, NULL),
-(291, 263, '短视频库', 'fa fa-video-camera', 'stock/index?d=dsp', '', '_self', 0, 1, '', 1648086914, 1648086914, NULL);
+(291, 263, '短视频库', 'fa fa-video-camera', 'stock/index?d=dsp', '', '_self', 0, 1, '', 1648086914, 1648086914, NULL),
+(301, 254, '采集管理', 'fa fa-download', 'collect/index', '', '_self', 99, 1, '资源采集管理功能', 1755002732, 1755002732, NULL);
 
 -- --------------------------------------------------------
 
@@ -1251,13 +1252,13 @@ ALTER TABLE `ds_system_config`
 -- 使用表AUTO_INCREMENT `ds_system_menu`
 --
 ALTER TABLE `ds_system_menu`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=292;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=302;
 
 --
 -- 使用表AUTO_INCREMENT `ds_system_node`
 --
 ALTER TABLE `ds_system_node`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=242;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=246;
 
 --
 -- 使用表AUTO_INCREMENT `ds_system_quick`
