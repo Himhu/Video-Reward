@@ -59,9 +59,15 @@ class Outlay extends AdminController
         $this->assign('statistics', $statistics);
         $this->assign('current_status', $status);
 
+        // 为仪表盘提供专门的待审核统计数据
+        // 注意：仪表盘显示的"待处理提现金额"应该只包含待审核状态的记录
+        $pendingStatistics = $this->getStatisticsData('pending');
+
         // 为模板提供兼容的变量名
-        $this->assign('dpayCount', $statistics['total_count'] ?? 0);
-        $this->assign('dpayMonet', $statistics['total_amount'] ?? '0.00');
+        // dpayCount 和 dpayMonet 专门用于仪表盘显示待审核数据
+        // 这样确保仪表盘只显示需要处理的提现申请，而不是所有状态的记录
+        $this->assign('dpayCount', $pendingStatistics['total_count'] ?? 0);
+        $this->assign('dpayMonet', $pendingStatistics['total_amount'] ?? '0.00');
 
         return $this->fetch();
     }

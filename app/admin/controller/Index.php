@@ -89,8 +89,17 @@ class Index extends AdminController
         $where = ['is_kouliang' => self::IS_DEDUCTED]; // 使用常量
         $money = get_user(session('admin.id'), 'balance') ?: '0.00';
 
-        $dpayMonet = dpayMonet(0);  // 0表示待处理状态
-        $this->assign('dpayMonet' , $dpayMonet);
+        // 计算待处理提现金额和笔数（状态为0的提现申请）
+        // 注意：这里查询的是outlay表（提现记录），不是pay_order表（打赏订单）
+        // 仪表盘显示的"待处理提现金额"应该是待审核状态的提现申请总金额
+        $dpayMonet = \think\facade\Db::name('outlay')->where('status', 0)->sum('money') ?: 0;
+        $dpayCount = \think\facade\Db::name('outlay')->where('status', 0)->count() ?: 0;
+
+        // 格式化金额为两位小数
+        $dpayMonet = number_format($dpayMonet, 2);
+
+        $this->assign('dpayMonet', $dpayMonet);
+        $this->assign('dpayCount', $dpayCount);
 
         $total = [
             'yy' => $money,
