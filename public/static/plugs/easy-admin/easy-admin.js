@@ -849,7 +849,7 @@ define(["jquery", "tableSelect","editor"], function ($, tableSelect , editor) {
                     if(data.form.action.indexOf("paylist/index.html") >0 ||  data.form.action.indexOf("payorder/index.html"))
                     {
                         admin.request.post({
-                            url:"/admin/paylist/index?orderCount=1&a=1",
+                            url:"/" + window.location.pathname.split('/')[1] + "/paylist/index?orderCount=1&a=1",
                             data:{data:formatFilter}
                         },function(res){
                             console.log(res)

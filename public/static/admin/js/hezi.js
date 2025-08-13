@@ -31,7 +31,7 @@ define(["jquery", "easy-admin"], function ($, ea) {
                     area: [clienWidth, clientHeight],
                     fixed: false, //不固定
                     maxmin: true,
-                    content: "/admin/hezi/add?type=" + $(obj.currentTarget).data('active_index')
+                    content: "/" + window.location.pathname.split('/')[1] + "/hezi/add?type=" + $(obj.currentTarget).data('active_index')
                 });
             })
             //购买域名
@@ -41,12 +41,12 @@ define(["jquery", "easy-admin"], function ($, ea) {
                     area: [clienWidth, clientHeight],
                     fixed: false, //不固定
                     maxmin: true,
-                    content: "/admin/hezi/domain?type=" + $(obj.currentTarget).data('active_index')
+                    content: "/" + window.location.pathname.split('/')[1] + "/hezi/domain?type=" + $(obj.currentTarget).data('active_index')
                 });
             })
             //删除
             $(document).on('click','.delete-items',(obj)=>{
-                $.getJSON("/admin/hezi/delete?id="+$(obj.currentTarget).data('id'),function () {
+                $.getJSON("/" + window.location.pathname.split('/')[1] + "/hezi/delete?id="+$(obj.currentTarget).data('id'),function () {
                     layer.msg('删除成功');
                     window.location.reload()
                 })
@@ -59,7 +59,7 @@ define(["jquery", "easy-admin"], function ($, ea) {
                     area: [clienWidth, clientHeight],
                     fixed: false, //不固定
                     maxmin: true,
-                    content: "/admin/hezi/edit?id="+$(obj.currentTarget).data('id')
+                    content: "/" + window.location.pathname.split('/')[1] + "/hezi/edit?id="+$(obj.currentTarget).data('id')
                 });
                // window.location.reload()
             });
@@ -97,7 +97,7 @@ define(["jquery", "easy-admin"], function ($, ea) {
                     area: [clienWidth, clientHeight],
                     shadeClose: true,
                     skin: 'yourclass',
-                    content: "<img src='/admin/hezi/add?qr=1&text="+encodeURIComponent(url)+"'>"
+                    content: "<img src='/" + window.location.pathname.split('/')[1] + "/hezi/add?qr=1&text="+encodeURIComponent(url)+"'>"
                 });
             });
 
@@ -129,7 +129,7 @@ define(["jquery", "easy-admin"], function ($, ea) {
                 });
 
                 let param = type || 1;
-                $.getJSON('/admin/hezi/index' , {
+                $.getJSON('/' + window.location.pathname.split('/')[1] + '/hezi/index' , {
                     filter: JSON.stringify({type:param}),
                     op: JSON.stringify({type:"%*%"})
                 },function (res) {

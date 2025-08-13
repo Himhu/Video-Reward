@@ -62,29 +62,8 @@ define(["jquery", "easy-admin", "echarts", "echarts-theme", "miniAdmin", "miniTa
                     });
 
 
-                    $(".tixianc").click(function () {
-                        ///admin/outlay/add
-
-                        var w = "50%";
-                        var h = "75%";
-                        if(ea.checkMobile() == true)
-                        {
-                            w = "100%";
-                            h = "100%";
-                        }
-                        layer.open({
-                            type: 2,
-                            title: '提现申请',
-                            area: [w , h],
-                            //shade: 0.8,
-                            //id: 'layuimini-notice',
-                            //btn: ['查看', '取消'],
-                            //btnAlign: 'c',
-                            moveType: 1,
-                            content: "/admin/outlay/add",
-
-                        });
-                    })
+                    // 提现按钮事件已在模板中处理，此处删除重复绑定避免冲突
+                    // 原代码已移除，避免与welcome.html模板中的事件处理器冲突
                     
                     
                 },1000)

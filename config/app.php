@@ -22,7 +22,8 @@ return [
     'default_timezone' => 'Asia/Shanghai',
     // 应用映射（自动多应用模式有效）
     'app_map'          => [
-        Env::get('easyadmin.admin', 'admin11') => 'admin',
+        Env::get('easyadmin.admin', 'admin11') => 'admin',  // 自定义后台路径
+        'admin' => 'admin',  // 默认后台路径兼容
     ],
     // 后台别名
     'admin_alias_name' => Env::get('easyadmin.admin', 'admin11'),
