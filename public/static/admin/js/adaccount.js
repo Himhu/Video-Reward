@@ -19,32 +19,33 @@ define(["jquery", "easy-admin"], function ($, ea) {
                 toolbar:['refresh'],
                 search :true,
                 searchCols:[[
-                    {field: 'uid', title: '代理ID'},
-                    {field: 'money', title: '金额'},
+                    {field: 'money', title: '打赏金额'},
                     {field: 'order_on', title: '订单号'},
-                    {field: 'memo', title: '描述'},
                 ]],
                 cols: [[
                     {type: 'checkbox'},
-                    {width: 80, field: 'uid', title: '代理ID'},
+                    {Width: 80, field: 'money', title: '金额'},
                     {
                         minWidth: 80,
-                        field: 'username',
-                        title: '代理名称',
+                        field: 'memo',
+                        title: '标题',
                         templet:function(val){
-                            console.log(val);
-                            if(val.Admins == null){
-                                return  "-";
-                            }else{
-                                return val.Admins.username;
+
+                            if(val.Admins == null)
+                            {
+                                return val.simple;
+                            }
+                            if(val.Admins.pid == 0)
+                            {
+                                return val.memo;
                             }
 
+                            return val.simple;
                         }
                     },
-                    {minWidth: 80, field: 'money', title: '金额'},
-                    {minWidth: 80, field: 'memo', title: '描述',templet: ea.table.copy},
-                    {minWidth: 80, field: 'order_on', title: '订单号'},
-                    {minWidth: 80, field: 'create_time', title: '创建时间'},
+                    {minWidth: 190, field: 'order_on', title: '订单号'},
+                    {minWidth: 180, field: 'create_time', title: '创建时间'},
+
                 ]],
             });
 

@@ -59,6 +59,10 @@ class Outlay extends AdminController
         $this->assign('statistics', $statistics);
         $this->assign('current_status', $status);
 
+        // 为模板提供兼容的变量名
+        $this->assign('dpayCount', $statistics['total_count'] ?? 0);
+        $this->assign('dpayMonet', $statistics['total_amount'] ?? '0.00');
+
         return $this->fetch();
     }
 

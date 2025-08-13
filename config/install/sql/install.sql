@@ -1,5 +1,6 @@
 -- 数据库结构文件 (已优化)
 -- 优化日期： 2025-01-08
+-- 最后更新： 2025-01-12
 -- 优化内容：
 -- 1. 统一存储引擎为InnoDB
 -- 2. 添加缺失索引提升查询性能
@@ -7,8 +8,15 @@
 -- 4. 完全清除所有转存数据
 -- 5. 规范化字段定义和注释
 --
--- 注意：此文件仅包含表结构，不包含任何数据
--- 部署时请根据实际需要添加初始配置数据
+-- 最新更新内容 (2025-01-12)：
+-- 1. 删除重复菜单项：ID 227(后台首页), ID 266(代理管理→账户流水)
+-- 2. 修正账户流水菜单：auaccount/index → adaccount/index
+-- 3. 修正仪表盘菜单：pid 0 → 99999999 (设为系统首页)
+-- 4. 更新系统节点：auaccount → adaccount
+-- 5. 添加采集管理菜单：ID 301
+--
+-- 注意：此文件包含当前生产环境的完整菜单和节点数据
+-- 部署时请根据实际需要添加其他初始配置数据
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -867,7 +875,6 @@ CREATE TABLE `ds_system_menu` (
 --
 
 INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `target`, `sort`, `status`, `remark`, `create_time`, `update_time`, `delete_time`) VALUES
-(227, 99999999, '后台首页', 'fa fa-home', 'index/welcome', '', '_self', 0, 1, NULL, NULL, 1573120497, NULL),
 (228, 0, '顶级菜单', 'fa fa-cog', '', '', '_self', 0, 1, '', NULL, 1605336845, 1605336845),
 (234, 259, '菜单管理', 'fa fa-tree', 'system.menu/index', '', '_self', 10, 1, '', NULL, 1605073838, NULL),
 (244, 262, '代理账户', 'fa fa-user', 'system.admin/index', '', '_self', 12, 1, '', 1573185011, 1605337358, NULL),
@@ -891,7 +898,7 @@ INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `t
 (262, 0, '代理管理', 'fa fa-address-book', '', '', '_self', 8, 1, '', 1605336885, 1607844050, NULL),
 (263, 0, '片库管理', 'fa fa-connectdevelop', '', '', '_self', 5, 1, '', 1605336901, 1607844244, NULL),
 (264, 0, '订单管理', 'fa fa-buysellads', '', '', '_self', 6, 1, '', 1605336913, 1607844130, NULL),
-(266, 262, '账户流水', 'fa fa-universal-access', 'adaccount/index', '', '_self', 0, 1, '', 1605336980, 1607844073, NULL),
+
 (267, 262, '邀请码管理', 'fa fa-handshake-o', 'number/index', '', '_self', 0, 1, '', 1605336993, 1607844094, NULL),
 (268, 263, '公共片库', 'fa fa-automobile', 'stock/index', '', '_self', 0, 1, '', 1605337022, 1606827791, NULL),
 (269, 263, '代理片库', 'fa fa-child', 'link/index', '', '_self', 0, 0, '', 1605337036, 1607844326, NULL),
@@ -907,15 +914,16 @@ INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `t
 (279, 0, '财务管理', 'fa fa-dollar', '', '', '_self', 0, 1, '', 1605338530, 1607844764, NULL),
 (280, 279, '订单记录', 'fa fa-street-view', 'paylist/index', '', '_self', 0, 1, '', 1605338544, 1651029680, NULL),
 (281, 279, '提现记录', 'fa fa-cc-visa', 'outlay/index', '', '_self', 0, 1, '', 1605338556, 1607844801, NULL),
-(282, 279, '账户流水', 'fa fa-universal-access', 'auaccount/index', '', '_self', 0, 1, '', 1605338569, 1607844821, NULL),
+(282, 279, '账户流水', 'fa fa-universal-access', 'adaccount/index', '', '_self', 0, 1, '', 1605338569, 1607844821, NULL),
 (283, 254, '抽单设置', 'fa fa-birthday-cake', 'quantity/index', '', '_self', 6, 1, '', 1605340171, 1650975238, NULL),
 (284, 254, '资源分类', 'fa fa-pagelines', 'category/index', '', '_self', 7, 1, '', 1605459439, 1607843945, NULL),
 (285, 254, '模板管理', 'fa fa-html5', 'muban/index', '', '_self', 8, 1, '', 1605545894, 1607843956, NULL),
 (286, 0, '首页', 'fa fa-dashboard', '', '', '_self', 11, 1, '', 1606889408, 1607844729, NULL),
-(287, 0, '仪表盘', 'fa fa-building', 'index/welcome', '', '_self', 11, 1, '', 1606889600, 1652718923, NULL),
+(287, 99999999, '仪表盘', 'fa fa-building', 'index/welcome', '', '_self', 11, 1, '', 1606889600, 1652718923, NULL),
 (288, 254, '抽单列表', 'fa fa-assistive-listening-systems', 'quantitylist/index', '', '_self', 10, 1, '', 1606922804, 1650975249, NULL),
 (289, 0, '下级管理', 'fa fa-american-sign-language-interpreting', '', '', '_self', 0, 1, '', 1607002225, 1607844847, NULL),
 (290, 289, '下级明细', 'fa fa-barcode', 'numberx/index', '', '_self', 0, 1, '', 1607002290, 1607844869, NULL),
+(291, 263, '短视频库', 'fa fa-video-camera', 'stock/index?d=dsp', '', '_self', 0, 1, '', 1648086914, 1648086914, NULL),
 (291, 263, '短视频库', 'fa fa-video-camera', 'stock/index?d=dsp', '', '_self', 0, 1, '', 1648086914, 1648086914, NULL),
 (301, 254, '采集管理', 'fa fa-download', 'collect/index', '', '_self', 9, 1, '资源采集管理功能', 1755002732, 1755002732, NULL);
 
@@ -1111,13 +1119,13 @@ INSERT INTO `ds_system_node` (`id`, `node`, `title`, `type`, `is_auth`, `create_
 (188, 'adaccount/delete', '删除', 2, 1, 1606911230, 1606911230),
 (189, 'adaccount/export', '导出', 2, 1, 1606911230, 1606911230),
 (190, 'adaccount/modify', '属性修改', 2, 1, 1606911230, 1606911230),
-(191, 'auaccount', '用户账户流水', 1, 1, 1606911231, 1606911231),
-(192, 'auaccount/index', '账户流水', 2, 1, 1606911231, 1606911231),
-(193, 'auaccount/add', '添加', 2, 1, 1606911231, 1606911231),
-(194, 'auaccount/edit', '编辑', 2, 1, 1606911231, 1606911231),
-(195, 'auaccount/delete', '删除', 2, 1, 1606911231, 1606911231),
-(196, 'auaccount/export', '导出', 2, 1, 1606911232, 1606911232),
-(197, 'auaccount/modify', '属性修改', 2, 1, 1606911232, 1606911232),
+(191, 'adaccount', '用户账户流水', 1, 1, 1606911231, 1606911231),
+(192, 'adaccount/index', '账户流水', 2, 1, 1606911231, 1606911231),
+(193, 'adaccount/add', '添加', 2, 1, 1606911231, 1606911231),
+(194, 'adaccount/edit', '编辑', 2, 1, 1606911231, 1606911231),
+(195, 'adaccount/delete', '删除', 2, 1, 1606911231, 1606911231),
+(196, 'adaccount/export', '导出', 2, 1, 1606911232, 1606911232),
+(197, 'adaccount/modify', '属性修改', 2, 1, 1606911232, 1606911232),
 (198, 'paylist', '打赏记录', 1, 1, 1606912324, 1606912324),
 (199, 'paylist/index', '打赏记录', 2, 1, 1606912324, 1606912324),
 (200, 'paylist/add', '添加', 2, 1, 1606912325, 1606912325),
@@ -1687,7 +1695,7 @@ ALTER TABLE `ds_system_menu`
 -- 使用表AUTO_INCREMENT `ds_system_node`
 --
 ALTER TABLE `ds_system_node`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=246;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=242;
 
 --
 -- 使用表AUTO_INCREMENT `ds_system_quick`

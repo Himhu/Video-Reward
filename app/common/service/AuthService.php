@@ -137,9 +137,22 @@ class AuthService
                 'status' => 1,
             ])->find();
         if (!empty($adminInfo)) {
+            // 处理auth_ids字符串转数组
+            // 修复：数据库中auth_ids存储为字符串格式（如"7"或"1,2,7"），需要转换为数组
+            $authIds = [];
+            if (!empty($adminInfo['auth_ids'])) {
+                // 将字符串按逗号分割并转换为整数数组，过滤掉无效值（如0、空字符串）
+                $authIds = array_filter(array_map('intval', explode(',', $adminInfo['auth_ids'])));
+            }
+
+            // 如果没有有效的权限ID，返回空数组（避免后续SQL查询错误）
+            if (empty($authIds)) {
+                return [];
+            }
+
             $buildAuthSql = Db::name($this->config['system_auth'])
                 ->distinct(true)
-                ->whereIn('id', $adminInfo['auth_ids'])
+                ->whereIn('id', $authIds)
                 ->field('id')
                 ->buildSql(true);
             $buildAuthNodeSql = Db::name($this->config['system_auth_node'])
