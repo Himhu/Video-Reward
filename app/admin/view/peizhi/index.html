@@ -481,7 +481,7 @@
 
             console.log(JSON.stringify(data.field));
 
-            $.getJSON("/admin/peizhi/index",$.param({data:data.field}),function (e) {
+            $.getJSON("{:url('peizhi/index')}",$.param({data:data.field}),function (e) {
                     if(e.code == 0)
                     {
                         layer.msg(e.msg);
