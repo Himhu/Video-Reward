@@ -29,7 +29,8 @@
                                                     <div class="panel-content" style="position: relative">
                                                         <h1 class="no-margins" style="">
                                                             <?php echo $dpayMonet?></h1>
-                                                        <a data-title="未结算列表" layuimini-content-href="{:url('outlayw/index')}" class="layui-btn layui-btn-lg layui-btn-sm" style="display: inline-block;position: absolute;right: 0;bottom: 35%;">管理</a>
+                                                        <!-- 修改：指向重构后的统一提现管理控制器，避免重复页面 -->
+                                                        <a data-title="待审核列表" layuimini-content-href="{:url('outlay/pending')}" class="layui-btn layui-btn-lg layui-btn-sm" style="display: inline-block;position: absolute;right: 0;bottom: 35%;">管理</a>
                                                         <small> 提现审批  &nbsp;</small>
                                                     </div>
                                                 </div>
