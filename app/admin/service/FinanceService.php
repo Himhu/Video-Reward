@@ -42,17 +42,46 @@ class FinanceService extends BaseService
      */
     public function getOutlayList($where = [], $page = 1, $limit = 20, $order = 'create_time desc')
     {
-        $result = $this->getList($where, $page, $limit, $order);
-        
-        // 格式化数据
-        foreach ($result['list'] as &$item) {
-            $item['amount_formatted'] = number_format($item['amount'], 2);
-            $item['create_time_formatted'] = date('Y-m-d H:i:s', $item['create_time']);
-            $item['status_text'] = $this->getStatusText($item['status']);
-            $item['status_class'] = $this->getStatusClass($item['status']);
+        try {
+            $result = $this->getList($where, $page, $limit, $order);
+
+            // 格式化数据
+            foreach ($result['list'] as &$item) {
+                // 处理金额字段（可能是money而不是amount）
+                $amount = isset($item['amount']) ? $item['amount'] : (isset($item['money']) ? $item['money'] : 0);
+
+                // 确保金额是数字类型
+                $amount = is_numeric($amount) ? floatval($amount) : 0;
+                $item['amount_formatted'] = number_format($amount, 2);
+
+                // 安全处理时间戳字段
+                $item['create_time_formatted'] = !empty($item['create_time']) && is_numeric($item['create_time'])
+                    ? date('Y-m-d H:i:s', $item['create_time'])
+                    : '';
+
+                // 处理结束时间
+                $item['end_time_formatted'] = !empty($item['end_time']) && is_numeric($item['end_time'])
+                    ? date('Y-m-d H:i:s', $item['end_time'])
+                    : '';
+
+                // 处理拒绝时间
+                $item['refuse_time_formatted'] = !empty($item['refuse_time']) && is_numeric($item['refuse_time'])
+                    ? date('Y-m-d H:i:s', $item['refuse_time'])
+                    : '';
+
+                // 确保状态值是整数
+                $status = isset($item['status']) ? intval($item['status']) : 0;
+                $item['status_text'] = $this->getStatusText($status);
+                $item['status_class'] = $this->getStatusClass($status);
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+            // 记录错误并抛出更详细的异常
+            \think\facade\Log::error('FinanceService::getOutlayList 执行失败: ' . $e->getMessage());
+            throw new \Exception('提现列表查询失败: ' . $e->getMessage());
         }
-        
-        return $result;
     }
 
     /**

@@ -95,43 +95,67 @@ class Outlay extends AdminController
      */
     public function getList()
     {
-        if (input('selectFields')) {
-            return $this->selectList();
-        }
-
-        $status = input('status', 'all');
-        $uid = $this->request->session('admin.id');
-        list($page, $limit, $where) = $this->buildTableParames();
-
-        // 根据状态构建查询条件
-        $statusWhere = $this->buildStatusWhere($status);
-        if ($statusWhere) {
-            $where = array_merge($where, $statusWhere);
-        }
-
-        // 如果是普通用户，只能看自己的提现记录
-        if (!$this->isAdmin()) {
-            $where['uid'] = $uid;
-        }
-
-        // 构建排序字符串
-        $order = 'create_time desc';
-        if (!empty($this->sort)) {
-            $orderParts = [];
-            foreach ($this->sort as $field => $direction) {
-                $orderParts[] = $field . ' ' . $direction;
+        try {
+            if (input('selectFields')) {
+                return $this->selectList();
             }
-            $order = implode(', ', $orderParts);
+
+            $status = input('status', 'all');
+            $uid = $this->request->session('admin.id');
+
+            // 检查用户是否已登录
+            if (empty($uid)) {
+                return json([
+                    'code' => 1,
+                    'msg' => '用户未登录',
+                    'count' => 0,
+                    'data' => []
+                ]);
+            }
+
+            list($page, $limit, $where) = $this->buildTableParames();
+
+            // 根据状态构建查询条件
+            $statusWhere = $this->buildStatusWhere($status);
+            if ($statusWhere) {
+                $where = array_merge($where, $statusWhere);
+            }
+
+            // 如果是普通用户，只能看自己的提现记录
+            if (!$this->isAdmin()) {
+                $where['uid'] = $uid;
+            }
+
+            // 构建排序字符串
+            $order = 'create_time desc';
+            if (!empty($this->sort)) {
+                $orderParts = [];
+                foreach ($this->sort as $field => $direction) {
+                    $orderParts[] = $field . ' ' . $direction;
+                }
+                $order = implode(', ', $orderParts);
+            }
+
+            $result = $this->financeService->getOutlayList($where, $page, $limit, $order);
+
+            return json([
+                'code' => 0,
+                'msg' => '',
+                'count' => $result['count'],
+                'data' => $result['list']
+            ]);
+
+        } catch (\Exception $e) {
+            // 记录错误日志
+            \think\facade\Log::error('提现记录列表获取失败: ' . $e->getMessage());
+
+            return json([
+                'code' => 1,
+                'msg' => '数据获取失败: ' . $e->getMessage(),
+                'count' => 0,
+                'data' => []
+            ]);
         }
-
-        $result = $this->financeService->getOutlayList($where, $page, $limit, $order);
-
-        return json([
-            'code' => 0,
-            'msg' => '',
-            'count' => $result['count'],
-            'data' => $result['list']
-        ]);
     }
 
     /**

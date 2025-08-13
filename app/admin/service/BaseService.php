@@ -48,18 +48,29 @@ abstract class BaseService
      */
     public function getList($where = [], $page = 1, $limit = 20, $order = 'id desc')
     {
-        $count = $this->model->where($where)->count();
-        $list = $this->model
-            ->where($where)
-            ->page($page, $limit)
-            ->order($order)
-            ->select()
-            ->toArray();
+        try {
+            // 确保模型已初始化
+            if (empty($this->model)) {
+                $this->initModel();
+            }
 
-        return [
-            'count' => $count,
-            'list' => $list
-        ];
+            $count = $this->model->where($where)->count();
+            $list = $this->model
+                ->where($where)
+                ->page($page, $limit)
+                ->order($order)
+                ->select()
+                ->toArray();
+
+            return [
+                'count' => $count,
+                'list' => $list
+            ];
+
+        } catch (\Exception $e) {
+            \think\facade\Log::error('BaseService::getList 查询失败: ' . $e->getMessage() . ' SQL: ' . $this->model->getLastSql());
+            throw new \Exception('数据查询失败: ' . $e->getMessage());
+        }
     }
 
     /**

@@ -20,9 +20,12 @@ class Outlay extends TimeModel
 
     protected $dateFormat = 'Y-m-d H:i:s';
     protected $type = [
-
-        'end_time'  =>  'timestamp',
-        'refuse_time'  =>  'timestamp',
+        'money' => 'float',
+        'status' => 'integer',
+        'create_time' => 'timestamp',
+        // 注释掉可能为NULL的时间戳字段，避免自动转换导致错误
+        // 'end_time'  =>  'timestamp',
+        // 'refuse_time'  =>  'timestamp',
     ];
     
     // 状态常量
