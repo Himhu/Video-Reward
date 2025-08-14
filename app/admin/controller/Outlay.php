@@ -393,4 +393,58 @@ class Outlay extends AdminController
         ]);
     }
 
+    /**
+     * @NodeAnotation(title="编辑")
+     */
+    public function edit($id)
+    {
+        $row = $this->model->find($id);
+        $admin_user = new \app\admin\model\SystemAdmin();
+        $admin_lists = $admin_user->where('status',1)->select()->toArray();
+        empty($row) && $this->error('数据不存在');
+
+        if ($this->request->isAjax()) {
+            $post = $this->request->post();
+            $rule = [];
+            $this->validate($post, $rule);
+            $arr = array();
+
+            if(empty($post['status'])){
+                return $this->error('请审核');
+            }
+
+            if($post['status'] == 1){
+                //结算
+                $arr['status'] = 1;
+                $arr['end_time'] = time();
+
+                //代理信息
+                $user_arr = \app\admin\model\SystemAdmin::getUser($post['uid']);
+                //提现信息
+                $ti_xian = $this->model->where(['id' =>$id])->find()->toArray();
+
+                if($user_arr['balance'] < $ti_xian['money']){
+                    return $this->error('余额不足');
+                }
+
+                \app\admin\model\SystemAdmin::jmoney($ti_xian['money'],$post['uid'],'代理提现金额'.$ti_xian['money']);
+            }elseif($post['status'] == 2){
+                //拒绝
+                $arr['status'] = 2;
+                $arr['refuse_time'] = time();
+                $arr['remark'] = $post['remark'];
+            }
+
+            try {
+                $save = $row->save($arr);
+            } catch (\Exception $e) {
+                $this->error('保存失败');
+            }
+            $save ? $this->success('保存成功') : $this->error('保存失败');
+        }
+        $this->assign('row', $row);
+        $this->assign('admin_lists', $admin_lists);
+        return $this->fetch();
+    }
+
 }

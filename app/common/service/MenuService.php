@@ -41,11 +41,23 @@ class MenuService
      */
     public function getHomeInfo()
     {
+        // 优先查找仪表盘菜单
         $data = Db::name('system_menu')
             ->field('title,icon,href')
             ->where("delete_time is null")
-            ->where('pid', MenuConstant::HOME_PID)
+            ->where('href', 'index/welcome')
+            ->where('status', 1)
             ->find();
+
+        // 如果没找到仪表盘，则查找原有的HOME_PID菜单
+        if (empty($data)) {
+            $data = Db::name('system_menu')
+                ->field('title,icon,href')
+                ->where("delete_time is null")
+                ->where('pid', MenuConstant::HOME_PID)
+                ->find();
+        }
+
         !empty($data) && $data['href'] = __url($data['href']);
         return $data;
     }

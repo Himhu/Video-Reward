@@ -49,10 +49,14 @@ class AccountService extends BaseService
     {
         // 权限控制：根据类型和用户权限决定查询范围
         $query = $this->model->where($where);
-        
+
         if ($type === 'personal' || ($type === 'all' && $currentUid != 1)) {
             // 个人模式或非超级管理员只能查看自己的流水
             $query = $query->where('uid', $currentUid);
+
+            // 代理端不显示提现流水：过滤掉包含"提现"的流水记录
+            $query = $query->where('memo', 'not like', '%提现%')
+                           ->where('simple', 'not like', '%提现%');
         }
         
         // 获取总数
@@ -100,23 +104,33 @@ class AccountService extends BaseService
         $where = [];
         
         // 权限控制
-        if ($type === 'personal' || ($type === 'all' && $currentUid != 1)) {
+        $isPersonalView = ($type === 'personal' || ($type === 'all' && $currentUid != 1));
+        if ($isPersonalView) {
             $where['uid'] = $currentUid;
         } elseif ($uid) {
             $where['uid'] = $uid;
         }
 
+        // 构建查询对象
+        $baseQuery = $this->model->where($where);
+
+        // 代理端不显示提现流水：排除提现相关记录
+        if ($isPersonalView) {
+            $baseQuery = $baseQuery->where('memo', 'not like', '%提现%')
+                                   ->where('simple', 'not like', '%提现%');
+        }
+
         // 基础统计
-        $totalRecords = $this->model->where($where)->count();
-        $todayRecords = $this->model->where($where)->whereTime('create_time', 'today')->count();
-        
+        $totalRecords = $baseQuery->count();
+        $todayRecords = (clone $baseQuery)->whereTime('create_time', 'today')->count();
+
         // 收入统计
-        $totalIncome = $this->model->where($where)->where('type', 1)->sum('money') ?: 0;
-        $todayIncome = $this->model->where($where)->where('type', 1)->whereTime('create_time', 'today')->sum('money') ?: 0;
-        
+        $totalIncome = (clone $baseQuery)->where('type', 1)->sum('money') ?: 0;
+        $todayIncome = (clone $baseQuery)->where('type', 1)->whereTime('create_time', 'today')->sum('money') ?: 0;
+
         // 支出统计
-        $totalExpense = $this->model->where($where)->where('type', 2)->sum('money') ?: 0;
-        $todayExpense = $this->model->where($where)->where('type', 2)->whereTime('create_time', 'today')->sum('money') ?: 0;
+        $totalExpense = (clone $baseQuery)->where('type', 2)->sum('money') ?: 0;
+        $todayExpense = (clone $baseQuery)->where('type', 2)->whereTime('create_time', 'today')->sum('money') ?: 0;
 
         return [
             'total_records' => $totalRecords,

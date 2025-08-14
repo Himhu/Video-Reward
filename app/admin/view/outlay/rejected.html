@@ -47,19 +47,32 @@ layui.use(['table', 'form'], function () {
         cols: [[
             {type: "checkbox", width: 50},
             {field: 'id', width: 80, title: 'ID', sort: true},
-            {field: 'uid', width: 100, title: '用户ID'},
+            {field: 'uid', width: 100, title: '代理ID'},
             {field: 'money', width: 120, title: '提现金额', templet: function(d){
                 return '￥' + parseFloat(d.money).toFixed(2);
             }},
-            {field: 'bank_name', width: 150, title: '银行名称'},
-            {field: 'bank_account', width: 180, title: '银行账号'},
+            {field: 'image', width: 120, title: '收款码', templet: function(d){
+                if(d.image && d.image.trim() !== '') {
+                    return '<img src="' + d.image + '" style="width: 50px; height: 50px; object-fit: cover; cursor: pointer;" onclick="layer.photos({photos: {data: [{src: \'' + d.image + '\'}]}, anim: 5});">';
+                } else {
+                    return '<span style="color: #999;">未上传</span>';
+                }
+            }},
             {field: 'create_time', width: 160, title: '申请时间', templet: function(d){
-                return new Date(d.create_time * 1000).toLocaleString();
+                if(d.create_time && d.create_time > 0) {
+                    return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');
+                } else {
+                    return '<span style="color: #999;">-</span>';
+                }
             }},
-            {field: 'reject_time', width: 160, title: '拒绝时间', templet: function(d){
-                return d.reject_time ? new Date(d.reject_time * 1000).toLocaleString() : '-';
+            {field: 'refuse_time', width: 160, title: '拒绝时间', templet: function(d){
+                if(d.refuse_time && d.refuse_time > 0) {
+                    return layui.util.toDateString(d.refuse_time * 1000, 'yyyy-MM-dd HH:mm:ss');
+                } else {
+                    return '<span style="color: #999;">-</span>';
+                }
             }},
-            {field: 'reject_reason', width: 200, title: '拒绝原因'},
+            {field: 'remark', width: 200, title: '拒绝原因'},
             {field: 'status', width: 100, title: '状态', templet: function(d){
                 return '<span class="layui-badge layui-bg-red">已拒绝</span>';
             }},
@@ -79,13 +92,12 @@ layui.use(['table', 'form'], function () {
                 title: '提现详情',
                 content: '<div style="padding: 20px;">' +
                     '<p><strong>提现ID:</strong> ' + data.id + '</p>' +
-                    '<p><strong>用户ID:</strong> ' + data.uid + '</p>' +
+                    '<p><strong>代理ID:</strong> ' + data.uid + '</p>' +
                     '<p><strong>提现金额:</strong> ￥' + parseFloat(data.money).toFixed(2) + '</p>' +
-                    '<p><strong>银行名称:</strong> ' + data.bank_name + '</p>' +
-                    '<p><strong>银行账号:</strong> ' + data.bank_account + '</p>' +
-                    '<p><strong>申请时间:</strong> ' + new Date(data.create_time * 1000).toLocaleString() + '</p>' +
-                    '<p><strong>拒绝时间:</strong> ' + (data.reject_time ? new Date(data.reject_time * 1000).toLocaleString() : '-') + '</p>' +
-                    '<p><strong>拒绝原因:</strong> ' + (data.reject_reason || '-') + '</p>' +
+                    '<p><strong>收款码:</strong> ' + (data.image ? '<img src="' + data.image + '" style="width: 100px; height: 100px; object-fit: cover;">' : '未上传') + '</p>' +
+                    '<p><strong>申请时间:</strong> ' + (data.create_time ? layui.util.toDateString(data.create_time * 1000, 'yyyy-MM-dd HH:mm:ss') : '-') + '</p>' +
+                    '<p><strong>拒绝时间:</strong> ' + (data.refuse_time ? layui.util.toDateString(data.refuse_time * 1000, 'yyyy-MM-dd HH:mm:ss') : '-') + '</p>' +
+                    '<p><strong>拒绝原因:</strong> ' + (data.remark || '-') + '</p>' +
                     '</div>',
                 area: ['500px', '400px']
             });

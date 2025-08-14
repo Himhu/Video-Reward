@@ -103,7 +103,7 @@ class FinanceService extends BaseService
      */
     public function getApprovedOutlays($page = 1, $limit = 20)
     {
-        return $this->getOutlayList(['status' => self::STATUS_APPROVED], $page, $limit, 'approve_time desc');
+        return $this->getOutlayList(['status' => self::STATUS_APPROVED], $page, $limit, 'end_time desc');
     }
 
     /**
@@ -114,7 +114,7 @@ class FinanceService extends BaseService
      */
     public function getRejectedOutlays($page = 1, $limit = 20)
     {
-        return $this->getOutlayList(['status' => self::STATUS_REJECTED], $page, $limit, 'reject_time desc');
+        return $this->getOutlayList(['status' => self::STATUS_REJECTED], $page, $limit, 'refuse_time desc');
     }
 
     /**
@@ -139,9 +139,8 @@ class FinanceService extends BaseService
             // 更新提现状态
             $updateData = [
                 'status' => self::STATUS_APPROVED,
-                'approve_time' => time(),
-                'approve_admin_id' => $options['admin_id'] ?? 0,
-                'approve_remark' => $options['remark'] ?? ''
+                'end_time' => time(),
+                'remark' => $options['remark'] ?? ''
             ];
             
             $this->model->where('id', $id)->update($updateData);
@@ -184,9 +183,8 @@ class FinanceService extends BaseService
             // 更新提现状态
             $updateData = [
                 'status' => self::STATUS_REJECTED,
-                'reject_time' => time(),
-                'reject_admin_id' => $options['admin_id'] ?? 0,
-                'reject_reason' => $options['reason']
+                'refuse_time' => time(),
+                'remark' => $options['reason']
             ];
             
             $this->model->where('id', $id)->update($updateData);

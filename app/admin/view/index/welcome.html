@@ -29,8 +29,8 @@
                                                     <div class="panel-content" style="position: relative">
                                                         <h1 class="no-margins" style="">
                                                             <?php echo $dpayMonet?></h1>
-                                                        <!-- 修改：指向重构后的统一提现管理控制器，避免重复页面 -->
-                                                        <a data-title="待审核列表" layuimini-content-href="{:url('outlay/pending')}" class="layui-btn layui-btn-lg layui-btn-sm" style="display: inline-block;position: absolute;right: 0;bottom: 35%;">管理</a>
+                                                        <!-- 指向统一的提现管理控制器 -->
+                                                        <a data-title="待审核提现" layuimini-content-href="{:url('outlay/pending')}" class="layui-btn layui-btn-lg layui-btn-sm layuimini-content-loading" style="display: inline-block;position: absolute;right: 0;bottom: 35%;">管理</a>
                                                         <small> 提现审批  &nbsp;</small>
                                                     </div>
                                                 </div>
@@ -293,4 +293,86 @@
     } else {
         console.warn('ECharts library not loaded');
     }
+</script>
+
+<!-- 内容加载优化样式和脚本 -->
+<style>
+    /* 加载状态优化 */
+    .layuimini-content-loading {
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+    .layuimini-content-loading:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    .layuimini-content-loading.loading {
+        pointer-events: none;
+        opacity: 0.7;
+    }
+
+    .layuimini-content-loading.loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        right: 8px;
+        width: 12px;
+        height: 12px;
+        margin-top: -6px;
+        border: 2px solid #fff;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: layuimini-loading-spin 1s linear infinite;
+    }
+
+    @keyframes layuimini-loading-spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<script>
+    layui.use(['layer'], function(){
+        var layer = layui.layer;
+
+        // 优化内容加载体验
+        $(document).ready(function() {
+            // 清理旧的sessionStorage数据，防止页面冲突
+            var keysToRemove = [];
+            for (var i = 0; i < sessionStorage.length; i++) {
+                var key = sessionStorage.key(i);
+                if (key && (key.indexOf('layuiminimenu_outlayw') !== -1 ||
+                           key.indexOf('layuiminimenu_outlayj') !== -1 ||
+                           key.indexOf('layuiminimenu_outlayy') !== -1)) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(function(key) {
+                sessionStorage.removeItem(key);
+            });
+
+            // 监听内容链接点击
+            $('body').on('click', '.layuimini-content-loading', function() {
+                var $this = $(this);
+
+                // 添加加载状态
+                $this.addClass('loading');
+
+                // 显示加载提示
+                var loadingIndex = layer.msg('正在加载页面...', {
+                    icon: 16,
+                    shade: 0.1,
+                    time: 0
+                });
+
+                // 3秒后自动关闭加载状态（防止卡住）
+                setTimeout(function() {
+                    $this.removeClass('loading');
+                    layer.close(loadingIndex);
+                }, 3000);
+            });
+        });
+    });
 </script>

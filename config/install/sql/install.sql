@@ -28,16 +28,16 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- 数据库： `demo_4lq_cn` (优化版)
+-- 数据库： `{DATABASE}` (优化版)
 --
 
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_category`
+-- 表的结构 `{PREFIX}category`
 --
 
-CREATE TABLE `ds_category` (
+CREATE TABLE `{PREFIX}category` (
   `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID',
   `pid` int(11) NOT NULL DEFAULT 0 COMMENT '父级分类ID',
   `ctitle` varchar(30) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '分类名称',
@@ -55,10 +55,10 @@ CREATE TABLE `ds_category` (
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='分类表';
 
 --
--- 转存表中的数据 `ds_category`
+-- 转存表中的数据 `{PREFIX}category`
 --
 
-INSERT INTO `ds_category` (`id`, `pid`, `ctitle`, `image`, `sort`, `status`, `create_time`, `update_time`, `delete_time`) VALUES
+INSERT INTO `{PREFIX}category` (`id`, `pid`, `ctitle`, `image`, `sort`, `status`, `create_time`, `update_time`, `delete_time`) VALUES
 (1, 0, '默认分类', NULL, 0, 1, 1641888000, 1641888000, NULL),
 (2, 0, '图片资源', NULL, 1, 1, 1641888000, 1641888000, NULL),
 (3, 0, '视频资源', NULL, 2, 1, 1641888000, 1641888000, NULL),
@@ -67,10 +67,10 @@ INSERT INTO `ds_category` (`id`, `pid`, `ctitle`, `image`, `sort`, `status`, `cr
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_complain`
+-- 表的结构 `{PREFIX}complain`
 --
 
-CREATE TABLE `ds_complain` (
+CREATE TABLE `{PREFIX}complain` (
   `id` int(11) NOT NULL COMMENT 'ID',
   `uid` varchar(250) DEFAULT NULL COMMENT '用户ID',
   `status` tinyint(1) DEFAULT '0' COMMENT '状态 {radio} (0:禁止访问,1:正常)',
@@ -85,10 +85,10 @@ CREATE TABLE `ds_complain` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_config`
+-- 表的结构 `{PREFIX}config`
 --
 
-CREATE TABLE `ds_config` (
+CREATE TABLE `{PREFIX}config` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '变量名',
   `group` varchar(30) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '' COMMENT '分组',
@@ -100,10 +100,10 @@ CREATE TABLE `ds_config` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_domain_lib`
+-- 表的结构 `{PREFIX}domain_lib`
 --
 
-CREATE TABLE `ds_domain_lib` (
+CREATE TABLE `{PREFIX}domain_lib` (
   `id` int(11) NOT NULL COMMENT '域名ID',
   `uid` int(11) DEFAULT '0' COMMENT '代理ID {select}',
   `domain` varchar(1000) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '中转域名',
@@ -116,10 +116,10 @@ CREATE TABLE `ds_domain_lib` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_domain_rule`
+-- 表的结构 `{PREFIX}domain_rule`
 --
 
-CREATE TABLE `ds_domain_rule` (
+CREATE TABLE `{PREFIX}domain_rule` (
   `id` int(11) NOT NULL COMMENT '域名ID',
   `uid` int(11) DEFAULT '0' COMMENT '代理ID {select}',
   `type` int(11) DEFAULT '1' COMMENT '域名类型 1主2炮灰',
@@ -134,10 +134,10 @@ CREATE TABLE `ds_domain_rule` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_hezi`
+-- 表的结构 `{PREFIX}hezi`
 --
 
-CREATE TABLE `ds_hezi` (
+CREATE TABLE `{PREFIX}hezi` (
   `id` int(11) NOT NULL COMMENT 'id',
   `uid` int(11) DEFAULT '0',
   `hezi_url` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '盒子外链',
@@ -153,10 +153,10 @@ CREATE TABLE `ds_hezi` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_kouliang`
+-- 表的结构 `{PREFIX}kouliang`
 --
 
-CREATE TABLE `ds_kouliang` (
+CREATE TABLE `{PREFIX}kouliang` (
   `id` int(11) NOT NULL COMMENT '主键ID',
   `uid` int(11) NOT NULL COMMENT '用户ID',
   `create_time` int(11) NOT NULL COMMENT '创建时间',
@@ -168,10 +168,10 @@ CREATE TABLE `ds_kouliang` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_link`
+-- 表的结构 `{PREFIX}link`
 --
 
-CREATE TABLE `ds_link` (
+CREATE TABLE `{PREFIX}link` (
   `id` int(11) NOT NULL COMMENT 'id',
   `cid` int(11) DEFAULT NULL COMMENT '类型ID  {select}',
   `uid` int(11) NOT NULL COMMENT '代理 {select}',
@@ -200,10 +200,10 @@ CREATE TABLE `ds_link` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_muban`
+-- 表的结构 `{PREFIX}muban`
 --
 
-CREATE TABLE `ds_muban` (
+CREATE TABLE `{PREFIX}muban` (
   `id` int(11) NOT NULL COMMENT 'ID',
   `uid` int(11) DEFAULT NULL,
   `title` varchar(150) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '标题',
@@ -221,10 +221,10 @@ CREATE TABLE `ds_muban` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_notify`
+-- 表的结构 `{PREFIX}notify`
 --
 
-CREATE TABLE `ds_notify` (
+CREATE TABLE `{PREFIX}notify` (
   `id` int(11) NOT NULL,
   `creator_id` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT '' COMMENT '创建者',
   `title` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '公告标题',
@@ -240,10 +240,10 @@ CREATE TABLE `ds_notify` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_number`
+-- 表的结构 `{PREFIX}number`
 --
 
-CREATE TABLE `ds_number` (
+CREATE TABLE `{PREFIX}number` (
   `id` int(11) NOT NULL COMMENT 'id',
   `number` varchar(200) NOT NULL COMMENT '邀请码',
   `uid` int(11) NOT NULL COMMENT '代理',
@@ -257,10 +257,10 @@ CREATE TABLE `ds_number` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_outlay`
+-- 表的结构 `{PREFIX}outlay`
 --
 
-CREATE TABLE `ds_outlay` (
+CREATE TABLE `{PREFIX}outlay` (
   `id` int(11) NOT NULL COMMENT 'ID',
   `uid` int(11) DEFAULT NULL COMMENT '代理',
   `money` decimal(10,2) NOT NULL COMMENT '提现金额',
@@ -275,10 +275,10 @@ CREATE TABLE `ds_outlay` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_payed_show`
+-- 表的结构 `{PREFIX}payed_show`
 --
 
-CREATE TABLE `ds_payed_show` (
+CREATE TABLE `{PREFIX}payed_show` (
   `id` int(11) NOT NULL,
   `ip` varchar(20) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `createtime` int(11) DEFAULT NULL,
@@ -298,10 +298,10 @@ CREATE TABLE `ds_payed_show` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_pay_order`
+-- 表的结构 `{PREFIX}pay_order`
 --
 
-CREATE TABLE `ds_pay_order` (
+CREATE TABLE `{PREFIX}pay_order` (
   `id` int(11) NOT NULL,
   `uid` int(11) NOT NULL DEFAULT '0' COMMENT '代理ID',
   `nickname` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -333,10 +333,10 @@ CREATE TABLE `ds_pay_order` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_pay_setting`
+-- 表的结构 `{PREFIX}pay_setting`
 --
 
-CREATE TABLE `ds_pay_setting` (
+CREATE TABLE `{PREFIX}pay_setting` (
   `id` int(11) NOT NULL,
   `title` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '支付名称',
   `app_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '支付ID',
@@ -353,10 +353,10 @@ CREATE TABLE `ds_pay_setting` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_point_decr`
+-- 表的结构 `{PREFIX}point_decr`
 --
 
-CREATE TABLE `ds_point_decr` (
+CREATE TABLE `{PREFIX}point_decr` (
   `id` int(11) NOT NULL,
   `ua` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `vid` varchar(30) COLLATE utf8mb4_unicode_ci DEFAULT NULL
@@ -365,10 +365,10 @@ CREATE TABLE `ds_point_decr` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_point_logs`
+-- 表的结构 `{PREFIX}point_logs`
 --
 
-CREATE TABLE `ds_point_logs` (
+CREATE TABLE `{PREFIX}point_logs` (
   `id` int(11) NOT NULL,
   `uid` int(11) DEFAULT NULL,
   `ip` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
@@ -378,10 +378,10 @@ CREATE TABLE `ds_point_logs` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_price`
+-- 表的结构 `{PREFIX}price`
 --
 
-CREATE TABLE `ds_price` (
+CREATE TABLE `{PREFIX}price` (
   `id` int(11) NOT NULL,
   `pay_model` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `is_dan` int(11) DEFAULT '0',
@@ -402,10 +402,10 @@ CREATE TABLE `ds_price` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_quantity`
+-- 表的结构 `{PREFIX}quantity`
 --
 
-CREATE TABLE `ds_quantity` (
+CREATE TABLE `{PREFIX}quantity` (
   `id` int(11) NOT NULL COMMENT '抽单ID',
   `uid` int(11) NOT NULL COMMENT '代理 {select}',
   `initial` int(11) NOT NULL COMMENT '初始值',
@@ -418,10 +418,10 @@ CREATE TABLE `ds_quantity` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_stock`
+-- 表的结构 `{PREFIX}stock`
 --
 
-CREATE TABLE `ds_stock` (
+CREATE TABLE `{PREFIX}stock` (
   `id` int(11) NOT NULL COMMENT '资源ID',
   `cid` int(11) DEFAULT NULL COMMENT '分类ID {select}',
   `title` varchar(250) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '资源名称',
@@ -437,10 +437,10 @@ CREATE TABLE `ds_stock` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_admin`
+-- 表的结构 `{PREFIX}system_admin`
 --
 
-CREATE TABLE `ds_system_admin` (
+CREATE TABLE `{PREFIX}system_admin` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `pid` int(11) DEFAULT '0' COMMENT '上级',
   `auth_ids` varchar(255) DEFAULT NULL COMMENT '角色权限ID',
@@ -482,11 +482,11 @@ CREATE TABLE `ds_system_admin` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统用户表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_admin`
+-- 转存表中的数据 `{PREFIX}system_admin`
 -- 注意：这里包含默认管理员和示例代理用户，密码均为对应的用户名
 --
 
-INSERT INTO `ds_system_admin` (`id`, `pid`, `auth_ids`, `head_img`, `username`, `qq`, `wechat_account`, `password`, `pwd`, `balance`, `revenue`, `short`, `pay_model`, `pay_model1`, `is_zn`, `is_ff`, `poundage`, `ticheng`, `is_day`, `is_week`, `is_month`, `is_dan`, `date_fee`, `month_fee`, `dan_fee`, `week_fee`, `view_id`, `phone`, `remark`, `login_num`, `sort`, `status`, `push_all`, `txpwd`, `create_time`, `update_time`, `delete_time`, `is_zw`) VALUES
+INSERT INTO `{PREFIX}system_admin` (`id`, `pid`, `auth_ids`, `head_img`, `username`, `qq`, `wechat_account`, `password`, `pwd`, `balance`, `revenue`, `short`, `pay_model`, `pay_model1`, `is_zn`, `is_ff`, `poundage`, `ticheng`, `is_day`, `is_week`, `is_month`, `is_dan`, `date_fee`, `month_fee`, `dan_fee`, `week_fee`, `view_id`, `phone`, `remark`, `login_num`, `sort`, `status`, `push_all`, `txpwd`, `create_time`, `update_time`, `delete_time`, `is_zw`) VALUES
 (1, 0, NULL, '/static/admin/images/head.jpg', 'admin', '123456', 'wx123456', '9f98ea3da8025db5bc4235dfac1f7a7650211592', 'admin', '0.00', '0.00', 'self', 'chuanqi', '', 0, 0, 25, 0, 1, 1, 1, '1', 0, 0, NULL, 0, 4, '123', '默认管理员', 0, 0, 1, '[{\"val\":\"2\",\"bl\":50},{\"val\":\"2\",\"bl\":50}]', '999888', 1604912635, 1714798954, NULL, 0),
 (184, 0, '7', '/static/admin/images/head.jpg', 'agent', '', '', '9f98ea3da8025db5bc4235dfac1f7a7650211592', 'agent', '0.00', '0.00', 'tinyurl', '0', NULL, 0, 0, 25, 5, 1, 0, 0, '1', 0, 0, '6', 0, 1, NULL, '示例代理用户', 0, 0, 1, NULL, NULL, 1668236811, 1714222160, NULL, 0);
 
@@ -496,10 +496,10 @@ INSERT INTO `ds_system_admin` (`id`, `pid`, `auth_ids`, `head_img`, `username`, 
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_auth`
+-- 表的结构 `{PREFIX}system_auth`
 --
 
-CREATE TABLE `ds_system_auth` (
+CREATE TABLE `{PREFIX}system_auth` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(20) NOT NULL COMMENT '权限名称',
   `sort` int(11) DEFAULT '0' COMMENT '排序',
@@ -512,10 +512,10 @@ CREATE TABLE `ds_system_auth` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统权限表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_auth`
+-- 转存表中的数据 `{PREFIX}system_auth`
 --
 
-INSERT INTO `ds_system_auth` (`id`, `title`, `sort`, `status`, `remark`, `keys`, `create_time`, `update_time`, `delete_time`) VALUES
+INSERT INTO `{PREFIX}system_auth` (`id`, `title`, `sort`, `status`, `remark`, `keys`, `create_time`, `update_time`, `delete_time`) VALUES
 (1, '管理员', 1, 1, '总后台管理员admin', 'admin', 1588921753, 1650973874, NULL),
 (7, '代理组', 0, 1, '普通代理权限【无开通下级的权限】', 'daili', 1606465003, 1650971513, NULL),
 (9, '总代组', 0, 1, '总代理权限【可以使用邀请码发展下级】', NULL, 1650972063, 1650972085, NULL);
@@ -526,20 +526,20 @@ INSERT INTO `ds_system_auth` (`id`, `title`, `sort`, `status`, `remark`, `keys`,
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_auth_node`
+-- 表的结构 `{PREFIX}system_auth_node`
 --
 
-CREATE TABLE `ds_system_auth_node` (
+CREATE TABLE `{PREFIX}system_auth_node` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `auth_id` bigint(20) UNSIGNED DEFAULT NULL COMMENT '角色ID',
   `node_id` bigint(20) DEFAULT NULL COMMENT '节点ID'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='角色与节点关系表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_auth_node`
+-- 转存表中的数据 `{PREFIX}system_auth_node`
 --
 
-INSERT INTO `ds_system_auth_node` (`id`, `auth_id`, `node_id`) VALUES
+INSERT INTO `{PREFIX}system_auth_node` (`id`, `auth_id`, `node_id`) VALUES
 -- 代理组权限 (auth_id = 7)
 (736, 7, 78),
 (737, 7, 79),
@@ -727,10 +727,10 @@ INSERT INTO `ds_system_auth_node` (`id`, `auth_id`, `node_id`) VALUES
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_config`
+-- 表的结构 `{PREFIX}system_config`
 --
 
-CREATE TABLE `ds_system_config` (
+CREATE TABLE `{PREFIX}system_config` (
   `id` int(10) UNSIGNED NOT NULL,
   `name` varchar(30) NOT NULL DEFAULT '' COMMENT '变量名',
   `group` varchar(30) NOT NULL DEFAULT '' COMMENT '分组',
@@ -743,10 +743,10 @@ CREATE TABLE `ds_system_config` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统配置表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_config`
+-- 转存表中的数据 `{PREFIX}system_config`
 --
 
-INSERT INTO `ds_system_config` (`id`, `name`, `group`, `value`, `remark`, `sort`, `types`, `create_time`, `update_time`) VALUES
+INSERT INTO `{PREFIX}system_config` (`id`, `name`, `group`, `value`, `remark`, `sort`, `types`, `create_time`, `update_time`) VALUES
 (41, 'alisms_access_key_id', 'sms', '填你的', '阿里大于公钥', 0, 'input', NULL, NULL),
 (42, 'alisms_access_key_secret', 'sms', '填你的', '阿里大鱼私钥', 0, 'input', NULL, NULL),
 (55, 'upload_type', 'upload', 'local', '当前上传方式 （local,alioss,qnoss,txoss）', 0, 'input', NULL, NULL),
@@ -851,10 +851,10 @@ INSERT INTO `ds_system_config` (`id`, `name`, `group`, `value`, `remark`, `sort`
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_menu`
+-- 表的结构 `{PREFIX}system_menu`
 --
 
-CREATE TABLE `ds_system_menu` (
+CREATE TABLE `{PREFIX}system_menu` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `pid` bigint(20) UNSIGNED NOT NULL DEFAULT '0' COMMENT '父id',
   `title` varchar(100) NOT NULL DEFAULT '' COMMENT '名称',
@@ -871,10 +871,10 @@ CREATE TABLE `ds_system_menu` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统菜单表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_menu`
+-- 转存表中的数据 `{PREFIX}system_menu`
 --
 
-INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `target`, `sort`, `status`, `remark`, `create_time`, `update_time`, `delete_time`) VALUES
+INSERT INTO `{PREFIX}system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `target`, `sort`, `status`, `remark`, `create_time`, `update_time`, `delete_time`) VALUES
 (228, 0, '顶级菜单', 'fa fa-cog', '', '', '_self', 0, 1, '', NULL, 1605336845, 1605336845),
 (234, 259, '菜单管理', 'fa fa-tree', 'system.menu/index', '', '_self', 10, 1, '', NULL, 1605073838, NULL),
 (244, 262, '代理账户', 'fa fa-user', 'system.admin/index', '', '_self', 12, 1, '', 1573185011, 1605337358, NULL),
@@ -930,10 +930,10 @@ INSERT INTO `ds_system_menu` (`id`, `pid`, `title`, `icon`, `href`, `params`, `t
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_node`
+-- 表的结构 `{PREFIX}system_node`
 --
 
-CREATE TABLE `ds_system_node` (
+CREATE TABLE `{PREFIX}system_node` (
   `id` int(10) UNSIGNED NOT NULL,
   `node` varchar(100) DEFAULT NULL COMMENT '节点代码',
   `title` varchar(500) DEFAULT NULL COMMENT '节点标题',
@@ -944,9 +944,9 @@ CREATE TABLE `ds_system_node` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='系统节点表' ROW_FORMAT=COMPACT;
 
 --
--- 转存表中的数据 `ds_system_node`
+-- 转存表中的数据 `{PREFIX}system_node`
 -- 注意：包含完整的223个系统节点，确保权限系统正常工作
-INSERT INTO `ds_system_node` (`id`, `node`, `title`, `type`, `is_auth`, `create_time`, `update_time`) VALUES
+INSERT INTO `{PREFIX}system_node` (`id`, `node`, `title`, `type`, `is_auth`, `create_time`, `update_time`) VALUES
 (1, 'system.admin', '管理员管理', 1, 1, 1589580432, 1589580432),
 (2, 'system.admin/index', '列表', 2, 1, 1589580432, 1589580432),
 (3, 'system.admin/add', '添加', 2, 1, 1589580432, 1589580432),
@@ -1175,10 +1175,10 @@ INSERT INTO `ds_system_node` (`id`, `node`, `title`, `type`, `is_auth`, `create_
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_quick`
+-- 表的结构 `{PREFIX}system_quick`
 --
 
-CREATE TABLE `ds_system_quick` (
+CREATE TABLE `{PREFIX}system_quick` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `title` varchar(20) NOT NULL COMMENT '快捷入口名称',
   `icon` varchar(100) DEFAULT NULL COMMENT '图标',
@@ -1198,10 +1198,10 @@ CREATE TABLE `ds_system_quick` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_system_uploadfile`
+-- 表的结构 `{PREFIX}system_uploadfile`
 --
 
-CREATE TABLE `ds_system_uploadfile` (
+CREATE TABLE `{PREFIX}system_uploadfile` (
   `id` int(10) UNSIGNED NOT NULL COMMENT 'ID',
   `upload_type` varchar(20) NOT NULL DEFAULT 'local' COMMENT '存储位置',
   `original_name` varchar(255) DEFAULT NULL COMMENT '文件原名',
@@ -1220,10 +1220,10 @@ CREATE TABLE `ds_system_uploadfile` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='上传文件表' ROW_FORMAT=COMPACT;
 
 --
--- 表的结构 `ds_short_service`
+-- 表的结构 `{PREFIX}short_service`
 --
 
-CREATE TABLE `ds_short_service` (
+CREATE TABLE `{PREFIX}short_service` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
   `service_code` varchar(50) NOT NULL DEFAULT '' COMMENT '服务代码',
   `service_name` varchar(100) NOT NULL DEFAULT '' COMMENT '服务名称',
@@ -1244,10 +1244,10 @@ CREATE TABLE `ds_short_service` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='短地址服务配置表';
 
 --
--- 转存表中的数据 `ds_short_service`
+-- 转存表中的数据 `{PREFIX}short_service`
 --
 
-INSERT INTO `ds_short_service` (`id`, `service_code`, `service_name`, `api_url`, `api_key`, `api_secret`, `is_enabled`, `is_default`, `sort_order`, `remark`, `create_time`, `update_time`) VALUES
+INSERT INTO `{PREFIX}short_service` (`id`, `service_code`, `service_name`, `api_url`, `api_key`, `api_secret`, `is_enabled`, `is_default`, `sort_order`, `remark`, `create_time`, `update_time`) VALUES
 (1, '0', '不使用短链接', '', '', '', 1, 1, 0, '直接返回原始URL，不进行短链接转换', 1641888000, 1641888000),
 (2, 'self', '自建短链接', '', '', '', 1, 0, 1, '使用系统自建的短链接服务', 1641888000, 1641888000),
 (3, 'sina', '新浪短链接', 'https://api.weibo.com/2/short_url/shorten.json', '', '', 0, 0, 2, '新浪微博短链接服务（需要API密钥）', 1641888000, 1641888000),
@@ -1260,10 +1260,10 @@ INSERT INTO `ds_short_service` (`id`, `service_code`, `service_name`, `api_url`,
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_tj`
+-- 表的结构 `{PREFIX}tj`
 --
 
-CREATE TABLE `ds_tj` (
+CREATE TABLE `{PREFIX}tj` (
   `id` int(11) NOT NULL,
   `uid` int(11) DEFAULT '0',
   `ua` varchar(255) DEFAULT NULL,
@@ -1273,10 +1273,10 @@ CREATE TABLE `ds_tj` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_user_money_log`
+-- 表的结构 `{PREFIX}user_money_log`
 --
 
-CREATE TABLE `ds_user_money_log` (
+CREATE TABLE `{PREFIX}user_money_log` (
   `id` int(10) UNSIGNED NOT NULL,
   `uid` int(11) NOT NULL DEFAULT '0' COMMENT '会员ID',
   `money` decimal(10,2) NOT NULL COMMENT '变更余额',
@@ -1292,10 +1292,10 @@ CREATE TABLE `ds_user_money_log` (
 -- --------------------------------------------------------
 
 --
--- 表的结构 `ds_user_point`
+-- 表的结构 `{PREFIX}user_point`
 --
 
-CREATE TABLE `ds_user_point` (
+CREATE TABLE `{PREFIX}user_point` (
   `id` int(11) NOT NULL,
   `ua` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL,
   `point` int(11) DEFAULT '0' COMMENT '点播卷',
@@ -1309,56 +1309,56 @@ CREATE TABLE `ds_user_point` (
 --
 
 --
--- 表的索引 `ds_category`
+-- 表的索引 `{PREFIX}category`
 --
-ALTER TABLE `ds_category`
+ALTER TABLE `{PREFIX}category`
   ADD PRIMARY KEY (`id`),
   ADD KEY `weigh` (`id`);
 
 --
--- 表的索引 `ds_complain`
+-- 表的索引 `{PREFIX}complain`
 --
-ALTER TABLE `ds_complain`
+ALTER TABLE `{PREFIX}complain`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
--- 表的索引 `ds_config`
+-- 表的索引 `{PREFIX}config`
 --
-ALTER TABLE `ds_config`
+ALTER TABLE `{PREFIX}config`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`);
 
 --
--- 表的索引 `ds_domain_lib`
+-- 表的索引 `{PREFIX}domain_lib`
 --
-ALTER TABLE `ds_domain_lib`
+ALTER TABLE `{PREFIX}domain_lib`
   ADD PRIMARY KEY (`id`) USING BTREE,
   ADD KEY `status` (`status`) USING BTREE;
 
 --
--- 表的索引 `ds_domain_rule`
+-- 表的索引 `{PREFIX}domain_rule`
 --
-ALTER TABLE `ds_domain_rule`
+ALTER TABLE `{PREFIX}domain_rule`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
--- 表的索引 `ds_hezi`
+-- 表的索引 `{PREFIX}hezi`
 --
-ALTER TABLE `ds_hezi`
+ALTER TABLE `{PREFIX}hezi`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
--- 表的索引 `ds_kouliang`
+-- 表的索引 `{PREFIX}kouliang`
 --
-ALTER TABLE `ds_kouliang`
+ALTER TABLE `{PREFIX}kouliang`
   ADD PRIMARY KEY (`id`),
   ADD KEY `idx_uid` (`uid`),
   ADD KEY `idx_create_time` (`create_time`);
 
 --
--- 表的索引 `ds_link`
+-- 表的索引 `{PREFIX}link`
 --
-ALTER TABLE `ds_link`
+ALTER TABLE `{PREFIX}link`
   ADD PRIMARY KEY (`id`) USING BTREE,
   ADD KEY `uid` (`uid`) USING BTREE,
   ADD KEY `cid` (`cid`) USING BTREE,
@@ -1368,40 +1368,40 @@ ALTER TABLE `ds_link`
   ADD KEY `create_time` (`create_time`) USING BTREE,
   ADD KEY `uid_cid` (`uid`,`cid`) USING BTREE;
 --
--- 表的索引 `ds_muban`
+-- 表的索引 `{PREFIX}muban`
 --
-ALTER TABLE `ds_muban`
+ALTER TABLE `{PREFIX}muban`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
--- 表的索引 `ds_notify`
+-- 表的索引 `{PREFIX}notify`
 --
-ALTER TABLE `ds_notify`
+ALTER TABLE `{PREFIX}notify`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_number`
+-- 表的索引 `{PREFIX}number`
 --
-ALTER TABLE `ds_number`
+ALTER TABLE `{PREFIX}number`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_outlay`
+-- 表的索引 `{PREFIX}outlay`
 --
-ALTER TABLE `ds_outlay`
+ALTER TABLE `{PREFIX}outlay`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_payed_show`
+-- 表的索引 `{PREFIX}payed_show`
 --
-ALTER TABLE `ds_payed_show`
+ALTER TABLE `{PREFIX}payed_show`
   ADD PRIMARY KEY (`id`) USING BTREE,
   ADD KEY `ua` (`ip`,`createtime`,`ua`(191)) USING BTREE;
 
 --
--- 表的索引 `ds_pay_order`
+-- 表的索引 `{PREFIX}pay_order`
 --
-ALTER TABLE `ds_pay_order`
+ALTER TABLE `{PREFIX}pay_order`
   ADD PRIMARY KEY (`id`) USING BTREE,
   ADD UNIQUE KEY `order` (`transact`) USING BTREE,
   ADD KEY `uid` (`uid`) USING BTREE,
@@ -1412,121 +1412,121 @@ ALTER TABLE `ds_pay_order`
   ADD KEY `paytime` (`paytime`) USING BTREE;
 
 --
--- 表的索引 `ds_pay_setting`
+-- 表的索引 `{PREFIX}pay_setting`
 --
-ALTER TABLE `ds_pay_setting`
+ALTER TABLE `{PREFIX}pay_setting`
   ADD PRIMARY KEY (`id`) USING BTREE;
 
 --
--- 表的索引 `ds_point_decr`
+-- 表的索引 `{PREFIX}point_decr`
 --
-ALTER TABLE `ds_point_decr`
+ALTER TABLE `{PREFIX}point_decr`
   ADD PRIMARY KEY (`id`),
   ADD KEY `SSS` (`ua`(111),`vid`) USING BTREE;
 
 --
--- 表的索引 `ds_point_logs`
+-- 表的索引 `{PREFIX}point_logs`
 --
-ALTER TABLE `ds_point_logs`
+ALTER TABLE `{PREFIX}point_logs`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_price`
+-- 表的索引 `{PREFIX}price`
 --
-ALTER TABLE `ds_price`
+ALTER TABLE `{PREFIX}price`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_quantity`
+-- 表的索引 `{PREFIX}quantity`
 --
-ALTER TABLE `ds_quantity`
+ALTER TABLE `{PREFIX}quantity`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_stock`
+-- 表的索引 `{PREFIX}stock`
 --
-ALTER TABLE `ds_stock`
+ALTER TABLE `{PREFIX}stock`
   ADD PRIMARY KEY (`id`) USING BTREE,
   ADD KEY `cid` (`cid`) USING BTREE,
   ADD KEY `create_time` (`create_time`) USING BTREE,
   ADD KEY `is_dsp` (`is_dsp`) USING BTREE;
 
 --
--- 表的索引 `ds_system_admin`
+-- 表的索引 `{PREFIX}system_admin`
 --
-ALTER TABLE `ds_system_admin`
+ALTER TABLE `{PREFIX}system_admin`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `username` (`username`) USING BTREE,
   ADD KEY `phone` (`phone`);
 
 --
--- 表的索引 `ds_system_auth`
+-- 表的索引 `{PREFIX}system_auth`
 --
-ALTER TABLE `ds_system_auth`
+ALTER TABLE `{PREFIX}system_auth`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `title` (`title`) USING BTREE;
 
 --
--- 表的索引 `ds_system_auth_node`
+-- 表的索引 `{PREFIX}system_auth_node`
 --
-ALTER TABLE `ds_system_auth_node`
+ALTER TABLE `{PREFIX}system_auth_node`
   ADD PRIMARY KEY (`id`),
   ADD KEY `index_system_auth_auth` (`auth_id`) USING BTREE,
   ADD KEY `index_system_auth_node` (`node_id`) USING BTREE;
 
 --
--- 表的索引 `ds_system_config`
+-- 表的索引 `{PREFIX}system_config`
 --
-ALTER TABLE `ds_system_config`
+ALTER TABLE `{PREFIX}system_config`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `name` (`name`),
   ADD KEY `group` (`group`);
 
 --
--- 表的索引 `ds_system_menu`
+-- 表的索引 `{PREFIX}system_menu`
 --
-ALTER TABLE `ds_system_menu`
+ALTER TABLE `{PREFIX}system_menu`
   ADD PRIMARY KEY (`id`),
   ADD KEY `title` (`title`),
   ADD KEY `href` (`href`);
 
 --
--- 表的索引 `ds_system_node`
+-- 表的索引 `{PREFIX}system_node`
 --
-ALTER TABLE `ds_system_node`
+ALTER TABLE `{PREFIX}system_node`
   ADD PRIMARY KEY (`id`),
   ADD KEY `node` (`node`) USING BTREE;
 
 --
--- 表的索引 `ds_system_quick`
+-- 表的索引 `{PREFIX}system_quick`
 --
-ALTER TABLE `ds_system_quick`
+ALTER TABLE `{PREFIX}system_quick`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_system_uploadfile`
+-- 表的索引 `{PREFIX}system_uploadfile`
 --
-ALTER TABLE `ds_system_uploadfile`
+ALTER TABLE `{PREFIX}system_uploadfile`
   ADD PRIMARY KEY (`id`),
   ADD KEY `upload_type` (`upload_type`),
   ADD KEY `original_name` (`original_name`);
 
 --
--- 表的索引 `ds_tj`
+-- 表的索引 `{PREFIX}tj`
 --
-ALTER TABLE `ds_tj`
+ALTER TABLE `{PREFIX}tj`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_user_money_log`
+-- 表的索引 `{PREFIX}user_money_log`
 --
-ALTER TABLE `ds_user_money_log`
+ALTER TABLE `{PREFIX}user_money_log`
   ADD PRIMARY KEY (`id`);
 
 --
--- 表的索引 `ds_user_point`
+-- 表的索引 `{PREFIX}user_point`
 --
-ALTER TABLE `ds_user_point`
+ALTER TABLE `{PREFIX}user_point`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -1534,51 +1534,51 @@ ALTER TABLE `ds_user_point`
 --
 
 --
--- 使用表AUTO_INCREMENT `ds_category`
+-- 使用表AUTO_INCREMENT `{PREFIX}category`
 --
-ALTER TABLE `ds_category`
+ALTER TABLE `{PREFIX}category`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID', AUTO_INCREMENT=29;
 
 --
--- 使用表AUTO_INCREMENT `ds_complain`
+-- 使用表AUTO_INCREMENT `{PREFIX}complain`
 --
-ALTER TABLE `ds_complain`
+ALTER TABLE `{PREFIX}complain`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID', AUTO_INCREMENT=25;
 
 --
--- 使用表AUTO_INCREMENT `ds_config`
+-- 使用表AUTO_INCREMENT `{PREFIX}config`
 --
-ALTER TABLE `ds_config`
+ALTER TABLE `{PREFIX}config`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=85;
 
 --
--- 使用表AUTO_INCREMENT `ds_domain_lib`
+-- 使用表AUTO_INCREMENT `{PREFIX}domain_lib`
 --
-ALTER TABLE `ds_domain_lib`
+ALTER TABLE `{PREFIX}domain_lib`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '域名ID';
 
 --
--- 使用表AUTO_INCREMENT `ds_domain_rule`
+-- 使用表AUTO_INCREMENT `{PREFIX}domain_rule`
 --
-ALTER TABLE `ds_domain_rule`
+ALTER TABLE `{PREFIX}domain_rule`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '域名ID', AUTO_INCREMENT=42;
 
 --
--- 使用表AUTO_INCREMENT `ds_hezi`
+-- 使用表AUTO_INCREMENT `{PREFIX}hezi`
 --
-ALTER TABLE `ds_hezi`
+ALTER TABLE `{PREFIX}hezi`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id', AUTO_INCREMENT=1336;
 
 --
--- 使用表AUTO_INCREMENT `ds_kouliang`
+-- 使用表AUTO_INCREMENT `{PREFIX}kouliang`
 --
-ALTER TABLE `ds_kouliang`
+ALTER TABLE `{PREFIX}kouliang`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键ID';
 
 --
--- 使用表AUTO_INCREMENT `ds_link`
+-- 使用表AUTO_INCREMENT `{PREFIX}link`
 --
-ALTER TABLE `ds_link`
+ALTER TABLE `{PREFIX}link`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id';
 
 
@@ -1586,75 +1586,75 @@ ALTER TABLE `ds_link`
 
 
 --
--- 使用表AUTO_INCREMENT `ds_muban`
+-- 使用表AUTO_INCREMENT `{PREFIX}muban`
 --
-ALTER TABLE `ds_muban`
+ALTER TABLE `{PREFIX}muban`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID', AUTO_INCREMENT=13;
 
 --
--- 使用表AUTO_INCREMENT `ds_notify`
+-- 使用表AUTO_INCREMENT `{PREFIX}notify`
 --
-ALTER TABLE `ds_notify`
+ALTER TABLE `{PREFIX}notify`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
--- 使用表AUTO_INCREMENT `ds_number`
+-- 使用表AUTO_INCREMENT `{PREFIX}number`
 --
-ALTER TABLE `ds_number`
+ALTER TABLE `{PREFIX}number`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'id', AUTO_INCREMENT=160;
 
 --
--- 使用表AUTO_INCREMENT `ds_outlay`
+-- 使用表AUTO_INCREMENT `{PREFIX}outlay`
 --
-ALTER TABLE `ds_outlay`
+ALTER TABLE `{PREFIX}outlay`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT 'ID';
 
 --
--- 使用表AUTO_INCREMENT `ds_payed_show`
+-- 使用表AUTO_INCREMENT `{PREFIX}payed_show`
 --
-ALTER TABLE `ds_payed_show`
+ALTER TABLE `{PREFIX}payed_show`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49369;
 
 --
--- 使用表AUTO_INCREMENT `ds_pay_order`
+-- 使用表AUTO_INCREMENT `{PREFIX}pay_order`
 --
-ALTER TABLE `ds_pay_order`
+ALTER TABLE `{PREFIX}pay_order`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=402;
 
 --
--- 使用表AUTO_INCREMENT `ds_pay_setting`
+-- 使用表AUTO_INCREMENT `{PREFIX}pay_setting`
 --
-ALTER TABLE `ds_pay_setting`
+ALTER TABLE `{PREFIX}pay_setting`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- 使用表AUTO_INCREMENT `ds_point_decr`
+-- 使用表AUTO_INCREMENT `{PREFIX}point_decr`
 --
-ALTER TABLE `ds_point_decr`
+ALTER TABLE `{PREFIX}point_decr`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
--- 使用表AUTO_INCREMENT `ds_point_logs`
+-- 使用表AUTO_INCREMENT `{PREFIX}point_logs`
 --
-ALTER TABLE `ds_point_logs`
+ALTER TABLE `{PREFIX}point_logs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- 使用表AUTO_INCREMENT `ds_price`
+-- 使用表AUTO_INCREMENT `{PREFIX}price`
 --
-ALTER TABLE `ds_price`
+ALTER TABLE `{PREFIX}price`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=120;
 
 --
--- 使用表AUTO_INCREMENT `ds_quantity`
+-- 使用表AUTO_INCREMENT `{PREFIX}quantity`
 --
-ALTER TABLE `ds_quantity`
+ALTER TABLE `{PREFIX}quantity`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '抽单ID', AUTO_INCREMENT=80;
 
 --
--- 使用表AUTO_INCREMENT `ds_stock`
+-- 使用表AUTO_INCREMENT `{PREFIX}stock`
 --
-ALTER TABLE `ds_stock`
+ALTER TABLE `{PREFIX}stock`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '资源ID', AUTO_INCREMENT=41349;
 
 
@@ -1662,69 +1662,69 @@ ALTER TABLE `ds_stock`
 
 
 --
--- 使用表AUTO_INCREMENT `ds_system_admin`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_admin`
 --
-ALTER TABLE `ds_system_admin`
+ALTER TABLE `{PREFIX}system_admin`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=185;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_auth`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_auth`
 --
-ALTER TABLE `ds_system_auth`
+ALTER TABLE `{PREFIX}system_auth`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_auth_node`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_auth_node`
 --
-ALTER TABLE `ds_system_auth_node`
+ALTER TABLE `{PREFIX}system_auth_node`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1234;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_config`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_config`
 --
-ALTER TABLE `ds_system_config`
+ALTER TABLE `{PREFIX}system_config`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=178;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_menu`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_menu`
 --
-ALTER TABLE `ds_system_menu`
+ALTER TABLE `{PREFIX}system_menu`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=302;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_node`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_node`
 --
-ALTER TABLE `ds_system_node`
+ALTER TABLE `{PREFIX}system_node`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=242;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_quick`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_quick`
 --
-ALTER TABLE `ds_system_quick`
+ALTER TABLE `{PREFIX}system_quick`
   MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
--- 使用表AUTO_INCREMENT `ds_system_uploadfile`
+-- 使用表AUTO_INCREMENT `{PREFIX}system_uploadfile`
 --
-ALTER TABLE `ds_system_uploadfile`
+ALTER TABLE `{PREFIX}system_uploadfile`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ID', AUTO_INCREMENT=2;
 
 --
--- 使用表AUTO_INCREMENT `ds_tj`
+-- 使用表AUTO_INCREMENT `{PREFIX}tj`
 --
-ALTER TABLE `ds_tj`
+ALTER TABLE `{PREFIX}tj`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=121519;
 
 --
--- 使用表AUTO_INCREMENT `ds_user_money_log`
+-- 使用表AUTO_INCREMENT `{PREFIX}user_money_log`
 --
-ALTER TABLE `ds_user_money_log`
+ALTER TABLE `{PREFIX}user_money_log`
   MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=49806;
 
 --
--- 使用表AUTO_INCREMENT `ds_user_point`
+-- 使用表AUTO_INCREMENT `{PREFIX}user_point`
 --
-ALTER TABLE `ds_user_point`
+ALTER TABLE `{PREFIX}user_point`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=107882;
 COMMIT;
 

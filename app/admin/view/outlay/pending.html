@@ -50,17 +50,29 @@ layui.use(['table', 'form', 'layer'], function () {
         cols: [[
             {type: "checkbox", width: 50},
             {field: 'id', width: 80, title: 'ID', sort: true},
-            {field: 'uid', width: 100, title: '用户ID'},
+            {field: 'uid', width: 100, title: '代理ID'},
             {field: 'money', width: 120, title: '提现金额', templet: function(d){
                 return '￥' + parseFloat(d.money).toFixed(2);
             }},
-            {field: 'bank_name', width: 150, title: '银行名称'},
-            {field: 'bank_account', width: 180, title: '银行账号'},
+            {field: 'image', width: 150, title: '收款码', templet: function(d){
+                if(d.image && d.image.trim() !== '') {
+                    return '<img src="' + d.image + '" style="width: 60px; height: 60px; object-fit: cover; cursor: pointer;" onclick="layer.photos({photos: {data: [{src: \'' + d.image + '\'}]}, anim: 5});">';
+                } else {
+                    return '<span style="color: #999;">未上传</span>';
+                }
+            }},
             {field: 'create_time', width: 160, title: '申请时间', templet: function(d){
-                return new Date(d.create_time * 1000).toLocaleString();
+                if(d.create_time && d.create_time > 0) {
+                    return layui.util.toDateString(d.create_time * 1000, 'yyyy-MM-dd HH:mm:ss');
+                } else {
+                    return '<span style="color: #999;">-</span>';
+                }
             }},
             {field: 'status', width: 100, title: '状态', templet: function(d){
-                return '<span class="layui-badge layui-bg-orange">待审核</span>';
+                var statusMap = {0: '待审核', 1: '已结算', 2: '已拒绝'};
+                var colorMap = {0: 'orange', 1: 'green', 2: 'red'};
+                var bgMap = {0: 'layui-bg-orange', 1: 'layui-bg-green', 2: 'layui-bg-red'};
+                return '<span class="layui-badge ' + bgMap[d.status] + '">' + statusMap[d.status] + '</span>';
             }},
             {title: '操作', width: 200, templet: '#currentTableBar', fixed: "right", align: "center"}
         ]],
