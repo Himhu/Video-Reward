@@ -181,7 +181,7 @@ class Index extends IndexBaseController
                     'time' => date('Y-m-d H:i:s')
                 ]);
                 $point = Point::find($ua);
-                $val   = $point->point += sysconfig('short_video', 'shar_point');
+                $val   = $point->point += sysconfig('site', 'shar_point');
                 $point->save(['point' => $val]);
             }
             //$hezi = (new Hezi())->where(['type' => 2, 'uid' => $this->id])->find();
@@ -627,9 +627,9 @@ class Index extends IndexBaseController
 
         // 返回配置信息
         $config = [
-            'dsp_notify' => sysconfig('short_video', 'dsp_notify'),
-            'shar_box_text' => sysconfig('short_video', 'shar_box_text'),
-            'rvery_point' => sysconfig('short_video', 'rvery_point'),
+            'dsp_notify' => sysconfig('site', 'dsp_notify'),
+            'shar_box_text' => sysconfig('site', 'shar_box_text'),
+            'rvery_point' => sysconfig('site', 'rvery_point'),
             'zbwl' => sysconfig('short_video', 'zbwl'),
             'dspsk' => sysconfig('short_video', 'dspsk'),
         ];
@@ -825,9 +825,9 @@ class Index extends IndexBaseController
             'zbkh'          => $zbkg,
             'zb_t_img'      => $zb_t_img,
             'ff_pc'         => sysconfig('ff', 'ff_pc'),
-            'dsp_notify'    => sysconfig('short_video', 'dsp_notify'),
-            'shar_box_text' => sysconfig('short_video', 'shar_box_text'),
-            'rvery_point'   => sysconfig('short_video', 'rvery_point'),
+            'dsp_notify'    => sysconfig('site', 'dsp_notify'),
+            'shar_box_text' => sysconfig('site', 'shar_box_text'),
+            'rvery_point'   => sysconfig('site', 'rvery_point'),
             'zbwl'          => sysconfig('short_video', 'zbwl'),
             'dspsk'         => sysconfig('short_video', 'dspsk'),
             'money'         => !empty($this->id) ? get_user($this->id, 'date_fee') : 0,
@@ -1237,7 +1237,7 @@ class Index extends IndexBaseController
             return json(['status' => 1, 'msg' => '已扣减不处理', 'data' => $decr, 'total' => 0]);
         }
 
-        $rvery_point = sysconfig('short_video', 'rvery_point');
+        $rvery_point = sysconfig('site', 'rvery_point');
         $s           = $point->point - $rvery_point;
         if ($point->point < 0 || $point->point < $rvery_point)
         {
@@ -1262,7 +1262,7 @@ class Index extends IndexBaseController
         $data        = (new Point())->where(['ua' => $fingerprint])->find();
         if ($data == false)
         {
-            $res = (new Point())->insert(['ua' => $fingerprint, 'point' => sysconfig('short_video', 'add_point'), 'time' => date('Y-m-d H:i:s')]);
+            $res = (new Point())->insert(['ua' => $fingerprint, 'point' => sysconfig('site', 'add_point'), 'time' => date('Y-m-d H:i:s')]);
             return json(['status' => 1, 'msg' => '', 'data' => $data, 'total' => 0]);
         }
         return json(['status' => 1, 'msg' => '', 'data' => $data, 'total' => 0]);

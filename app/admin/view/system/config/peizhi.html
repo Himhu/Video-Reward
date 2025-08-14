@@ -75,6 +75,46 @@
 
 
 
+    <!-- 点播券相关配置 -->
+    <div class="layui-form-item">
+        <label class="layui-form-label">每次播放消耗点播券</label>
+        <div class="layui-input-block">
+            <input type="number" name="rvery_point" class="layui-input" lay-verify="required|number" placeholder="请输入每次播放消耗的点播券数量" value="{:sysconfig('site','rvery_point')}" min="1">
+            <div class="layui-form-mid layui-word-aux">设置用户每次播放视频需要消耗的点播券数量。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">分享好友获得点播券</label>
+        <div class="layui-input-block">
+            <input type="number" name="shar_point" class="layui-input" lay-verify="required|number" placeholder="请输入分享好友可得的点播券数量" value="{:sysconfig('site','shar_point')}" min="1">
+            <div class="layui-form-mid layui-word-aux">设置用户分享好友后可以获得的点播券数量。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">新用户附送点播券</label>
+        <div class="layui-input-block">
+            <input type="number" name="add_point" class="layui-input" lay-verify="required|number" placeholder="请输入新用户附送的点播券数量" value="{:sysconfig('site','add_point')}" min="1">
+            <div class="layui-form-mid layui-word-aux">设置新用户注册时附送的点播券数量。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">视频顶部公告</label>
+        <div class="layui-input-block">
+            <textarea name="dsp_notify" class="layui-textarea" placeholder="请输入视频页面顶部显示的公告内容">{:sysconfig('site','dsp_notify')}</textarea>
+            <div class="layui-form-mid layui-word-aux">设置在视频页面顶部显示的公告内容。</div>
+        </div>
+    </div>
+
+    <div class="layui-form-item">
+        <label class="layui-form-label">分享弹窗提示文本</label>
+        <div class="layui-input-block">
+            <textarea name="shar_box_text" class="layui-textarea" placeholder="请输入分享弹窗中显示的提示文本">{:sysconfig('site','shar_box_text')}</textarea>
+            <div class="layui-form-mid layui-word-aux">设置分享弹窗中显示的提示文本内容。</div>
+        </div>
+    </div>
     <div class="hr-line"></div>
     <div class="layui-form-item text-center">
         <button type="submit" class="layui-btn layui-btn-normal layui-btn-sm" lay-submit="system.config/save" data-refreshFrame="true">确认</button>
